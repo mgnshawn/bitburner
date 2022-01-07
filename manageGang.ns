@@ -9,6 +9,7 @@ export async function main(ns) {
 	while(!await ns.gang.inGang()) {
 		let letCreate = await ns.gang.createGang("Slum Snakes");
 		if(letCreate) {
+			ns.alert("Created your gang!");
 			ns.tprint("CREATED GANG !!!!!");
 		}
 		await ns.sleep(60000);

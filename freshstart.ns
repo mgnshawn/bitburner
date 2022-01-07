@@ -18,6 +18,8 @@ var quiet = true;
 
 // args Ram, Slices, Target
 export async function main(ns) {
+    quiet = true;
+
     if(ns.args[0] !== undefined && (ns.args[0] == "-h" || ns.args[0] == '-?')) {
         await ns.tprint("freshstart.ns Req:(n||Ram in GB)   Req:(slice count)  (-d||designated target)  (-o for only hunting) (-v verbose) ");
         await ns.tprint("Options:Purchase servers     This can run against net servers only or also buy player owned. If buying, specify the starting ram in GB, it will continue to evolve the servers size once the max has been purchased.");
@@ -58,7 +60,7 @@ export async function main(ns) {
     }
     for(var l = 0; l < memmoryLevels.length; l++) {
         if(ram > memmoryLevels[l]) {
-            currentServerLevelIndex = l;
+            currentServerLevelIndex = (l+1);
         }
     }
     var currentServerLevel = memmoryLevels[currentServerLevelIndex];
@@ -393,14 +395,24 @@ async function checkForApps(ns) {
     if(haveTor == false && ns.getServerMoneyAvailable("home") >= 200000) {
         ns.purchaseTor();
     }
-    if(!ns.fileExists("BruteSSH.exe") && ns.getServerMoneyAvailable("home") >= 1500000)
+    if(!ns.fileExists("BruteSSH.exe") && ns.getServerMoneyAvailable("home") >= 500000) {
         ns.purchaseProgram("BruteSSH.exe");
-    if(!ns.fileExists("FTPCrack.exe") && ns.getServerMoneyAvailable("home") >= 2500000)
+        ns.alert("Bought BruteSSH");
+    }
+    if(!ns.fileExists("FTPCrack.exe") && ns.getServerMoneyAvailable("home") >= 1500000) {
         ns.purchaseProgram("FTPCrack.exe");
-    if(!ns.fileExists("relaySMTP.exe") && ns.getServerMoneyAvailable("home") >= 5000000)
+        ns.alert("Bought FTPCrack");
+    }
+    if(!ns.fileExists("relaySMTP.exe") && ns.getServerMoneyAvailable("home") >= 5000000) {
         ns.purchaseProgram("relaySMTP.exe");
-    if(!ns.fileExists("HTTPWorm.exe") && ns.getServerMoneyAvailable("home") >= 30000000)
+        ns.alert("Bought relaySMTP");
+    }
+    if(!ns.fileExists("HTTPWorm.exe") && ns.getServerMoneyAvailable("home") >= 30000000) {
         ns.purchaseProgram("HTTPWorm.exe");
-    if(!ns.fileExists("SQLInject.exe")&& ns.getServerMoneyAvailable("home") >= 250000000)
+        ns.alert("Bought HTTPWorm");
+    }
+    if(!ns.fileExists("SQLInject.exe")&& ns.getServerMoneyAvailable("home") >= 250000000) {
         ns.purchaseProgram("SQLInject.exe");
+        ns.alert("Bought SQLInject");
+    }
 }
