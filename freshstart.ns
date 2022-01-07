@@ -51,6 +51,9 @@ export async function main(ns) {
     var lf = 1024*1024;
     var memmoryLevels = [16,32,256,1024,2048,4096,32768,l1,l2,lf];
     var currentServerLevelIndex = 0;
+    if(ram == 'n') {
+        ram = 8;
+    }
     for(var l = 0; l < memmoryLevels.length; l++) {
         if(ram > memmoryLevels[l]) {
             currentServerLevelIndex = l;
@@ -70,9 +73,6 @@ export async function main(ns) {
     if(ns.args[4] !== undefined && ns.args[4] == '-v') {
         quiet = false;
     }
-
-    var ram = ns.args[0];
-    var slice = ns.args[1];
 
     level2 = false;level3 = false;level4=false;level5=false;
     if(!quiet)await ns.tprint("Cost to purchase these servers: "+ns.getPurchasedServerCost(ram));
