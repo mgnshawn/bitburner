@@ -1,10 +1,43 @@
+var remainder=50;
+var infinite=false;
 /** @param {NS} ns **/
 export async function main(ns) {
-	while(true) {
+	 if(ns.args[0] !== undefined && (ns.args[0] == "-h" || ns.args[0] == '-?')) {
+        await ns.tprint("Crime it up: (1:shoplift,2:Rob store,3:Mug someone,4:Homicide) optional(-l longterm: N=run 50 loops, Y=run forever but pause 4 seconds so you can kill it");
+        ns.exit();
+    }
+    if(ns.args[0] !== undefined && ns.args[1] !== undefined) {
+        if(ns.args[1] == '-l') {
+            infinite = true;
+        }   
+    }
+    var crime = "Shoplift";
+    switch(ns.args[0]) {
+        case 2:
+        crime = "Rob store";
+        break;
+        case 3:
+        crime = "Mug someone";
+        break;
+        case 4:
+        crime = "Homicide";
+    }
+	while((infinite) || (remainder > 0)) {
 		if(!ns.isBusy()) {
-			ns.commitCrime("Homicide");
+			ns.commitCrime(crime);
+            remainder--;
+            ns.toast("Remaining: "+remainder);
 		}
-		await ns.sleep(5000);
+        if(infinite) {
+            if(remainder > 0) {
+		        await ns.sleep(50);
+                remainder--;
+            } else {
+                await ns.sleep(10000);
+                remainder = 0;
+            }
+        } else {
+            await ns.sleep(100);
+        }
 	}
-
 }
