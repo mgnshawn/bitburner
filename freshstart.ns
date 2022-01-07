@@ -2,6 +2,7 @@ var ownedServers = {'home':'home'};
 var highestLevelSeen = 1;
 var scriptRam = 0;
 var purchaseServers = false;
+var haveTor = false;
 var level1 = false;
 var level2 = false;
 var level3 = false;
@@ -13,6 +14,7 @@ var contractsFound = [];
 var onlyHunting = false;
 var designateTarget = false;
 var quiet = true;
+
 
 // args Ram, Slices, Target
 export async function main(ns) {
@@ -135,6 +137,7 @@ var i = 0;
 
 // Continuously try to purchase servers until we've reached the maximum
 while (purchaseServers == true && !onlyHunting && i < ns.getPurchasedServerLimit() && ns.getPurchasedServers().length < ns.getPurchasedServerLimit()) {
+    await checkForApps(ns);
     crackers = 0;
     if(ns.fileExists("BruteSSH.exe"))
         crackers++;
@@ -170,6 +173,7 @@ while (purchaseServers == true && !onlyHunting && i < ns.getPurchasedServerLimit
 }
 if(!quiet)await ns.tprint("Moving on to upgrade loop...");
 while (purchaseServers == true && !onlyHunting &&  currentServerLevel <= memmoryLevels[(memmoryLevels.length-1)]) {
+    await checkForApps(ns);
     crackers = 0;
     if(ns.fileExists("BruteSSH.exe"))
         crackers++;
@@ -242,6 +246,7 @@ while (purchaseServers == true && !onlyHunting &&  currentServerLevel <= memmory
     }
 
     while(true) {
+        await checkForApps(ns);
         crackers = 0;
         if(ns.fileExists("BruteSSH.exe"))
             crackers++;
@@ -382,4 +387,20 @@ async function startHacking(ns,serv,thisTarget) {
                 await ns.exec("hackit.ns", serv, extraCopies, thisTarget, rand, extraCopies);                
             }
         }    
+}
+
+async function checkForApps(ns) {
+    if(haveTor == false && ns.getServerMoneyAvailable("home") >= 200000) {
+        ns.purchaseTor();
+    }
+    if(!ns.fileExists("BruteSSH.exe") && ns.getServerMoneyAvailable("home") >= 1500000)
+        ns.purchaseProgram("BruteSSH.exe");
+    if(!ns.fileExists("FTPCrack.exe") && ns.getServerMoneyAvailable("home") >= 2500000)
+        ns.purchaseProgram("FTPCrack.exe");
+    if(!ns.fileExists("relaySMTP.exe") && ns.getServerMoneyAvailable("home") >= 5000000)
+        ns.purchaseProgram("relaySMTP.exe");
+    if(!ns.fileExists("HTTPWorm.exe") && ns.getServerMoneyAvailable("home") >= 30000000)
+        ns.purchaseProgram("HTTPWorm.exe");
+    if(!ns.fileExists("SQLInject.exe")&& ns.getServerMoneyAvailable("home") >= 250000000)
+        ns.purchaseProgram("SQLInject.exe");
 }
