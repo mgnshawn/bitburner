@@ -2,27 +2,33 @@ var infinite=false;
 var crimes=['Shoplift','Rob store','Mug someone','Homicide','Kidnap and ransom','Assassinate','Heist'];
 /** @param {NS} ns **/
 export async function main(ns) {
-    var remainder = 100;
+    ns.disableLog('sleep');
+    var remainder = 90;
     var runByMoney = false;
     var growthTarget = 0;
     var growthRemaining = 0;
     var crimeWin = 1000;
     var autoCrime = false;
+    var baseRemainder = 90;
 	 if(ns.args[0] !== undefined && (ns.args[0] == "-h" || ns.args[0] == '-?')) {
-        await ns.tprint("Crime it up: -auto||(1:shoplift,2:Rob store,3:Mug someone,4:Homicide,4A:Homicide+Assassinate) optional:moneyRun optional(-l longterm: N=run 50 loops, Y=run forever but pause 4 seconds so you can kill it");
+        await ns.tprint("Crime it up: auto||(1:shoplift,2:Rob store,3:Mug someone,4:Homicide,4A:Homicide+Assassinate) optional:moneyRun optional(l longterm, s shortterm, N=run 50 loops, forever but pause 4 seconds so you can kill it");
         await ns.tprint("Option: MoneyRun:: specifies to run for X dollars of growth");
         ns.exit();
     }
     if(ns.args[0] !== undefined && ns.args[1] !== undefined) {
-        if(ns.args[1] == '-l') {
+        if(ns.args[1] == 'l') {
             infinite = true;
-        } else if(ns.args[2] !== undefined && ns.args[2] == '-l') {
+        } else if(ns.args[1] == 's') {
+            baseRemainder = 15;
+        } else if(ns.args[2] !== undefined && ns.args[2] == 'l') {
             infinite = true;
-        }  
+        } else if(ns.args[2] !== undefined && ns.args[2] == 's') {
+            baseRemainder = 15;
+        }
     } else {
         infinite = false;
     }
-    if(ns.args[1] !== undefined && ns.args[1] !== '-l') {
+    if(ns.args[1] !== undefined && ns.args[1] !== 'l' && ns.args[1] !== 's') {
         growthTarget = growthRemaining = ns.args[1]+ns.getServerMoneyAvailable("home");
         runByMoney = true;
 
@@ -34,7 +40,7 @@ export async function main(ns) {
         case "2":
         case 2:
         crime = "Rob store";
-        remainder = 4;
+        remainder = baseRemainder = (baseRemainder/15);
         crimeWin = 141000;
         break;
         case "3":
@@ -60,7 +66,7 @@ export async function main(ns) {
     }
     }
     if(crime == "Assassinate" || crime == "Heist") {
-        remainder = 1;
+        remainder = baseRemainder = 1;
     }
 	while((infinite) || (remainder > 0) && (!runByMoney || (ns.getServerMoneyAvailable('home') < growthTarget))) {
         if(autoCrime) {
@@ -104,10 +110,11 @@ export async function main(ns) {
                 await ns.sleep(5000);
                 ns.toast("Resuming in  5");
                 await ns.sleep(5000);
-                remainder = 100;
+                remainder = baseRemainder;
             }
         }
     }
+    ns.enableLog('sleep');
 }
 
 async function chooseBestCrime(ns) {

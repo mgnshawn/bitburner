@@ -1,3 +1,4 @@
+import { chooseTarget } from './init.ns';
 var ownedServers = {'home':'home'};
 var highestLevelSeen = 1;
 var scriptRam = 0;
@@ -14,15 +15,26 @@ var contractsFound = [];
 var onlyHunting = false;
 var designateTarget = false;
 var quiet = true;
+var autoTarget = false;
 
 
 // args Ram, Slices, Target
 export async function main(ns) {
     ns.tail();
     quiet = true;
+    ns.disableLog('sleep');
+    ns.disableLog('getServerUsedRam');
+    ns.disableLog('getServerMaxRam');
+    ns.disableLog('getServerRequiredHackingLevel');
+    ns.disableLog('getScriptRam');
+    ns.disableLog('getPlayer');
+    ns.disableLog('getPurchasedServers');
+    ns.disableLog('getPurchasedServerLimit');
+    ns.disableLog('getServerNumPortsRequired');
+    ns.disableLog('scan');
 
     if(ns.args[0] !== undefined && (ns.args[0] == "-h" || ns.args[0] == '-?')) {
-        await ns.print("freshstart.ns Req:(n||Ram in GB)   Req:(slice count)  (-d||designated target)  (-o for only hunting) (-v verbose) ");
+        await ns.print("freshstart.ns Req:(n||Ram in GB)   Req:(slice count)  (s self target||a auto||target name)  (o for only hunting) (v verbose) ");
         await ns.print("Options:Purchase servers     This can run against net servers only or also buy player owned. If buying, specify the starting ram in GB, it will continue to evolve the servers size once the max has been purchased.");
         await ns.print("Options:Slice count     How many copies of the hackit.ns app should run. More yields better overall returns. The thread count will be calculated based on server size and slice count. Minimum 1");
         await ns.print("Options:Designate Target     Designate a server all conquered servers should attack, if not designated then conquered servers will be set to target themselves.");
@@ -30,6 +42,7 @@ export async function main(ns) {
         await ns.print("The app will discover the network and attempt to conquer any server below your level that you have appropriate crackers for. It will continue this loop as you continue to level up. It will also make sure all your owned servers are running the hackit.ns script at full levels starting with home. If set to purchase servers, it will purchase servers at the memory level specified. Once 25 servers have been purchased it will recycle the oldest and purchase a server at the next memory size.");
         ns.exit();
     }
+
 
     if(ns.fileExists("BruteSSH.exe"))
         crackers++;
@@ -66,16 +79,21 @@ export async function main(ns) {
     }
     var currentServerLevel = memmoryLevels[currentServerLevelIndex];
 
-    if(ns.args[2] == undefined || ns.args[2] == '-d' || ns.args[2] == '-D') {
+    if(ns.args[2] == undefined || ns.args[2] == 's' || ns.args[2] == 'S') {
         designateTarget = false;
+    } else if(ns.args[2] == "auto") {
+        designateTarget = true;
+        autoTarget = true;
+        target = chooseTarget(ns.getPlayer()["hacking"])["target"];
+        slice = chooseTarget(ns.getPlayer()["hacking"])["slice"];
     } else {
         designateTarget = true;
         target = ns.args[2];
     }
-    if(ns.args[3] !== undefined && (ns.args[3] == '-o' || ns.args[3] == '-O')) {
+    if(ns.args[3] !== undefined && (ns.args[3] == 'o' || ns.args[3] == 'O')) {
         onlyHunting = true;
     }
-    if(ns.args[4] !== undefined && ns.args[4] == '-v') {
+    if(ns.args[4] !== undefined && ns.args[4] == 'v') {
         quiet = false;
     }
 
@@ -90,12 +108,14 @@ export async function main(ns) {
         target = serv;
     }
     var threads = Math.floor((ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv))/scriptRam);
+    threads = threads - 6;
     if(threads < 1) {
         threads = 1;
     }
     await ns.run("hackit.ns", threads, target);
         if((ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv)) > Math.ceil(scriptRam)) {
             var extraCopies = Math.floor((ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv))/scriptRam);
+            extraCopies = extraCopies - 6;
             if(extraCopies > 0) {
                 if(!quiet)await ns.print("Starting "+extraCopies+" extra hackit threads on "+serv);
                 await ns.run("hackit.ns", extraCopies, target, rand, extraCopies);                
@@ -127,6 +147,9 @@ if(designateTarget !== false ) {
         rand = Math.random();
         if((ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv)) > Math.ceil(scriptRam)) {
             var extraCopies = Math.floor((ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv))/scriptRam);
+            if(serv == "home") {
+                extraCopies = extraCopies - 5;
+            }
             if(extraCopies > 0) {
                 if(!quiet)await ns.print("Starting "+extraCopies+" extra hackit threads on owned server: "+serv);
                 await ns.exec("hackit.ns", serv, extraCopies, target, rand, extraCopies);                
@@ -134,7 +157,6 @@ if(designateTarget !== false ) {
         }
     }
 }
-
 
 var i = 0;
 
@@ -152,6 +174,11 @@ while (purchaseServers == true && !onlyHunting && i < ns.getPurchasedServerLimit
         crackers++;
     if(ns.fileExists("SQLInject.exe"))
         crackers++;
+
+    if(autoTarget) {
+        slice = chooseTarget(ns.getPlayer()["hacking"])["slice"];
+        target = chooseTarget(ns.getPlayer()["hacking"])["target"];
+    }
     // Check if we have enough money to purchase a server
     
     if (ns.getServerMoneyAvailable("home") > ns.getPurchasedServerCost(ram)) {
@@ -181,6 +208,7 @@ while (purchaseServers == true && !onlyHunting && i < ns.getPurchasedServerLimit
     await scanServer(ns,{'home':'home'}, target, 0);
     await ns.sleep(10000);
 }
+await ns.sleep(60000 * 10);
 if(!quiet)await ns.print("Moving on to upgrade loop...");
 while (purchaseServers == true && !onlyHunting &&  currentServerLevel <= memmoryLevels[(memmoryLevels.length-1)]) {
     await checkForApps(ns);
@@ -195,6 +223,10 @@ while (purchaseServers == true && !onlyHunting &&  currentServerLevel <= memmory
         crackers++;
     if(ns.fileExists("SQLInject.exe"))
         crackers++;
+    if(autoTarget) {
+        slice = chooseTarget(ns.getPlayer()["hacking"])["slice"];
+        target = chooseTarget(ns.getPlayer()["hacking"])["target"];
+    }
     var upgrade = true;
     var servers = ns.getPurchasedServers();
    
@@ -249,7 +281,7 @@ while (purchaseServers == true && !onlyHunting &&  currentServerLevel <= memmory
                 upgrade = false;
             }
         }
-        if(upgrade == true) {           o
+        if(upgrade == true) {           
             checkForApps(ns);
             await ns.sleep(50000);
             currentServerLevelIndex++;
@@ -282,23 +314,10 @@ while (purchaseServers == true && !onlyHunting &&  currentServerLevel <= memmory
         await scanServer(ns,{'home':'home'}, target, 0);
         await ns.sleep(60000);
     }
+    ns.enableLog('sleep');
 }
 
 
-
-// depricated
-/** @param {NS} ns **/
-/*
-async function spider(ns) {
-	var player = ns.getPlayer();
-	var playerLevel = player.hacking;
-	while(highestLevelSeen < 1200) {
-	for(var a = 0;a < Object.index(ownedServers).length; a++) {
-		await scanServer(ns,ownedServers[a]);
-	}
-	await ns.sleep(200);
-	}
-}*/
 
 async function scanServer(ns,source, target, level) {
     level++;
@@ -415,6 +434,10 @@ async function checkForApps(ns) {
     if(!ns.fileExists("BruteSSH.exe") && ns.getServerMoneyAvailable("home") >= 500000) {
         ns.purchaseProgram("BruteSSH.exe");
         ns.alert("Bought BruteSSH");
+    }
+    if(!ns.fileExists("AutoLink.exe") && ns.getServerMoneyAvailable("home") >= 1500000) {
+        ns.purchaseProgram("AutoLink.exe");
+        ns.alert("Bought AutoLink");
     }
     if(!ns.fileExists("FTPCrack.exe") && ns.getServerMoneyAvailable("home") >= 1500000) {
         ns.purchaseProgram("FTPCrack.exe");
