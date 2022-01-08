@@ -1,5 +1,5 @@
 var infinite=false;
-var crimes=['Shoplift','Rob store','Mug someone','Kidnap and ransom','Assassinate','Heist'];
+var crimes=['Shoplift','Rob store','Mug someone','Homicide','Kidnap and ransom','Assassinate','Heist'];
 /** @param {NS} ns **/
 export async function main(ns) {
     var remainder = 100;
@@ -7,6 +7,7 @@ export async function main(ns) {
     var growthTarget = 0;
     var growthRemaining = 0;
     var crimeWin = 1000;
+    var autoCrime = false;
 	 if(ns.args[0] !== undefined && (ns.args[0] == "-h" || ns.args[0] == '-?')) {
         await ns.tprint("Crime it up: -auto||(1:shoplift,2:Rob store,3:Mug someone,4:Homicide,4A:Homicide+Assassinate) optional:moneyRun optional(-l longterm: N=run 50 loops, Y=run forever but pause 4 seconds so you can kill it");
         await ns.tprint("Option: MoneyRun:: specifies to run for X dollars of growth");
@@ -52,6 +53,7 @@ export async function main(ns) {
         longCrime = "Assassinate";
         break;
         case "auto":
+        autoCrime = true;
         crime=await chooseBestCrime(ns);
         ns.tprint("Performing "+crime);
         break;
@@ -61,6 +63,9 @@ export async function main(ns) {
         remainder = 1;
     }
 	while((infinite) || (remainder > 0) && (!runByMoney || (ns.getServerMoneyAvailable('home') < growthTarget))) {
+        if(autoCrime) {
+            crime = await chooseBestCrime(ns);
+        }
 		if(!ns.isBusy()) {
 			ns.commitCrime(crime);
             --remainder;

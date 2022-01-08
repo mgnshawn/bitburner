@@ -159,7 +159,11 @@ while (purchaseServers == true && !onlyHunting && i < ns.getPurchasedServerLimit
         var hostname = ns.purchaseServer("attack-"+target+"-"+(ram)+"gb-"+ i, (ram));
         for(var s=1;s<=slice;s++) {
             await ns.scp("hackit.ns", hostname);
-            await ns.exec("hackit.ns", hostname, Math.floor((ram)/Math.ceil(scriptRam)/slice), target,s);
+            let thisThreads = Math.floor((ram)/Math.ceil(scriptRam)/slice);
+            if(thisThreads < 1) {
+                thisThreads = 1;
+            }
+            await ns.exec("hackit.ns", hostname, thisThreads, target,s);
             await ns.sleep(300);
         }
         if((ns.getServerMaxRam(hostname) - ns.getServerUsedRam(hostname)) > Math.ceil(scriptRam)) {
