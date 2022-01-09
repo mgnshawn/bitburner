@@ -1,6 +1,6 @@
 const baseUrl = 'https://raw.githubusercontent.com/mgnshawn/bitburner/master/';
 const filesToDownload = [
-  'bitburner.js','crimeItUp.ns','go.ns','hackit.ns','manageGang.ns','factionUp.ns'
+  'bitburner.js','crimeItUp.js','go.js','hackit.js','manageGang.js','factionUp.js'
 ];
 
 export async function main(ns) {
@@ -21,15 +21,15 @@ export async function main(ns) {
     await ns.wget(path + '?ts=' + new Date().getTime(), filename);
   }
   if(ns.getPlayer()["hacking_mult"] < switchToCrimeAt) {
-    await ns.run('factionUp.ns');
+    await ns.run('factionUp.js');
   } else {
-    await ns.run('crimeItUp.ns',1,"auto",'-l');
+    await ns.run('crimeItUp.js',1,"auto",'-l');
   }
   let targetInfo = chooseTarget(ns.getPlayer()["hacking"]);
   if(targetInfo["runGang"]) {
-    ns.run('manageGang.ns');
+    ns.run('manageGang.js');
   }
-  ns.spawn('go.ns', 1, 16, targetInfo["slice"], targetInfo["target"], "n", "v", "initial");
+  ns.spawn('go.js', 1, 16, targetInfo["slice"], targetInfo["target"], "n", "v", "initial");
 }
 
 export function chooseTarget(hackingLevel) {

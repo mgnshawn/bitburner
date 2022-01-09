@@ -23,7 +23,7 @@ export async function main(ns) {
 
 
 	ns.tail();
-	//ns.run('crimeItUp.ns',1,"auto",'l');
+	//ns.run('crimeItUp.js',1,"auto",'l');
 	ns.print("Starting to crime it up for initial money");
 	finishFacLevel:
 	for(let joinList = 0; joinList < Object.keys(initialFaction).length; joinList++) {
@@ -112,11 +112,11 @@ export async function main(ns) {
 							} else {
 								ns.print("Criming for money. "+"[Faction|| "+Object.keys(Augs)[faction]+" [Round|| "+round+" [Aug|| "+Augs[Object.keys(Augs)[faction]][round][aug]+ " Remaining needed $"+(ns.getAugmentationPrice(Augs[Object.keys(Augs)[faction]][round][aug]) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US"));								
 								ns.stopAction();
-								if((ns.getServerMaxRam("home") - ns.getServerUsedRam("home")) < ns.getScriptRam("crimeItUp.ns")) {
-									await ns.scriptKill("hackit.ns","home");
+								if((ns.getServerMaxRam("home") - ns.getServerUsedRam("home")) < ns.getScriptRam("crimeItUp.js")) {
+									await ns.scriptKill("hackit.js","home");
 								}
-								if(!ns.scriptRunning('crimeItUp.ns','home')) {
-									await ns.run('crimeItUp.ns',1,"auto","s");
+								if(!ns.scriptRunning('crimeItUp.js','home')) {
+									await ns.run('crimeItUp.js',1,"auto","s");
 								}
 							}
 							await ns.sleep(30000);
@@ -135,7 +135,7 @@ export async function main(ns) {
 	if(ns.heart.break()<35000) {
 		ns.print("Installing Augmentations");	
 		ns.enableLog('sleep');
-		ns.installAugmentations('init.ns');
+		ns.installAugmentations('init.js');
 	} else {
 		ns.print("Riding out this reboot for Gang creation");
 		while(!ns.gang.inGang()) {
@@ -170,11 +170,11 @@ async function runUpgradeLoop(ns) {
 					ns.print("Criming for money. Remaining needed $"+(ns.getAugmentationPrice(gradeUpAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US"));
 					if(!ns.isBusy()) {
 						ns.stopAction();
-						if((ns.getServerMaxRam("home") - ns.getServerUsedRam("home")) < ns.getScriptRam("crimeItUp.ns")) {
-							await ns.scriptKill("hackit.ns","home");
+						if((ns.getServerMaxRam("home") - ns.getServerUsedRam("home")) < ns.getScriptRam("crimeItUp.js")) {
+							await ns.scriptKill("hackit.js","home");
 						}
-						if(!ns.scriptRunning('crimeItUp.ns','home')) {
-							await ns.run('crimeItUp.ns',1,"auto","l");
+						if(!ns.scriptRunning('crimeItUp.js','home')) {
+							await ns.run('crimeItUp.js',1,"auto","l");
 						}
 					}
 				}
