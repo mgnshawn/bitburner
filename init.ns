@@ -6,7 +6,7 @@ const filesToDownload = [
 export async function main(ns) {
 
   let hostname = ns.getHostname();
-  let switchToCrimeAt = 1.75;
+  let switchToCrimeAt = 1.85;
   if (hostname !== 'home') {
     throw new Exception('Run the script from home');
   }

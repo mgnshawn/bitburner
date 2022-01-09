@@ -1,6 +1,15 @@
 /** @param {NS} ns **/
 export async function main(ns) {
 	ns.disableLog('sleep');
+    ns.disableLog('getServerUsedRam');
+    ns.disableLog('getServerMaxRam');
+    ns.disableLog('getServerRequiredHackingLevel');
+    ns.disableLog('getScriptRam');
+    ns.disableLog('getPlayer');
+    ns.disableLog('getPurchasedServers');
+    ns.disableLog('getPurchasedServerLimit');
+    ns.disableLog('getServerNumPortsRequired');
+    ns.disableLog('scan');
 	let initialFaction = {'CSEC':"CyberSec",'New Tokyo':"Tian Di Hui","Aevum":"Aevum","Sector-12":"Sector-12"};
 	let workToDo = "hacking contracts";
 	
@@ -14,6 +23,7 @@ export async function main(ns) {
 
 	ns.tail();
 	ns.run('crimeItUp.ns',1,"auto",'l');
+	ns.print("Starting to crime it up for initial money");
 	finishFacLevel:
 	for(let joinList = 0; joinList < Object.keys(initialFaction).length; joinList++) {
 		ns.print("In faction list level "+joinList);
@@ -77,12 +87,13 @@ export async function main(ns) {
 					} else {
 					if(!ns.getOwnedAugmentations(true).includes(Augs[Object.keys(Augs)[faction]][round][aug])) {
 						inActiveRound = true;
+						ns.stopAction();
 						activeRound = round;
 						ns.print("[Faction|| "+Object.keys(Augs)[faction]+" [Round|| "+round+" [Aug|| "+Augs[Object.keys(Augs)[faction]][round][aug]+ " Requires $"+ns.getAugmentationPrice(Augs[Object.keys(Augs)[faction]][round][aug]).toLocaleString("en-US")+" and "+ns.getAugmentationRepReq(Augs[Object.keys(Augs)[faction]][round][aug]).toLocaleString("en-US")+" Rep");
 			
 						let repNeeded = ns.getAugmentationRepReq(Augs[Object.keys(Augs)[faction]][round][aug]);
 						while(ns.getFactionRep(initialFaction[Object.keys(initialFaction)[0]]) < repNeeded) {
-							ns.print("Working for rep. Remaining rep needed: " + (ns.getAugmentationRepReq(Augs[Object.keys(Augs)[faction]][round][aug]) - ns.getFactionRep(initialFaction[Object.keys(initialFaction)[0]])).toLocaleString("en-US"));
+							ns.print("Working for rep. "+"[Faction|| "+Object.keys(Augs)[faction]+" [Round|| "+round+" [Aug|| "+Augs[Object.keys(Augs)[faction]][round][aug]+ " Remaining rep needed: " + (ns.getAugmentationRepReq(Augs[Object.keys(Augs)[faction]][round][aug]) - ns.getFactionRep(initialFaction[Object.keys(initialFaction)[0]])).toLocaleString("en-US"));
 							ns.workForFaction(initialFaction[Object.keys(initialFaction)[0]], workToDo);
     						await ns.sleep(60000);
 						}
@@ -93,12 +104,14 @@ export async function main(ns) {
 									ns.print("Purchased Aug: "+Augs[Object.keys(Augs)[faction]][round][aug]);
 								}
 							} else {
-								ns.print("Criming for money. Remaining needed $"+(ns.getAugmentationPrice(Augs[Object.keys(Augs)[faction]][round][aug]) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US"));
+								ns.print("Criming for money. "+"[Faction|| "+Object.keys(Augs)[faction]+" [Round|| "+round+" [Aug|| "+Augs[Object.keys(Augs)[faction]][round][aug]+ " Remaining needed $"+(ns.getAugmentationPrice(Augs[Object.keys(Augs)[faction]][round][aug]) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US"));								
 								ns.stopAction();
 								if((ns.getServerMaxRam("home") - ns.getServerUsedRam("home")) < ns.getScriptRam("crimeItUp.ns")) {
 									await ns.scriptKill("hackit.ns","home");
 								}
-								await ns.run('crimeItUp.ns',1,"auto","s");
+								if(!ns.scriptRunning('crimeItUp.ns','home')) {
+									await ns.run('crimeItUp.ns',1,"auto","s");
+								}
 							}
 							await ns.sleep(30000);
 						}		
@@ -110,9 +123,7 @@ export async function main(ns) {
 				}
 			}
 		}
-	}
-
-	
+	}	
 	
 	
 	ns.enableLog('sleep');
@@ -124,6 +135,7 @@ async function runUpgradeLoop(ns) {
 	let gradeUpAug = "NeuroFlux Governor";
 	let workToDo = "hacking contracts";
 	for(let countit = 1;countit <= (activeRound+2);countit++) {
+		ns.stopAction();
 		let onToNext = false;
 		ns.print("GradeUp Aug "+gradeUpAug+" "+countit+ " Requires $"+ns.getAugmentationPrice(gradeUpAug).toLocaleString("en-US")+" and "+ns.getAugmentationRepReq(gradeUpAug)+" Rep");
 		let repNeeded = ns.getAugmentationRepReq(gradeUpAug);
@@ -146,7 +158,9 @@ async function runUpgradeLoop(ns) {
 						if((ns.getServerMaxRam("home") - ns.getServerUsedRam("home")) < ns.getScriptRam("crimeItUp.ns")) {
 							await ns.scriptKill("hackit.ns","home");
 						}
-						await ns.run('crimeItUp.ns',1,"auto","l");
+						if(!ns.scriptRunning('crimeItUp.ns','home')) {
+							await ns.run('crimeItUp.ns',1,"auto","l");
+						}
 					}
 				}
 			await ns.sleep(10000);
