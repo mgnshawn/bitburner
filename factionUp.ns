@@ -10,23 +10,23 @@ export async function main(ns) {
     ns.disableLog('getPurchasedServerLimit');
     ns.disableLog('getServerNumPortsRequired');
     ns.disableLog('scan');
-	let initialFaction = {'CSEC':"CyberSec",'New Tokyo':"Tian Di Hui","Aevum":"Aevum","Sector-12":"Sector-12"};
+	let initialFaction = {'CSEC':"CyberSec",'New Tokyo':"Tian Di Hui","Aevum":"Aevum","Sector-12":"Sector-12","Aevum":"The Syndicate"};
 	let workToDo = "hacking contracts";
 	
 	let Augs = {'CyberSec':[["Synaptic Enhancement Implant","Neurotrainer I"],
 				["BitWire"]]};
 				//["Cranial Signal Processors - Gen I","Cranial Signal Processors - Gen II", 'Upgrade']]};
 		Augs['Tian Di Hui'] =[['Social Negotiation Assistant (S.N.A)',  'ADR-V1 Pheromone Gene']]; //'Neuroreceptor Management Implant'
-		Augs['Aevum'] = [['PCMatrix 3b']];
-		Augs['Sector-12'] = [['Neuralstimulator 5b']];
+		Augs['Aevum'] = [['PCMatrix']];
+		Augs['Sector-12'] = [['Neuralstimulator']];
+		Augs['The Syndicate'] = [["The Shadow's Simulacrum","Power Recirculation Core"]];
 
 
 	ns.tail();
-	ns.run('crimeItUp.ns',1,"auto",'l');
+	//ns.run('crimeItUp.ns',1,"auto",'l');
 	ns.print("Starting to crime it up for initial money");
 	finishFacLevel:
 	for(let joinList = 0; joinList < Object.keys(initialFaction).length; joinList++) {
-		ns.print("In faction list level "+joinList);
 		if(Object.keys(initialFaction)[joinList] == 'CSEC') {
 			while(!ns.getServer(Object.keys(initialFaction)[joinList]).backdoorInstalled) {		
 				ns.print("Waiting to install backdoor on CSEC");
@@ -68,8 +68,12 @@ export async function main(ns) {
 						if(succ) {
 							ns.print("   ...Joined "+initialFaction[Object.keys(initialFaction)[joinList]]);
 						}
+					} else {
+						ns.print("waiting for invitation to "+initialFaction[Object.keys(initialFaction)[joinList]]);
 					}
 				
+				} else {
+					ns.print("waiting for enough money to travel to "+Object.keys(initialFaction)[joinList]);
 				}
 				await ns.sleep(5000);
 			}
@@ -78,7 +82,8 @@ export async function main(ns) {
 		let inActiveRound = false;
 		let activeRound = 0;
 	
-		for(let faction = 0;faction < Object.keys(Augs).length; faction++) {
+	let faction = joinList;
+		//for(let faction = 0;faction < Object.keys(Augs).length; faction++) {
 			for(let round = 0;round < Augs[Object.keys(Augs)[faction]].length; round++) {		
 				for(let aug = 0; aug < Augs[Object.keys(Augs)[faction]][round].length; aug++) {
 					if(Augs[Object.keys(Augs)[faction]][round][aug] == "Upgrade") {
@@ -92,14 +97,15 @@ export async function main(ns) {
 						ns.print("[Faction|| "+Object.keys(Augs)[faction]+" [Round|| "+round+" [Aug|| "+Augs[Object.keys(Augs)[faction]][round][aug]+ " Requires $"+ns.getAugmentationPrice(Augs[Object.keys(Augs)[faction]][round][aug]).toLocaleString("en-US")+" and "+ns.getAugmentationRepReq(Augs[Object.keys(Augs)[faction]][round][aug]).toLocaleString("en-US")+" Rep");
 			
 						let repNeeded = ns.getAugmentationRepReq(Augs[Object.keys(Augs)[faction]][round][aug]);
-						while(ns.getFactionRep(initialFaction[Object.keys(initialFaction)[0]]) < repNeeded) {
-							ns.print("Working for rep. "+"[Faction|| "+Object.keys(Augs)[faction]+" [Round|| "+round+" [Aug|| "+Augs[Object.keys(Augs)[faction]][round][aug]+ " Remaining rep needed: " + (ns.getAugmentationRepReq(Augs[Object.keys(Augs)[faction]][round][aug]) - ns.getFactionRep(initialFaction[Object.keys(initialFaction)[0]])).toLocaleString("en-US"));
-							ns.workForFaction(initialFaction[Object.keys(initialFaction)[0]], workToDo);
+						while(ns.getFactionRep(Object.keys(Augs)[faction]) < repNeeded) {
+							ns.print("Working for rep. "+"[Faction|| "+Object.keys(Augs)[faction]+" [Round|| "+round+" [Aug|| "+Augs[Object.keys(Augs)[faction]][round][aug]+ " Remaining rep needed: " + (ns.getAugmentationRepReq(Augs[Object.keys(Augs)[faction]][round][aug]) - ns.getFactionRep(Object.keys(Augs)[faction])).toLocaleString("en-US"));
+							ns.workForFaction(Object.keys(Augs)[faction], workToDo);
     						await ns.sleep(60000);
 						}
 						while (!ns.getOwnedAugmentations(true).includes(Augs[Object.keys(Augs)[faction]][round][aug])) {
 							if(ns.getServerMoneyAvailable('home') > ns.getAugmentationPrice(Augs[Object.keys(Augs)[faction]][round][aug])) {
-								let succ = ns.purchaseAugmentation(initialFaction[Object.keys(initialFaction)[0]], Augs[Object.keys(Augs)[faction]][round][aug]);
+								ns.print("Purchasing "+Augs[Object.keys(Augs)[faction]][round][aug]+" from "+Object.keys(Augs)[faction]);
+								let succ = ns.purchaseAugmentation(Object.keys(Augs)[faction], Augs[Object.keys(Augs)[faction]][round][aug]);
 								if(succ) {
 									ns.print("Purchased Aug: "+Augs[Object.keys(Augs)[faction]][round][aug]);
 								}
@@ -122,13 +128,22 @@ export async function main(ns) {
 					break finishFacLevel;
 				}
 			}
-		}
+		//}
 	}	
 	
 	
+	if(ns.heart.break()<35000) {
+		ns.print("Installing Augmentations");	
+		ns.enableLog('sleep');
+		ns.installAugmentations('init.ns');
+	} else {
+		ns.print("Riding out this reboot for Gang creation");
+		while(!ns.gang.inGang()) {
+			await ns.sleep('60000') 
+			ns.print(`Karma ${ns.heart.break()}`);
+		}
+	}
 	ns.enableLog('sleep');
-	ns.print("Installing Augmentations");
-	ns.installAugmentations('init.ns');
 }	
 
 async function runUpgradeLoop(ns) {

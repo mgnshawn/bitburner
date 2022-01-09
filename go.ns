@@ -161,7 +161,7 @@ if(designateTarget !== false ) {
 var i = 0;
 
 // Continuously try to purchase servers until we've reached the maximum
-while (purchaseServers == true && !onlyHunting && i < ns.getPurchasedServerLimit() && ns.getPurchasedServers().length < ns.getPurchasedServerLimit()) {
+while (purchaseServers == true && !onlyHunting && ns.getPurchasedServers().length < ns.getPurchasedServerLimit()) {
     await checkForApps(ns);
     crackers = 0;
     if(ns.fileExists("BruteSSH.exe"))
@@ -208,8 +208,9 @@ while (purchaseServers == true && !onlyHunting && i < ns.getPurchasedServerLimit
     await scanServer(ns,{'home':'home'}, target, 0);
     await ns.sleep(10000);
 }
+
+if(!quiet)await ns.print("Moving on to upgrade loop in 10 minutes...");
 await ns.sleep(60000 * 10);
-if(!quiet)await ns.print("Moving on to upgrade loop...");
 while (purchaseServers == true && !onlyHunting &&  currentServerLevel <= memmoryLevels[(memmoryLevels.length-1)]) {
     await checkForApps(ns);
     crackers = 0;

@@ -104,10 +104,6 @@ export async function main(ns) {
         await ns.sleep(10);
         if(infinite) {
             if(remainder == 0) {
-                ns.toast("Resuming in 15");
-                await ns.sleep(5000);
-                ns.toast("Resuming in 10");
-                await ns.sleep(5000);
                 ns.toast("Resuming in  5");
                 await ns.sleep(5000);
                 remainder = baseRemainder;
