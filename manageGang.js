@@ -1,9 +1,10 @@
 /** @param {NS} ns **/
 var repThreshold = 15;
 var timeCycle = 2 * 60;
+var purchaseHackingAugs = false;
 // If a gang member's string is under the number it selects the highest option
 //var jumpLevels = {"Train Combat":100,"Mug People":200, "Strongarm Civilians":250, "Armed Robbery":300, "Traffick Illegal Arms":400, "Human Trafficking":1200};
-var jumpLevels = {"Mug People":50,"Train Combat":100,"Vigilante Justice":175,"Territory Warfare":350,"Human Trafficking":900,"Terrorism":1500};
+var jumpLevels = {"Mug People":50,"Train Combat":100,"Strongarm Civilians":325,"Territory Warfare":350,"Human Trafficking":900,"Terrorism":1500};
 
 export async function main(ns) {
 	ns.disableLog("sleep");
@@ -47,10 +48,13 @@ export async function main(ns) {
 			var newMember = "";
 			for(var a = 0;a<names.length;a++) {
 				if(!members.includes(names[a]) && newMember == "") {
-					ns.gang.recruitMember(names[a]);
+					await ns.gang.recruitMember(names[a]);
+					await ns.sleep(1000);
 					recruitedLastRound = true;
 					members = ns.gang.getMemberNames();
 					newMember = names[a];	
+					ns.print("Added gang member "+newMember);
+					await ns.gang.setMemberTask(newMember,"Train Combat");
 					break;				
 				}
 			}
@@ -58,17 +62,18 @@ export async function main(ns) {
 				
 				for(var a = 0;a<names.length;a++) {
 					if(!members.includes(names[a]+"_"+(a+2))) {
-						ns.gang.recruitMember(names[a]+"_"+(a+2));
+						await ns.gang.recruitMember(names[a]+"_"+(a+2));
 						recruitedLastRound = true;
 						members = ns.gang.getMemberNames();	
 						newMember = names[a]+"_"+(a+2);
+						ns.print("Added gang member "+newMember);
+						await ns.gang.setMemberTask(newMember,"Train Combat");
 						break;
 					}
 				}
 				
 			
-						ns.print("Added gang member "+newMember);
-						ns.gang.setMemberTask(newMember,"Train Combat");
+						
 		} else {
 			if(recruitedLastRound == true) {
 			ns.print("Can't recruit just yet. Trying again in "+(timeCycle*1000));
@@ -77,17 +82,18 @@ export async function main(ns) {
 		}
 		await ns.print(" ");
 		await ns.sleep(timeCycle*1000);
-		await evalMemberAscend(ns,members);
-		await evalMemberUpgrades(ns,members);
-		await evalCurrentRep(ns,members);					
-		await evalMemberTasks(ns,members);
+		await evalMemberAscend(ns);
+		await evalMemberUpgrades(ns);
+		await evalCurrentRep(ns);					
+		await evalMemberTasks(ns);
 		
 		
 		
 	}
 }
 
-async function evalCurrentRep(ns,members) {
+async function evalCurrentRep(ns) {
+	let members = ns.gang.getMemberNames();
 	var mygangInfo = ns.gang.getGangInformation();
 	ns.print(" Evaluating RepPenalty Level... "+Math.round(mygangInfo.wantedPenalty*100)/100);
 	var thisMemberInfo = null;
@@ -110,8 +116,13 @@ async function evalCurrentRep(ns,members) {
 						ns.print("    setting "+members[a]+" to Mug People");
 						mygangInfo = ns.gang.getGangInformation();
 					}
-				}
-				if(thisMemberInfo.task != "Vigilante Justice" && a != 0) {
+					if((mygangInfo.wantedLevel - mygangInfo.respect) > 0 && a == 1) {
+						await	ns.gang.setMemberTask(members[a],"Mug People");
+						ns.print("    setting "+members[a]+" to Mug People");
+						mygangInfo = ns.gang.getGangInformation();
+					}
+				} 
+				if(thisMemberInfo.task != "Vigilante Justice" && a != 0 && (ns.gang.getMemberNames().length < 3 || a != 1)) {
 					await	ns.gang.setMemberTask(members[a],"Vigilante Justice");
 					ns.print("    setting "+members[a]+" to Vigilante Justice");
 					mygangInfo = ns.gang.getGangInformation();
@@ -130,10 +141,15 @@ async function evalCurrentRep(ns,members) {
 	}
 }
 
-async function evalMemberTasks(ns,members) {
+async function evalMemberTasks(ns) {
+	let members = ns.gang.getMemberNames();
 	var thisMemberInfo = null;
+	let proceedDescDeets = chooseOrder(ns);
+	let start = proceedDescDeets[0];
+	let end = proceedDescDeets[1];
+	let desc = proceedDescDeets[2];
 	ns.print(" Re-evaluating member tasks for harder tasks");
-		for(var a=0; a < members.length; a++) {
+		for(var a=start; evalForOperation(desc, a, end); forOperation(proceedDesc,a)) {
 			thisMemberInfo = ns.gang.getMemberInformation(members[a]);
 			var destinationTask = "";
 			for(var b = 0; b < Object.keys(jumpLevels).length; b++) {
@@ -160,9 +176,10 @@ async function evalMemberTasks(ns,members) {
 		}
 }
 
-async function evalMemberUpgrades(ns,members) {
+async function evalMemberUpgrades(ns) {
 	ns.print(" Evaluating equipment purchase options");
-let equipmentList = [
+	let members = ns.gang.getMemberNames();
+	let equipmentList = [
         'Baseball Bat',
         'Bulletproof Vest',
         'Ford Flex V20',
@@ -186,17 +203,24 @@ let equipmentList = [
 		'BrachiBlades',
 		'Synthetic Heart',
 		'Synfibril Muscle',
-		'Graphene Bone Lacings',
-		'NUKE Rootkit',
-		'Soulstealer Rootkit',
-		'Demon Rootkit',
-		'Hmap Node',
-		'Jack the Ripper'
+		'Graphene Bone Lacings'
 		
       ];
+	  if(purchaseHackingAugs == true) {
+		equipmentList.concat([
+			'NUKE Rootkit',
+			'Soulstealer Rootkit',
+			'Demon Rootkit',
+			'Hmap Node',
+			'Jack the Ripper']);
+	  }
 	  var thisMemberInfo = null;
+	  let proceedDescDeets = chooseOrder(ns);
+	let start = proceedDescDeets[0];
+	let end = proceedDescDeets[1];
+	let desc = proceedDescDeets[2];
 	  for( const equip of equipmentList) {
-		  for(var a=0; a < members.length; a++) {
+		  for(var a=start; evalForOperation(desc, a, end); forOperation(proceedDesc,a)) {
 			thisMemberInfo = ns.gang.getMemberInformation(members[a]);
 			if(!thisMemberInfo.upgrades.includes(equip)) {
 				if(ns.getServerMoneyAvailable("home") > ns.gang.getEquipmentCost(equip)) {
@@ -209,29 +233,66 @@ let equipmentList = [
 	}
 }
 
-async function evalMemberAscend(ns,members) {
+async function evalMemberAscend(ns) {
 	var thisMemberInfo = null;
-	ns.print(" Evaluating members for ascention");
+	let members = ns.gang.getMemberNames();
+	ns.print("_Evaluating members for ascention");
 	var allowedAscendCount = Math.floor(members.length/2);
 	var ascendCounter = 0;
-	var gangInfo = ns.gang.getGangInformation();
-	var respectLeft = Math.floor(gangInfo.respect/2);
-	for(var a=0; a < members.length; a++) {
-		var ascend = false;
+	let gangInfo = ns.gang.getGangInformation();	
+	let respectLeft = Math.floor(gangInfo.respect/2);
+	let proceedDescDeets = chooseOrder(ns);
+	let start = proceedDescDeets[0];
+	let end = proceedDescDeets[1];
+	let desc = proceedDescDeets[2];
+	for(var a=start; evalForOperation(desc, a, end); forOperation(proceedDesc,a)) {
+		//var ascend = false;
 		thisMemberInfo = ns.gang.getMemberInformation(members[a]);
 
 		var ascendPotentional = ns.gang.getAscensionResult(members[a]);
 		if(ascendPotentional !== null && ascendPotentional !== undefined) {
-			if(ascendPotentional.str > 1.12 || ascendPotentional.dex > 1.3 || ascendPotentional.agi > 1.5) {
-				if(ascendCounter < allowedAscendCount && respectLeft > 0 && (gangInfo.respect/gangInfo.wantedLevel) > 7) {
-					ns.print(" Ascending "+members[a]);
-					ns.gang.ascendMember(members[a]);
+			if(gangInfo.respect - thisMemberInfo.respect > gangInfo.wantedLevel) {
+			if(ascendPotentional.str > 1.15 || ascendPotentional.dex > 1.3 || ascendPotentional.agi > 1.5) {
+//				if(ascendCounter < allowedAscendCount && respectLeft > 0 && (gangInfo.respect/gangInfo.wantedLevel) > 7) {
+					ns.print("_Ascending "+members[a]);
+					await ns.gang.ascendMember(members[a]);
+					gangInfo = ns.gang.getGangInformation();
 					respectLeft = respectLeft - ascendPotentional.respect;
 					ascendCounter++;
-				} else {
-					ns.print(" Ascending "+members[a]+" next time");
-				}
+//				} else {
+//					ns.print(" Ascending "+members[a]+" next time");
+//				}
+			}
 			}
 		}
+	}
+}
+function chooseOrder (ns) {
+	let members = ns.gang.getMemberNames();
+	let proceedDesc = Math.random() < 0.5;
+	let start = 0;
+	let end = members.length;
+	if(proceedDesc) {
+		ns.print("__by descending order");
+		start = members.length -1;
+		end = 0;
+	} else {
+		ns.print("__by ascending order");
+	}
+	return [start,end, proceedDesc];
+}
+
+function forOperation(desc,value) {
+	if(desc) {
+		return value--;
+	} else {
+		return value++;
+	}
+}
+function evalForOperation(desc,value,value2) {
+	if(desc) {
+		return value > value2;
+	} else {
+		return value < value2;
 	}
 }

@@ -1,7 +1,7 @@
 var AugsInOrder = [];
 	AugsInOrder.push({'CyberSec':["Synaptic Enhancement Implant","Neurotrainer I", "BitWire"]});
 	AugsInOrder.push({'Tian Di Hui':['Social Negotiation Assistant (S.N.A)',  'ADR-V1 Pheromone Gene']});
-	AugsInOrder.push({'CyberSec':['Cranial Signal Processors - Gen I','Cranial Signal Processors - Gen II']});
+	AugsInOrder.push({'CyberSec':['Cranial Signal Processors - Gen I','Cranial Signal Processors - Gen II']});			
 	AugsInOrder.push({'Aevum':['PCMatrix']});
 	AugsInOrder.push({'Sector-12':['Neuralstimulator']});
 	AugsInOrder.push({'The Syndicate':["The Shadow's Simulacrum","Power Recirculation Core"]});
@@ -40,7 +40,7 @@ export async function main(ns) {
 				for(var aug = 0; aug < Augs.length; aug++) {
 					let currentAug = Augs[aug];
 					if(currentAug == "Upgrade") {
-						await runUpgradeLoop(ns);
+						await runUpgradeLoop(ns,50);
 						inActiveRound = true;
 					} else {
 					if(!ns.getOwnedAugmentations(true).includes(currentAug)) {
@@ -77,6 +77,7 @@ export async function main(ns) {
 					}
 				}
 				if(inActiveRound) {
+					await runUpgradeLoop(ns,2);
 					break;
 				}
 
@@ -98,10 +99,10 @@ export async function main(ns) {
 	ns.enableLog('sleep');
 }	
 
-async function runUpgradeLoop(ns) {
+async function runUpgradeLoop(ns, upgradesToGet) {
 	let gradeUpAug = "NeuroFlux Governor";
 	let workToDo = "hacking contracts";
-	for(let countit = 1;countit <= 2;countit++) {
+	for(let countit = 1;countit <= upgradesToGet;countit++) {
 		ns.stopAction();
 		let onToNext = false;
 		ns.print("GradeUp Aug "+gradeUpAug+" "+countit+ " Requires $"+ns.getAugmentationPrice(gradeUpAug).toLocaleString("en-US")+" and "+ns.getAugmentationRepReq(gradeUpAug)+" Rep");
