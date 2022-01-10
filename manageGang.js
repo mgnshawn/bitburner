@@ -6,8 +6,14 @@ var timeCycle = 180;
 var jumpLevels = {"Train Combat":100,"Vigilante Justice":175,"Territory Warfare":350,"Human Trafficking":900,"Terrorism":1500};
 
 export async function main(ns) {
+	ns.tail();
 	while(!await ns.gang.inGang()) {
-		let letCreate = await ns.gang.createGang("Slum Snakes");
+		let letCreate = false;
+		if(ns.getPlayer().factions.includes("The Syndicate")) {
+			letCreate = await ns.gang.createGang("The Syndicate");
+		} else if(ns.getPlayer().factions.includes("Slum Snakes")) {
+			letCreate = await ns.gang.createGang("Slum Snakes");
+		}
 		if(letCreate) {
 			ns.alert("Created your gang!");
 			ns.tprint("CREATED GANG !!!!!");
