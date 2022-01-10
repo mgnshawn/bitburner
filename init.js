@@ -4,7 +4,7 @@ const filesToDownload = [
 ];
 
 export async function main(ns) {
-
+  ns.tail();
   let hostname = ns.getHostname();
   let switchToCrimeAt = 1.8;
   if (hostname !== 'home') {
@@ -21,13 +21,13 @@ export async function main(ns) {
     await ns.wget(path + '?ts=' + new Date().getTime(), filename);
   }
   if(ns.getPlayer()["hacking_mult"] < switchToCrimeAt) {
-    await ns.run('factionUp.ns');
+    await ns.run('factionUp.js');
   } else {
-    await ns.run('crimeItUp.ns',1,"auto",'-l');
+    await ns.run('crimeItUp.js',1,"auto",'-l');
   }
   let targetInfo = chooseTarget(ns.getPlayer()["hacking"]);
-    ns.run('manageGang.ns');
-  ns.spawn('go.ns', 1, 16, targetInfo["slice"], targetInfo["target"], "n", "v", "initial");
+    ns.run('manageGang.js');
+  ns.spawn('go.js', 1, 16, targetInfo["slice"], targetInfo["target"], "n", "v", "initial");
 }
 
 export function chooseTarget(hackingLevel) {
