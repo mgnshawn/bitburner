@@ -6,6 +6,7 @@ var timeCycle = 180;
 var jumpLevels = {"Train Combat":100,"Vigilante Justice":175,"Territory Warfare":350,"Human Trafficking":900,"Terrorism":1500};
 
 export async function main(ns) {
+	ns.disableLog("sleep");
 	ns.tail();
 	while(!await ns.gang.inGang()) {
 		let letCreate = false;
@@ -64,7 +65,7 @@ export async function main(ns) {
 			await ns.sleep(timeCycle*1000);
 		}
 		await ns.tprint(" ");
-		
+		await ns.sleep(60000);
 		
 	}
 }
