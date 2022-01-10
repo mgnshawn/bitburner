@@ -1,5 +1,5 @@
 /** @param {NS} ns **/
-var repThreshold = 10;
+var repThreshold = 15;
 var timeCycle = 2 * 60;
 // If a gang member's string is under the number it selects the highest option
 //var jumpLevels = {"Train Combat":100,"Mug People":200, "Strongarm Civilians":250, "Armed Robbery":300, "Traffick Illegal Arms":400, "Human Trafficking":1200};
@@ -7,6 +7,13 @@ var jumpLevels = {"Mug People":50,"Train Combat":100,"Vigilante Justice":175,"Te
 
 export async function main(ns) {
 	ns.disableLog("sleep");
+	ns.disableLog("getServerMoneyAvailable");
+	ns.disableLog("gang.setMemberTask");
+	ns.disableLog("gang.getGangInformation");
+	ns.disableLog("gang.getMemberNames");
+	ns.disableLog("gang.getMemberInformation");
+	ns.disableLog("gang.getEquipmentCost");
+	ns.disableLog("gang.purchaseEquipment");
 	ns.tail();
 	var letCreate = false;
 	while(!await ns.gang.inGang()) {
@@ -28,6 +35,7 @@ export async function main(ns) {
 	var names = ['shawn','joe','mike','roger','snakes','acey','tony','bobby','billy','lance','sarah','heather','hilldawg','macy','larry'];
 	var nameIndex = 0;	
 	var members = ns.gang.getMemberNames();
+	var recruitedLastRound = false;
 	while(true) {
 		if(members.length >= 12) {
 			jumpLevels = {"Train Combat":300,"Vigilante Justice":350,"Territory Warfare":400,"Human Trafficking":5900};
@@ -40,6 +48,7 @@ export async function main(ns) {
 			for(var a = 0;a<names.length;a++) {
 				if(!members.includes(names[a]) && newMember == "") {
 					ns.gang.recruitMember(names[a]);
+					recruitedLastRound = true;
 					members = ns.gang.getMemberNames();
 					newMember = names[a];	
 					break;				
@@ -50,6 +59,7 @@ export async function main(ns) {
 				for(var a = 0;a<names.length;a++) {
 					if(!members.includes(names[a]+"_"+(a+2))) {
 						ns.gang.recruitMember(names[a]+"_"+(a+2));
+						recruitedLastRound = true;
 						members = ns.gang.getMemberNames();	
 						newMember = names[a]+"_"+(a+2);
 						break;
@@ -60,14 +70,16 @@ export async function main(ns) {
 						ns.print("Added gang member "+newMember);
 						ns.gang.setMemberTask(newMember,"Train Combat");
 		} else {
-			ns.print("Can't recruit just yet");
-			await ns.sleep(timeCycle*1000);
+			if(recruitedLastRound == true) {
+			ns.print("Can't recruit just yet. Trying again in "+(timeCycle*1000));
+			
+			}
 		}
 		await ns.print(" ");
-		await ns.sleep(600);
-		await evalMemberUpgrades(ns,members);
-		await evalCurrentRep(ns,members);			
+		await ns.sleep(timeCycle*1000);
 		await evalMemberAscend(ns,members);
+		await evalMemberUpgrades(ns,members);
+		await evalCurrentRep(ns,members);					
 		await evalMemberTasks(ns,members);
 		
 		
@@ -92,14 +104,14 @@ async function evalCurrentRep(ns,members) {
 		for(var a=0; a < members.length; a++) {			
 			if(mygangInfo.wantedLevelGainRate > 0 ) {
 				thisMemberInfo = ns.gang.getMemberInformation(members[a]);
-				if(mygangInfo.respect / mygangInfo.wantedLevel < 7) {
+				if((mygangInfo.respect / mygangInfo.wantedLevel) <= 2) {
 					if(a == 0) { // First person needs to Mug for initial Rep offset
 						await	ns.gang.setMemberTask(members[a],"Mug People");
 						ns.print("    setting "+members[a]+" to Mug People");
 						mygangInfo = ns.gang.getGangInformation();
 					}
 				}
-				if(thisMemberInfo.task != "Vigilante Justice") {
+				if(thisMemberInfo.task != "Vigilante Justice" && a != 0) {
 					await	ns.gang.setMemberTask(members[a],"Vigilante Justice");
 					ns.print("    setting "+members[a]+" to Vigilante Justice");
 					mygangInfo = ns.gang.getGangInformation();
@@ -149,6 +161,7 @@ async function evalMemberTasks(ns,members) {
 }
 
 async function evalMemberUpgrades(ns,members) {
+	ns.print(" Evaluating equipment purchase options");
 let equipmentList = [
         'Baseball Bat',
         'Bulletproof Vest',

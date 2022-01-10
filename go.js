@@ -25,6 +25,7 @@ export async function main(ns) {
     ns.disableLog('sleep');
     ns.disableLog('getServerUsedRam');
     ns.disableLog('getServerMaxRam');
+    ns.disableLog('getServerMoneyAvailable');
     ns.disableLog('getServerRequiredHackingLevel');
     ns.disableLog('getScriptRam');
     ns.disableLog('getPlayer');
@@ -436,10 +437,6 @@ async function checkForApps(ns) {
         ns.purchaseProgram("BruteSSH.exe");
         ns.alert("Bought BruteSSH");
     }
-    if(!ns.fileExists("AutoLink.exe") && ns.getServerMoneyAvailable("home") >= 1500000) {
-        ns.purchaseProgram("AutoLink.exe");
-        ns.alert("Bought AutoLink");
-    }
     if(!ns.fileExists("FTPCrack.exe") && ns.getServerMoneyAvailable("home") >= 1500000) {
         ns.purchaseProgram("FTPCrack.exe");
         ns.alert("Bought FTPCrack");
@@ -447,6 +444,10 @@ async function checkForApps(ns) {
     if(!ns.fileExists("relaySMTP.exe") && ns.getServerMoneyAvailable("home") >= 5000000) {
         ns.purchaseProgram("relaySMTP.exe");
         ns.alert("Bought relaySMTP");
+    }
+    if(!ns.fileExists("AutoLink.exe") && ns.getServerMoneyAvailable("home") >= 1500000) {
+        ns.purchaseProgram("AutoLink.exe");
+        ns.alert("Bought AutoLink");
     }
     if(!ns.fileExists("HTTPWorm.exe") && ns.getServerMoneyAvailable("home") >= 30000000) {
         ns.purchaseProgram("HTTPWorm.exe");

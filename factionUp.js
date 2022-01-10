@@ -26,7 +26,7 @@ export async function main(ns) {
 
 
 	ns.tail();
-	//ns.run('crimeItUp.js',1,"auto",'l');
+	ns.run('crimeItUp.js',1,"auto",'l');
 	ns.print("Starting to crime it up for initial money");
 	
 	
@@ -154,6 +154,7 @@ function findCSEC(ns) {
 async function checkFactionMemberShipAndJoin(ns,faction) {
 	if(!ns.getPlayer().factions.includes(faction)) {
 		if(toJoinFaction[faction] == 'CSEC') {
+			ns.run('crimeItUp.js',1,"auto",'l');
 			while(!ns.getServer(toJoinFaction[faction]).backdoorInstalled) {		
 				ns.print("Waiting to install backdoor on CSEC");
 				if(ns.getServer(toJoinFaction[faction])["hasAdminRights"]) {							
@@ -184,7 +185,7 @@ async function checkFactionMemberShipAndJoin(ns,faction) {
 			}
 		} else if (['New Tokyo','Aevum','Sector-12'].includes(toJoinFaction[faction])) {
 			while(!ns.getPlayer().factions.includes(faction)) {
-				if(ns.getPlayer().city == toJoinFactio[faction] || ns.getServerMoneyAvailable("home") >= 200000) {
+				if(ns.getPlayer().city == toJoinFaction[faction] || ns.getServerMoneyAvailable("home") >= 200000) {
 					if(ns.getPlayer().city != toJoinFaction[faction]) {
 						ns.travelToCity(toJoinFaction[faction]);
 					}
