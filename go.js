@@ -149,10 +149,33 @@ export async function main(ns) {
 if(designateTarget !== false ) {
     var attackServers = await ns.getPurchasedServers();
     for(var a = 0; a < attackServers.length; a++) {
-        var serv = attackServers[a];
-        rand = Math.random();
+        var hostname = attackServers[a];
+        for(var s=1;s<=slice;s++) {
+            if(!ns.fileExists('hackit.js',hostname)) {
+                await ns.scp("hackit.js", hostname);
+            }
+            let thisThreads = Math.floor((ram)/Math.ceil(scriptRam)/slice);
+            if(thisThreads < 1) {
+                thisThreads = 1;
+            }
+            await ns.exec("hackit.js", hostname, thisThreads, target,s);
+            await ns.sleep(300);
+        }
+        if((ns.getServerMaxRam(hostname) - ns.getServerUsedRam(hostname)) > Math.ceil(scriptRam)) {
+            var extraCopies = Math.floor((ns.getServerMaxRam(hostname) - ns.getServerUsedRam(hostname))/scriptRam);
+            if(serv == "home") {
+                extraCopies = extraCopies - 5;
+            }
+            if(extraCopies < 1) {
+                extraCopies = 1;
+            }
+                if(!quiet)await ns.print("Starting "+extraCopies+" extra hackit threads on "+hostname);
+                await ns.exec("hackit.js", hostname, extraCopies, target, s, extraCopies);                
+        }
+        /*rand = Math.random();
         if((ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv)) > Math.ceil(scriptRam)) {
-            var extraCopies = Math.floor((ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv))/scriptRam);
+            for(j=0;j<slice;j++) {
+            var extraCopies = Math.floor(((ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv))/scriptRam)/slice);
             if(serv == "home") {
                 extraCopies = extraCopies - 5;
             }
@@ -160,7 +183,8 @@ if(designateTarget !== false ) {
                 if(!quiet)await ns.print("Starting "+extraCopies+" extra hackit threads on owned server: "+serv);
                 await ns.exec("hackit.js", serv, extraCopies, target, rand, extraCopies);                
             }
-        }
+            }
+        }*/
     }
 }
 

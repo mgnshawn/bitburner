@@ -1,12 +1,17 @@
 var AugsInOrder = [];
-	AugsInOrder.push({'CyberSec':["Synaptic Enhancement Implant","Neurotrainer I", "BitWire"]});
+	AugsInOrder =[{'CyberSec':["Synaptic Enhancement Implant","Neurotrainer I", "BitWire"]}];
 	AugsInOrder.push({'Tian Di Hui':['Social Negotiation Assistant (S.N.A)',  'ADR-V1 Pheromone Gene']});
 	AugsInOrder.push({'CyberSec':['Cranial Signal Processors - Gen I','Cranial Signal Processors - Gen II']});			
+	AugsInOrder.push({'The Syndicate':["The Shadow's Simulacrum","Power Recirculation Core",'Neurotrainer II']});
+	AugsInOrder.push({'The Syndicate':['The Black Hand','Neuregen Gene Modification','CRTX42-AA Gene Modification','Neurotrainer III','Artificial Synaptic Potentiation']});
 	AugsInOrder.push({'Aevum':['PCMatrix']});
 	AugsInOrder.push({'Sector-12':['Neuralstimulator']});
-	AugsInOrder.push({'The Syndicate':["The Shadow's Simulacrum","Power Recirculation Core"]});
 	AugsInOrder.push({'CyberSec':['Upgrade']});
+	
 	var toJoinFaction = {'CyberSec':'CSEC', 'Tian Di Hui':'New Tokyo', 'Aevum':'Aevum', 'Sector-12':'Sector-12','The Syndicate':'Aevum'};
+	/*
+"The Shadow's Simulacrum",
+	*/
 /** @param {NS} ns **/
 export async function main(ns) {
 	ns.disableLog('sleep');
@@ -21,7 +26,15 @@ export async function main(ns) {
     ns.disableLog('scan');
 	
 	let workToDo = "hacking contracts";
-	
+	for(let AugObjIndex in AugsInOrder) {
+		for(let FacListObj in AugsInOrder[AugObjIndex]) {
+			for(let _AugIndex in AugsInOrder[AugObjIndex][FacListObj]) {
+				let _Aug = AugsInOrder[AugObjIndex][FacListObj][_AugIndex];
+				if(_Aug != "Upgrade")
+				ns.tprint(`${_Aug} ${ns.getAugmentationPrice(_Aug).toLocaleString("en-US")} ${ns.getAugmentationRepReq(_Aug)}xp`);				
+			}
+		}
+	}
 
 
 
@@ -34,6 +47,7 @@ export async function main(ns) {
 	var inActiveRound = false;
 	for(var AugIndex=0;AugIndex < AugsInOrder.length; AugIndex++) {
 	let faction = Object.keys(AugsInOrder[AugIndex])[0];
+	let inTempRound = false;
 	let Augs = AugsInOrder[AugIndex][faction];
 		await checkFactionMemberShipAndJoin(ns,faction);
 	
@@ -50,6 +64,9 @@ export async function main(ns) {
 			
 						let repNeeded = ns.getAugmentationRepReq(currentAug);
 						while(ns.getFactionRep(faction) < repNeeded) {
+							if(inTempRound) {
+								break;
+							}
 							ns.print("Working for rep. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining rep needed: " + (ns.getAugmentationRepReq(currentAug) - ns.getFactionRep(faction)).toLocaleString("en-US"));
 							ns.workForFaction(faction, workToDo);
     						await ns.sleep(60000);
@@ -62,6 +79,9 @@ export async function main(ns) {
 									ns.print("Purchased Aug: "+currentAug);
 								}
 							} else {
+								if(inTempRound) {
+									break;
+								}
 								ns.print("Criming for money. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining needed $"+(ns.getAugmentationPrice(currentAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US"));								
 								ns.stopAction();
 								if((ns.getServerMaxRam("home") - ns.getServerUsedRam("home")) < ns.getScriptRam("crimeItUp.js")) {
@@ -76,8 +96,19 @@ export async function main(ns) {
 					}
 					}
 				}
-				if(inActiveRound) {
+				if(inActiveRound && !inTempRound) {
 					await runUpgradeLoop(ns,2);
+					let faction = Object.keys(AugsInOrder[AugIndex+1])[0];
+					if(faction !== null && faction !== undefined) {
+						let Augs = AugsInOrder[AugIndex][faction];
+						if(ns.getServerMoneyAvailable('home') > ns.getAugmentationPrice(Augs[0])) {
+							ns.print("Can afford Augmentations from next round; continueing into next round...");
+							continue;
+						}
+					}
+					break;
+				} else if(inTempRound) {
+					ns.print("Can't afford Augmentations from next round; ending.");
 					break;
 				}
 
