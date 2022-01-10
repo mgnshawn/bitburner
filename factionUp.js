@@ -1,10 +1,11 @@
-	var AugsInOrder = [];
+var AugsInOrder = [];
 	AugsInOrder.push({'CyberSec':["Synaptic Enhancement Implant","Neurotrainer I", "BitWire"]});
 	AugsInOrder.push({'Tian Di Hui':['Social Negotiation Assistant (S.N.A)',  'ADR-V1 Pheromone Gene']});
-	AugsInOrder.push({'CyberSec':['Cranial Signal Processors - Gen I','Cranial Signal Processors - Gen II','Upgrade']});
+	AugsInOrder.push({'CyberSec':['Cranial Signal Processors - Gen I','Cranial Signal Processors - Gen II']});
 	AugsInOrder.push({'Aevum':['PCMatrix']});
 	AugsInOrder.push({'Sector-12':['Neuralstimulator']});
 	AugsInOrder.push({'The Syndicate':["The Shadow's Simulacrum","Power Recirculation Core"]});
+	AugsInOrder.push({'CyberSec':['Upgrade']});
 	var toJoinFaction = {'CyberSec':'CSEC', 'Tian Di Hui':'New Tokyo', 'Aevum':'Aevum', 'Sector-12':'Sector-12','The Syndicate':'Aevum'};
 /** @param {NS} ns **/
 export async function main(ns) {
@@ -45,7 +46,6 @@ export async function main(ns) {
 					if(!ns.getOwnedAugmentations(true).includes(currentAug)) {
 						inActiveRound = true;
 						ns.stopAction();
-
 						ns.print("[Faction|| "+faction+" [Aug|| "+currentAug+ " Requires $"+ns.getAugmentationPrice(currentAug).toLocaleString("en-US")+" and "+ns.getAugmentationRepReq(currentAug).toLocaleString("en-US")+" Rep");
 			
 						let repNeeded = ns.getAugmentationRepReq(currentAug);
