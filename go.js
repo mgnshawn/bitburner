@@ -1,8 +1,9 @@
 import { chooseTarget } from './init.js';
+import { scan, findServerPath } from './helpers.js'
 var ownedServers = {'home':'home'};
 var highestLevelSeen = 1;
 var scriptRam = 0;
-var purchaseServers = false;
+var purchaseServers = true;
 var haveTor = false;
 var level1 = false;
 var level2 = false;
@@ -36,16 +37,61 @@ export async function main(ns) {
     ns.disableLog('scan');
     ns.disableLog('exec');
 
-    if(ns.args[0] !== undefined && (ns.args[0] == "-h" || ns.args[0] == '-?')) {
-        await ns.print("freshstart.js Req:(n||Ram in GB)   Req:(slice count)  (s self target||a auto||target name)  (o for only hunting) (v verbose) ");
-        await ns.print("Options:Purchase servers     This can run against net servers only or also buy player owned. If buying, specify the starting ram in GB, it will continue to evolve the servers size once the max has been purchased.");
-        await ns.print("Options:Slice count     How many copies of the hackit.js app should run. More yields better overall returns. The thread count will be calculated based on server size and slice count. Minimum 1");
-        await ns.print("Options:Designate Target     Designate a server all conquered servers should attack, if not designated then conquered servers will be set to target themselves.");
-        await ns.print("Options:Only Hunting    This only spiders the net for contract files or the-cave. All locations of contracts will be written to found.contracts");
-        await ns.print("The app will discover the network and attempt to conquer any server below your level that you have appropriate crackers for. It will continue this loop as you continue to level up. It will also make sure all your owned servers are running the hackit.js script at full levels starting with home. If set to purchase servers, it will purchase servers at the memory level specified. Once 25 servers have been purchased it will recycle the oldest and purchase a server at the next memory size.");
-        ns.exit();
-    }
 
+    for(let z=0;z<ns.args.length;z++) {
+		if(ns.args[z] !== undefined) {
+            if(ns.args[z] == "-h" || ns.args[z] == "-?" || ns.args[z] == "?"|| ns.args[z] == "h") {
+                await ns.tprint("freshstart.js Req:(ram nopurchase||Ram in GB)   Req:(slice count)  (target self||auto||target name)  (findserver targethere) (v verbose) ");
+                await ns.tprint("Options:Purchase servers     This can run against net servers only or also buy player owned. If buying, specify the starting ram in GB, it will continue to evolve the servers size once the max has been purchased.");
+                await ns.tprint("Options:Slice count     How many copies of the hackit.js app should run. More yields better overall returns. The thread count will be calculated based on server size and slice count. Minimum 1");
+                await ns.tprint("Options:Designate Target     Designate a server all conquered servers should attack, if not designated then conquered servers will be set to target themselves.");
+                await ns.tprint("Options:Only Hunting    This only spiders the net for contract files or the-cave. All locations of contracts will be written to found.contracts");
+                await ns.tprint("The app will discover the network and attempt to conquer any server below your level that you have appropriate crackers for. It will continue this loop as you continue to level up. It will also make sure all your owned servers are running the hackit.js script at full levels starting with home. If set to purchase servers, it will purchase servers at the memory level specified. Once 25 servers have been purchased it will recycle the oldest and purchase a server at the next memory size.");
+                ns.exit();
+            }
+			if(ns.args[z] == 'v') {
+				quiet = false;
+			}
+            if(ns.args[z] == 'findserver' && ns.args[z+1] != undefined) {
+                let foundServers = await scan(ns);                
+                var searchTarget = ns.args[z+1];
+                let pathToTarget = await findServerPath(ns,searchTarget);
+	            ns.tprint(pathToTarget);
+                ns.exit();
+            }
+            if(ns.args[z] == 'ram' && ns.args[z+1] != undefined)
+            {
+                if(ns.args[z+1] == "nopurchase" || ns.args[z+1] == "n") {
+                    purchaseServers = false;
+                } else {
+                    var ram = ns.args[z+1];
+                }
+            }
+            if(ns.args[z] == 'slice' && ns.args[z+1] != undefined)
+            {   var slice = ns.args[z+1];                
+            }
+            if(ns.args[z] == 'target' && ns.args[z+1] != undefined)
+            {
+                if(ns.args[z+1] == "self") {
+                    designateTarget = false;
+                } else if(ns.args[z+1] == "auto") {
+                    designateTarget = true;
+                    autoTarget = true;
+                    target = chooseTarget(ns.getPlayer()["hacking"])["target"];
+                    if(ns.args[1] == "auto") {
+                        slice = chooseTarget(ns.getPlayer()["hacking"])["slice"];
+                    }
+                } else {
+                    designateTarget = true;
+                    target = ns.args[z+1];
+                }
+                
+            }
+		}
+	}    
+
+    
+	
 
     if(ns.fileExists("BruteSSH.exe"))
         crackers++;
@@ -58,13 +104,9 @@ export async function main(ns) {
     if(ns.fileExists("SQLInject.exe"))
         crackers++;
     scriptRam = ns.getScriptRam('hackit.js');
-    if(ns.args[0] == 'n' || ns.args[0] == "N") {
-        purchaseServers = false;
-    } else {
-        purchaseServers = true;
-    }
-    var ram = ns.args[0];
-    slice = ns.args[1];
+    
+
+    
     
     var target = "";
     var l1 = 128*1024;
@@ -82,25 +124,10 @@ export async function main(ns) {
     }
     var currentServerLevel = memmoryLevels[currentServerLevelIndex];
 
-    if(ns.args[2] == undefined || ns.args[2] == 's' || ns.args[2] == 'S') {
-        designateTarget = false;
-    } else if(ns.args[2] == "auto") {
-        designateTarget = true;
-        autoTarget = true;
-        target = chooseTarget(ns.getPlayer()["hacking"])["target"];
-        if(ns.args[1] == "auto") {
-            slice = chooseTarget(ns.getPlayer()["hacking"])["slice"];
-        }
-    } else {
-        designateTarget = true;
-        target = ns.args[2];
-    }
-    if(ns.args[3] !== undefined && (ns.args[3] == 'o' || ns.args[3] == 'O')) {
-        onlyHunting = true;
-    }
-    if(ns.args[4] !== undefined && ns.args[4] == 'v') {
-        quiet = false;
-    }
+
+	
+	
+
 
     level2 = false;level3 = false;level4=false;level5=false;
     if(!quiet)await ns.print("Cost to purchase these servers: "+ns.getPurchasedServerCost(ram));
@@ -197,7 +224,7 @@ if(designateTarget !== false ) {
 var i = 0;
 
 // Continuously try to purchase servers until we've reached the maximum
-while (purchaseServers == true && !onlyHunting && ns.getPurchasedServers().length < ns.getPurchasedServerLimit()) {
+while (purchaseServers == true && ns.getPurchasedServers().length < ns.getPurchasedServerLimit()) {
     await checkForApps(ns);
     crackers = 0;
     if(ns.fileExists("BruteSSH.exe"))
@@ -253,7 +280,7 @@ await scanServer(ns,{'home':'home'}, target, 0);
 
 ns.print("Moving on to upgrade loop in 10 minutes...");
 await ns.sleep(600 * 10);
-while (purchaseServers == true && !onlyHunting &&  currentServerLevel <= memmoryLevels[(memmoryLevels.length-1)]) {
+while (purchaseServers == true && currentServerLevel <= memmoryLevels[(memmoryLevels.length-1)]) {
     await checkForApps(ns);
     crackers = 0;
     if(ns.fileExists("BruteSSH.exe"))
@@ -396,12 +423,7 @@ async function scanServer(ns,source, target, level) {
     for(var a = 0; a < connections.length; a++) {
         await ns.sleep(150);
         if(!quiet)ns.print("=>"+connections[a]);        
-        if(connections[a] == "The-Cave") {
-            if(!quiet)ns.print("===================================== FOUND IT ======================================");
-            if(onlyHunting) {
-                ns.exit();
-            }
-        }
+
         var result = await evalAndNuke(ns,connections[a],Object.keys(source)[0], target);
         var nextUp = {};
         nextUp[connections[a]]=Object.keys(source)[0];
