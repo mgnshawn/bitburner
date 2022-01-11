@@ -22,7 +22,7 @@ var autoTarget = false;
 
 // args Ram, Slices, Target
 export async function main(ns) {
-    ns.tail();
+    
     quiet = true;
     ns.disableLog('sleep');
     ns.disableLog('getServerUsedRam');
@@ -68,7 +68,7 @@ export async function main(ns) {
                 }
             }
             if(ns.args[z] == 'slice' && ns.args[z+1] != undefined)
-            {   var slice = ns.args[z+1];                
+            {   slice = ns.args[z+1];                
             }
             if(ns.args[z] == 'target' && ns.args[z+1] != undefined)
             {
@@ -77,18 +77,18 @@ export async function main(ns) {
                 } else if(ns.args[z+1] == "auto") {
                     designateTarget = true;
                     autoTarget = true;
-                    target = chooseTarget(ns.getPlayer()["hacking"])["target"];
-                    if(ns.args[1] == "auto") {
-                        slice = chooseTarget(ns.getPlayer()["hacking"])["slice"];
-                    }
+                    var target = chooseTarget(ns.getPlayer()["hacking"])["target"];                    
+                    slice = chooseTarget(ns.getPlayer()["hacking"])["slice"];
+                    ns.print("Target Chosen: "+target);
                 } else {
                     designateTarget = true;
-                    target = ns.args[z+1];
+                    var target = ns.args[z+1];
                 }
                 
             }
 		}
 	}    
+    ns.tail();
 
     
 	
@@ -108,7 +108,7 @@ export async function main(ns) {
 
     
     
-    var target = "";
+    
     var l1 = 128*1024;
     var l2 = 512 * 1024;
     var lf = 1024*1024;
@@ -361,7 +361,7 @@ while (purchaseServers == true && currentServerLevel <= memmoryLevels[(memmoryLe
             currentServerLevelIndex++;
             currentServerLevel = memmoryLevels[currentServerLevelIndex];
             await ns.print("-- Setting Upgrade Server Ram to "+currentServerLevel);
-            await ns.print("    New server cost: "+ns.getPurchasedServerCost(currentServerLevel));
+            await ns.print("    New server cost: "+ns.getPurchasedServerCost(currentServerLevel).toLocaleString('en-US'));
             upgrade = false;
         }
         upgrade = true;

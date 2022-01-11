@@ -27,8 +27,10 @@ async function localScan(ns,targets,parent) {
 }
 
 export async function findServerPath(ns,target) {
+	_pathToTarget = [];
 	await localFindServerPath(ns,target);
 	let response=[];
+	
 	for(let q = _pathToTarget.length-1; q >= 0;q--) {
 		response.push(_pathToTarget[q]);
 	}
@@ -39,6 +41,7 @@ async function localFindServerPath(ns,target) {
 	if(_allServers.length == 0) {
 		await localScan(ns,ns.scan("home"),'home');
 	}
+	
 	for(let sIndex in _allServers) {
 		await ns.sleep(10);
 		//ns.tprint(`${_allServers[sIndex][0]} =?= ${target}`);
@@ -48,7 +51,7 @@ async function localFindServerPath(ns,target) {
 			if(_allServers[sIndex][0] == "home") {
 				break;
 			}
-			await findServerPath(ns,_allServers[sIndex][1])
+			await localFindServerPath(ns,_allServers[sIndex][1])
 			break;
 		}
 		

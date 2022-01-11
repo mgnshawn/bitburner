@@ -20,14 +20,16 @@ export async function main(ns) {
     ns.tprint(`Trying to download ${path}`);
     await ns.wget(path + '?ts=' + new Date().getTime(), filename);
   }
-  if(ns.getPlayer()["hacking_mult"] < switchToCrimeAt) {
+  /*if(ns.getPlayer()["hacking_mult"] < switchToCrimeAt) {
     await ns.run('factionUp.js');
   } else {
     await ns.run('crimeItUp.js',1,"auto",'-l');
-  }
+  }*/
+  await ns.run('factionUp.js');
+  await ns.run('manageGang.js');
   let targetInfo = chooseTarget(ns.getPlayer()["hacking"]);
-    ns.run('manageGang.js');
-  ns.spawn('go.js', 1, 16, targetInfo["slice"], targetInfo["target"], "n", "v", "initial");
+
+  await ns.run('go.ns', 1, "ram", 16, "slice", targetInfo["slice"],"target", "auto");
 }
 
 export function chooseTarget(hackingLevel) {
