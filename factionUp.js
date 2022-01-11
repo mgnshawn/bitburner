@@ -1,5 +1,6 @@
 var AugsInOrder = [];
-	AugsInOrder =[{'CyberSec':["Synaptic Enhancement Implant","Neurotrainer I", "BitWire"]}];
+	AugsInOrder =[{'CyberSec':["Synaptic Enhancement Implant", "BitWire", "Neurotrainer I"]}];
+	//AugsInOrder.push({'Tian Di Hui':['Upgrade','Upgrade']});
 	AugsInOrder.push({'Tian Di Hui':['Social Negotiation Assistant (S.N.A)',  'ADR-V1 Pheromone Gene']});
 	AugsInOrder.push({'CyberSec':['Cranial Signal Processors - Gen I','Cranial Signal Processors - Gen II']});			
 	AugsInOrder.push({'The Syndicate':["The Shadow's Simulacrum","Power Recirculation Core",'Neurotrainer II']});
@@ -13,6 +14,7 @@ var AugsInOrder = [];
 	
 	var toJoinFaction = {'CyberSec':'CSEC', 'Tian Di Hui':'New Tokyo', 'Aevum':'Aevum', 'Sector-12':'Sector-12','The Syndicate':'Aevum','Daedalus':'New Toky'};
 	var autoWork = false;
+	var upgradesPerJob = 3;
 	/*
 "The Shadow's Simulacrum",
 	*/
@@ -28,6 +30,7 @@ export async function main(ns) {
     ns.disableLog('getPurchasedServerLimit');
     ns.disableLog('getServerNumPortsRequired');
 	ns.disableLog('getServerMoneyAvailable');
+	ns.disableLog('workForFaction');
     ns.disableLog('scan');
 	
 	let workToDo = "hacking contracts";
@@ -63,25 +66,32 @@ export async function main(ns) {
 	let inTempRound = false;
 	let Augs = AugsInOrder[AugIndex][faction];
 		await checkFactionMemberShipAndJoin(ns,faction);
-	
-				for(var aug = 0; aug < Augs.length; aug++) {
+		let roundTotalCost = 0;
+			for(var __aug = 0; __aug < Augs.length; __aug++) {await ns.sleep(50);
+				ns.print(`Round ${AugIndex}: \t${Augs[__aug]} \t$${ns.getAugmentationPrice(Augs[__aug]).toLocaleString('en-US')} \tRepXP: ${ns.getAugmentationRepReq(Augs[__aug])}`);
+				roundTotalCost+=(ns.getAugmentationPrice(Augs[__aug])*(__aug+1));
+			}
+			
+			ns.print(`Total cost for Augs in round ${AugIndex} is $${roundTotalCost.toLocaleString('en-US')}`);
+				for(var aug = 0; aug < Augs.length; ++aug) {await ns.sleep(10);
 					let currentAug = Augs[aug];
 					if(currentAug == "Upgrade") {
-						let uLoops = 3;
-						if(Augs == AugsInOrder.length-1) {
+						let uLoops = upgradesPerJob;
+						if(AugIndex == AugsInOrder.length-1) {
 							uLoops = 50;
 						} 
 
 						await runUpgradeLoop(ns,uLoops);
 						inActiveRound = true;
-					} else {
+					}
+
 					if(!ns.getOwnedAugmentations(true).includes(currentAug)) {
 						inActiveRound = true;
 						ns.stopAction();
 						ns.print("[Faction|| "+faction+" [Aug|| "+currentAug+ " Requires $"+ns.getAugmentationPrice(currentAug).toLocaleString("en-US")+" and "+ns.getAugmentationRepReq(currentAug).toLocaleString("en-US")+" Rep");
 			
 						let repNeeded = ns.getAugmentationRepReq(currentAug);
-						while(faction != ns.gang.getGangInformation().faction && ns.getFactionRep(faction) < repNeeded) {
+						while((!ns.gang.inGang() || faction != ns.gang.getGangInformation().faction) && ns.getFactionRep(faction) < repNeeded) {
 							if(inTempRound) {
 								break;
 							}
@@ -116,9 +126,9 @@ export async function main(ns) {
 							await ns.sleep(30000);
 						}		
 					}
-					}
 				}
-				if(inActiveRound && !inTempRound) {
+				if(inActiveRound && !inTempRound && AugIndex != 0) {
+					ns.print("Entering Upgrade Loop at end of Aug Level "+AugIndex);
 					await runUpgradeLoop(ns,2);
 					if(AugsInOrder[AugIndex+1] !== undefined && AugsInOrder[AugIndex+1] !== null){
 						let faction = Object.keys(AugsInOrder[AugIndex+1])[0];

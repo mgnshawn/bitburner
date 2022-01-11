@@ -36,9 +36,9 @@ export function chooseTarget(hackingLevel) {
   let resp = {};
   if( hackingLevel < 100) {
     resp = {"target":"n00dles","slice":1,"rungGang":false};
-  } else if(100 <= hackingLevel && hackingLevel < 300) {
+  } else if(200 <= hackingLevel && hackingLevel < 350) {
     resp = {"target":"joesguns","slice":4,"rungGang":false};
-  } else if ( 300 <= hackingLevel && hackingLevel < 1000) {
+  } else if ( 350 <= hackingLevel && hackingLevel < 1000) {
     resp = {"target":"iron-gym","slice":8,"runGang":true};
   } else if ( 1000 <= hackingLevel && hackingLevel < 1350) {
     resp = {"target":"catalyst","slice":16,"runGang":true};

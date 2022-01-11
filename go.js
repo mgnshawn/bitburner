@@ -470,9 +470,14 @@ async function evalAndNuke(ns,server,origin,target) {
                     ns.httpworm(attackThis);
                 if(ns.fileExists("SQLInject.exe"))
 			        ns.sqlinject(attackThis);
-    			returnResult = ns.nuke(attackThis);
-	    		ownedServers[server]=origin;
-		    	if(!quiet)ns.print(" ...conquered "+attackThis);                
+                if(ns.getServer(attackThis).openPortCount >= ns.getServer(attackThis).numOpenPortsRequired) {
+    			    returnResult = ns.nuke(attackThis);
+	    		    ownedServers[server]=origin;
+		    	    if(!quiet) { ns.print(" ...conquered "+attackThis);                
+                    } else {
+                        ns.print(`Nuked ${attackThis} level ${ns.getServerRequiredHackingLevel(attackThis)}`);
+                    }
+                }
             }
             /*if(!ns.getServer(attackThis).backDoorInstalled) {
                 await ns.connect(attackThis);
