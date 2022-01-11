@@ -24,7 +24,8 @@ export async function main(ns) {
 	ns.disableLog("gang.ascendMember");
 	ns.disableLog("gang.setTerritoryWarfare");
 	ns.tail();
-	previousTerritoryHeld = ns.gang.getGangInformation().territory;
+	previousTerritoryHeld = ns.gang.getGangInformation().territory.toLocaleString('en-US');
+	ns.print(`Territory Held: ${100*previousTerritoryHeld}`);
 	for(let z=0;z<ns.args.length;z++) {
 		if(ns.args[z] !== undefined) {
 			if(ns.args[z] == 'v') {
@@ -49,8 +50,7 @@ export async function main(ns) {
 
 
 
-	var names = ['shawn','joe','mike','roger','snakes','acey','tony','bobby','billy','lance','sarah','heather','hilldawg','macy','larry'];
-	var nameIndex = 0;	
+	var names = ['shawn','joe','mike','roger','snakes','acey','tony','bobby','billy','lance','sarah','heather'];
 	var members = ns.gang.getMemberNames();
 	var recruitedLastRound = false;
 	while(true) {
@@ -181,7 +181,6 @@ async function evalMemberTasks(ns) {
 				if(thisMemberInfo.str > jumpLevels[Object.keys(jumpLevels)[b]]) {
 					continue;
 				} else {
-					//ns.print("evald "+thisMemberInfo.str+" against "+jumpLevels[Object.keys(jumpLevels)[b]]);
 					if(members.length >= 12) {
 						if((members[a] == 'shawn') && thisMemberInfo.str > 1000) {							
 							ns.print(` Forcing ${members[a]} to Territory Warfare`);
@@ -344,31 +343,32 @@ async function calculateWarChance(ns) {
 		if(otherGang != ns.gang.getGangInformation().faction && otherGangs[otherGang].territory > 0) {
 			let ourChance = ns.gang.getChanceToWinClash(otherGang);
 			if(verbose)ns.print(`  Chance to win against ${otherGang} is ${ourChance}%`);
-			if(ourChance < lowestChance) lowestChance = ourChance;
-			
+			if(ourChance < lowestChance) lowestChance = ourChance;			
 		}
 	}
 	
 	return (lowestChance*100);
 }
 async function evalGoToWar(ns) {
-	ns.print("Evaluation Territory Warefare");
+	ns.print("Evaluating Territory Warefare");
 	let lowestChance = await calculateWarChance(ns);
 	let goToWar = false;
 	let atWar = ns.gang.getGangInformation().territoryWarfareEngaged;
 	let threshold =  goToWarWhenChancesOver;
-	if(ns.gang.getGangInformation.territoryWarfareEngaged) {
+	if(atWar) {
 		threshold -= 5; // If we're at war, allow us to continue with a margin of 5% under
 	}
 	if(lowestChance >= threshold) {
 		goToWar = true;
 	}
 	if(atWar) {
-		ns.print(` Warfare change in territory: ${previousTerritoryHeld-ns.gang.getGangInformation().territory}`);
+		ns.print(` Warfare change in territory: ${((ns.gang.getGangInformation().territory-previousTerritoryHeld)*100).toLocaleString('en-US')}`);
 	}
-	if(goToWar && !atWar) {
-		ns.print(` Enabling Territory Warfare: Our worstcase chance ${lowestChance.toLocaleString('en-US')} Threshold: ${threshold}`);
-		ns.gang.setTerritoryWarfare(true);
+	if(goToWar) {
+		if(!atWar) {
+			ns.print(` Enabling Territory Warfare: Our worstcase chance ${lowestChance.toLocaleString('en-US')} Threshold: ${threshold}`);
+			ns.gang.setTerritoryWarfare(true);
+		}
 	} else {
 		ns.print(` Disabling Territory Warfare: Our worstcase chance ${lowestChance.toLocaleString('en-US')} Threshold: ${threshold}`);
 		ns.gang.setTerritoryWarfare(false);
