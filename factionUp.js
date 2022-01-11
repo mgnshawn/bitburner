@@ -5,9 +5,11 @@ var AugsInOrder = [];
 	AugsInOrder.push({'The Syndicate':["The Shadow's Simulacrum","Power Recirculation Core",'Neurotrainer II']});
 	AugsInOrder.push({'The Syndicate':['The Black Hand','Neuregen Gene Modification','CRTX42-AA Gene Modification','Neurotrainer III','Artificial Synaptic Potentiation']});
 	AugsInOrder.push({'CyberSec':['Upgrade']});
+	AugsInOrder.push({'The Syndicate':['Cranial Signal Processors - Gen IV','Cranial Signal Processors - Gen V','Neuralstimulator','Neural Accelerator']});
 	AugsInOrder.push({'Aevum':['PCMatrix']});
 	AugsInOrder.push({'Sector-12':['Neuralstimulator']});
 	AugsInOrder.push({'CyberSec':['Upgrade']});
+	AugsInOrder.push({'The Syndicate':['PC Direct-Neural Interface NeuroNet Injector','PC Direct-Neural Interface Optimization Submodule']});
 	
 	var toJoinFaction = {'CyberSec':'CSEC', 'Tian Di Hui':'New Tokyo', 'Aevum':'Aevum', 'Sector-12':'Sector-12','The Syndicate':'Aevum'};
 	var autoWork = false;

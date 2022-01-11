@@ -36,7 +36,13 @@ export async function main(ns) {
     ns.disableLog('getServerNumPortsRequired');
     ns.disableLog('scan');
     ns.disableLog('exec');
-
+    ns.disableLog('scp');
+    ns.disableLog('brutessh');
+    ns.disableLog('ftpcrack');
+    ns.disableLog('relaysmtp');
+    ns.disableLog('httpworm');
+    ns.disableLog('sqlinject');
+    ns.disableLog('nuke');
 
     for(let z=0;z<ns.args.length;z++) {
 		if(ns.args[z] !== undefined) {
