@@ -4,11 +4,13 @@ var AugsInOrder = [];
 	AugsInOrder.push({'CyberSec':['Cranial Signal Processors - Gen I','Cranial Signal Processors - Gen II']});			
 	AugsInOrder.push({'The Syndicate':["The Shadow's Simulacrum","Power Recirculation Core",'Neurotrainer II']});
 	AugsInOrder.push({'The Syndicate':['The Black Hand','Neuregen Gene Modification','CRTX42-AA Gene Modification','Neurotrainer III','Artificial Synaptic Potentiation']});
+	AugsInOrder.push({'CyberSec':['Upgrade']});
 	AugsInOrder.push({'Aevum':['PCMatrix']});
 	AugsInOrder.push({'Sector-12':['Neuralstimulator']});
 	AugsInOrder.push({'CyberSec':['Upgrade']});
 	
 	var toJoinFaction = {'CyberSec':'CSEC', 'Tian Di Hui':'New Tokyo', 'Aevum':'Aevum', 'Sector-12':'Sector-12','The Syndicate':'Aevum'};
+	var autoWork = false;
 	/*
 "The Shadow's Simulacrum",
 	*/
@@ -23,6 +25,7 @@ export async function main(ns) {
     ns.disableLog('getPurchasedServers');
     ns.disableLog('getPurchasedServerLimit');
     ns.disableLog('getServerNumPortsRequired');
+	ns.disableLog('getServerMoneyAvailable');
     ns.disableLog('scan');
 	
 	let workToDo = "hacking contracts";
@@ -36,11 +39,19 @@ export async function main(ns) {
 		}
 	}
 
-
+	for(let z=0;z<ns.args.length;z++) {
+		if(ns.args[z] !== undefined) {
+			if(ns.args[z] == 'autowork') {
+				autowork = true;
+			}
+		}
+	}
 
 	ns.tail();
-	ns.run('crimeItUp.js',1,"auto",'l');
-	ns.print("Starting to crime it up for initial money");
+	if(autoWork) {
+		ns.run('crimeItUp.js',1,"auto",'l');
+		ns.print("Starting to crime it up for initial money");
+	}
 	
 	
 
@@ -54,7 +65,12 @@ export async function main(ns) {
 				for(var aug = 0; aug < Augs.length; aug++) {
 					let currentAug = Augs[aug];
 					if(currentAug == "Upgrade") {
-						await runUpgradeLoop(ns,50);
+						let uLoops = 3;
+						if(Augs == AugsInOrder.length-1) {
+							uLoops = 50;
+						} 
+
+						await runUpgradeLoop(ns,uLoops);
 						inActiveRound = true;
 					} else {
 					if(!ns.getOwnedAugmentations(true).includes(currentAug)) {
@@ -63,12 +79,14 @@ export async function main(ns) {
 						ns.print("[Faction|| "+faction+" [Aug|| "+currentAug+ " Requires $"+ns.getAugmentationPrice(currentAug).toLocaleString("en-US")+" and "+ns.getAugmentationRepReq(currentAug).toLocaleString("en-US")+" Rep");
 			
 						let repNeeded = ns.getAugmentationRepReq(currentAug);
-						while(ns.getFactionRep(faction) < repNeeded) {
+						while(faction != ns.gang.getGangInformation().faction && ns.getFactionRep(faction) < repNeeded) {
 							if(inTempRound) {
 								break;
 							}
-							ns.print("Working for rep. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining rep needed: " + (ns.getAugmentationRepReq(currentAug) - ns.getFactionRep(faction)).toLocaleString("en-US"));
-							ns.workForFaction(faction, workToDo);
+							if(autoWork) {
+								ns.print("Working for rep. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining rep needed: " + (ns.getAugmentationRepReq(currentAug) - ns.getFactionRep(faction)).toLocaleString("en-US"));
+								ns.workForFaction(faction, workToDo);
+							}
     						await ns.sleep(60000);
 						}
 						while (!ns.getOwnedAugmentations(true).includes(currentAug)) {
@@ -82,13 +100,15 @@ export async function main(ns) {
 								if(inTempRound) {
 									break;
 								}
-								ns.print("Criming for money. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining needed $"+(ns.getAugmentationPrice(currentAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US"));								
-								ns.stopAction();
-								if((ns.getServerMaxRam("home") - ns.getServerUsedRam("home")) < ns.getScriptRam("crimeItUp.js")) {
-									await ns.scriptKill("hackit.js","home");
-								}
-								if(!ns.scriptRunning('crimeItUp.js','home')) {
-									await ns.run('crimeItUp.js',1,"auto","s");
+								if(autoWork) {
+									ns.print("Criming for money. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining needed $"+(ns.getAugmentationPrice(currentAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US"));								
+									ns.stopAction();
+									if((ns.getServerMaxRam("home") - ns.getServerUsedRam("home")) < ns.getScriptRam("crimeItUp.js")) {
+										await ns.scriptKill("hackit.js","home");
+									}
+									if(!ns.scriptRunning('crimeItUp.js','home')) {
+										await ns.run('crimeItUp.js',1,"auto","s");
+									}
 								}
 							}
 							await ns.sleep(30000);
@@ -119,7 +139,7 @@ export async function main(ns) {
 	if(ns.heart.break()<35000) {
 		ns.print("Installing Augmentations");	
 		ns.enableLog('sleep');
-		//ns.installAugmentations('init.js');
+		ns.installAugmentations('init.js');
 	} else {
 		ns.print("Riding out this reboot for Gang creation");
 		while(!ns.gang.inGang()) {
@@ -133,33 +153,56 @@ export async function main(ns) {
 async function runUpgradeLoop(ns, upgradesToGet) {
 	let gradeUpAug = "NeuroFlux Governor";
 	let workToDo = "hacking contracts";
+	let targetFaction = 'CyberSec';
+	let targetFactionRep = 1;
+	let playerFactions = ns.getPlayer().factions;
+	if(ns.gang.inGang()) {
+		for(let f in playerFactions) {
+			if(ns.getFactionRep(playerFactions[f]) > targetFactionRep && (!ns.gang.inGang() || playerFactions[f] != ns.gang.getGangInformation().faction)) {
+				targetFactionRep = ns.getFactionRep(playerFactions[f]);
+				targetFaction = playerFactions[f];
+			}
+		}
+	}
 	for(let countit = 1;countit <= upgradesToGet;countit++) {
 		ns.stopAction();
 		let onToNext = false;
 		ns.print("GradeUp Aug "+gradeUpAug+" "+countit+ " Requires $"+ns.getAugmentationPrice(gradeUpAug).toLocaleString("en-US")+" and "+ns.getAugmentationRepReq(gradeUpAug)+" Rep");
 		let repNeeded = ns.getAugmentationRepReq(gradeUpAug);
-		while(ns.getFactionRep('CyberSec') < repNeeded) {
-			ns.print("Working for rep. Remaining rep needed: " + (ns.getAugmentationRepReq(gradeUpAug) - ns.getFactionRep('CyberSec').toLocaleString("en-US")));
-			ns.workForFaction('CyberSec', workToDo);
+		while(ns.getFactionRep(targetFaction) < repNeeded) {
+			let repRemaining = 0;
+			if(ns.getFactionRep(targetFaction) != undefined) {
+				repRemaining = ns.getFactionRep(targetFaction);
+			}
+			if(autoWork) {
+				ns.print("Working for rep. Remaining rep needed: " + (ns.getAugmentationRepReq(gradeUpAug) - repRemaining).toLocaleString("en-US") + " with "+targetFaction);
+				ns.workForFaction(targetFaction, workToDo);
+			} else {
+				ns.print("Waiting for rep. Remaining rep needed: " + (ns.getAugmentationRepReq(gradeUpAug) - repRemaining).toLocaleString("en-US") + " with "+targetFaction);
+			}
     		await ns.sleep(60000);
 		}
 		do {			
 			if(ns.getServerMoneyAvailable('home') > ns.getAugmentationPrice(gradeUpAug)) {
-				let succ = ns.purchaseAugmentation('CyberSec', gradeUpAug);
+				let succ = ns.purchaseAugmentation(targetFaction, gradeUpAug);
 				if(succ) {
 					ns.print("Purchased Aug: ".gradeUpAug);
 					onToNext = true;
 				}
 			}	else {
-					ns.print("Criming for money. Remaining needed $"+(ns.getAugmentationPrice(gradeUpAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US"));
-					if(!ns.isBusy()) {
-						ns.stopAction();
-						if((ns.getServerMaxRam("home") - ns.getServerUsedRam("home")) < ns.getScriptRam("crimeItUp.js")) {
-							await ns.scriptKill("hackit.js","home");
+					if(autoWork) {
+						ns.print("Criming for money. Remaining needed $"+(ns.getAugmentationPrice(gradeUpAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US") + " with "+targetFaction);
+						if(!ns.isBusy()) {
+							ns.stopAction();
+							if((ns.getServerMaxRam("home") - ns.getServerUsedRam("home")) < ns.getScriptRam("crimeItUp.js")) {
+								await ns.scriptKill("hackit.js","home");
+							}
+							if(!ns.scriptRunning('crimeItUp.js','home')) {
+								await ns.run('crimeItUp.js',1,"auto","l");
+							}
 						}
-						if(!ns.scriptRunning('crimeItUp.js','home')) {
-							await ns.run('crimeItUp.js',1,"auto","l");
-						}
+					} else {
+						ns.print("Waiting for money to upgrade "+gradeUpAug+". Remaining needed $"+(ns.getAugmentationPrice(gradeUpAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US") + " with "+targetFaction);
 					}
 				}
 			await ns.sleep(10000);
