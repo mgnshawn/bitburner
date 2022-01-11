@@ -6,6 +6,7 @@ export async function main(ns) {
 export var _allServers = [];
 export var _pathToTarget = [];
 export async function scan(ns) {
+	_allServers = [];
 	await localScan(ns,ns.scan("home"),'home');
 	return _allServers;
 }

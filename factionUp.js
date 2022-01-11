@@ -4,14 +4,14 @@ var AugsInOrder = [];
 	AugsInOrder.push({'CyberSec':['Cranial Signal Processors - Gen I','Cranial Signal Processors - Gen II']});			
 	AugsInOrder.push({'The Syndicate':["The Shadow's Simulacrum","Power Recirculation Core",'Neurotrainer II']});
 	AugsInOrder.push({'The Syndicate':['The Black Hand','Neuregen Gene Modification','CRTX42-AA Gene Modification','Neurotrainer III','Artificial Synaptic Potentiation']});
-	AugsInOrder.push({'CyberSec':['Upgrade']});
-	AugsInOrder.push({'The Syndicate':['Cranial Signal Processors - Gen IV','Cranial Signal Processors - Gen V','Neuralstimulator','Neural Accelerator']});
 	AugsInOrder.push({'Aevum':['PCMatrix']});
-	AugsInOrder.push({'Sector-12':['Neuralstimulator']});
+	AugsInOrder.push({'The Syndicate':['Cranial Signal Processors - Gen IV','Cranial Signal Processors - Gen V','Neuralstimulator','Neural Accelerator','DataJack','Neural-Retention Enhancement']});
+	AugsInOrder.push({'The Syndicate':['OmniTek InfoLoad','SPTN-97 Gene Modification','Neuronal Densification','Artificial Bio-neural Network Implant','Enhanced Myelin Sheathing']});
 	AugsInOrder.push({'CyberSec':['Upgrade']});
 	AugsInOrder.push({'The Syndicate':['PC Direct-Neural Interface NeuroNet Injector','PC Direct-Neural Interface Optimization Submodule']});
+	AugsInOrder.push({'Daedalus':['The Red Pill']});
 	
-	var toJoinFaction = {'CyberSec':'CSEC', 'Tian Di Hui':'New Tokyo', 'Aevum':'Aevum', 'Sector-12':'Sector-12','The Syndicate':'Aevum'};
+	var toJoinFaction = {'CyberSec':'CSEC', 'Tian Di Hui':'New Tokyo', 'Aevum':'Aevum', 'Sector-12':'Sector-12','The Syndicate':'Aevum','Daedalus':'New Toky'};
 	var autoWork = false;
 	/*
 "The Shadow's Simulacrum",
@@ -43,8 +43,8 @@ export async function main(ns) {
 
 	for(let z=0;z<ns.args.length;z++) {
 		if(ns.args[z] !== undefined) {
-			if(ns.args[z] == 'autowork') {
-				autowork = true;
+			if(ns.args[z] == 'autoWork' || ns.args[z] == 'autowork') {
+				autoWork = true;
 			}
 		}
 	}
@@ -120,12 +120,14 @@ export async function main(ns) {
 				}
 				if(inActiveRound && !inTempRound) {
 					await runUpgradeLoop(ns,2);
-					let faction = Object.keys(AugsInOrder[AugIndex+1])[0];
-					if(faction !== null && faction !== undefined) {
-						let Augs = AugsInOrder[AugIndex][faction];
-						if(ns.getServerMoneyAvailable('home') > ns.getAugmentationPrice(Augs[0])) {
-							ns.print("Can afford Augmentations from next round; continueing into next round...");
-							continue;
+					if(AugsInOrder[AugIndex+1] !== undefined && AugsInOrder[AugIndex+1] !== null){
+						let faction = Object.keys(AugsInOrder[AugIndex+1])[0];
+						if(faction !== null && faction !== undefined) {
+							let Augs = AugsInOrder[AugIndex][faction];
+							if(ns.getServerMoneyAvailable('home') > ns.getAugmentationPrice(Augs[0])) {
+								ns.print("Can afford Augmentations from next round; continueing into next round...");
+								continue;
+							}
 						}
 					}
 					break;
@@ -248,7 +250,7 @@ async function checkFactionMemberShipAndJoin(ns,faction) {
 						ns.connect('home');
 					}
 				}
-				await ns.sleep(60000);
+				await ns.sleep(10000);
 			} 
 			while(!ns.getPlayer().factions.includes(faction)) {
 				ns.print("Waiting to join "+faction);
