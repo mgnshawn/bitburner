@@ -1,6 +1,6 @@
 var AugsInOrder = [];
 	AugsInOrder =[{'CyberSec':["Synaptic Enhancement Implant", "BitWire", "Neurotrainer I"]}];
-	AugsInOrder.push({'CyberSec':['Upgrade','Upgrade']});
+//	AugsInOrder.push({'CyberSec':['Upgrade','Upgrade']});
 	AugsInOrder.push({'Tian Di Hui':['Social Negotiation Assistant (S.N.A)',  'ADR-V1 Pheromone Gene']});
 	AugsInOrder.push({'CyberSec':['Cranial Signal Processors - Gen I','Cranial Signal Processors - Gen II']});			
 	AugsInOrder.push({'Slum Snakes':["The Shadow's Simulacrum","Power Recirculation Core",'Neurotrainer II']});
@@ -109,7 +109,7 @@ function drawStatus(ns,newLine) {
 
 							if(x >= 2 && x < 10 && state[termHeight-2-y][0][x-2] !== undefined) {								
 									CurrLine += state[termHeight-2-y][0][x-2];
-							} else if(x >=10 &&state[termHeight-2-y][1][x-11] != undefined) {
+							} else if(x >=10 && state[termHeight-2-y] != undefined && state[termHeight-2-y][0] !== undefined && state[termHeight-2-y][1][x-11] != undefined) {
 									CurrLine += state[termHeight-2-y][1][x-11];
 
 							} else {
@@ -215,6 +215,7 @@ export async function main(ns) {
 
 						await runUpgradeLoop(ns,uLoops);
 						inActiveRound = true;
+						continue;
 					}
 
 					if(!ns.getOwnedAugmentations(true).includes(currentAug)) {
