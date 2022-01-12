@@ -1,18 +1,18 @@
 var AugsInOrder = [];
 	AugsInOrder =[{'CyberSec':["Synaptic Enhancement Implant", "BitWire", "Neurotrainer I"]}];
-	//AugsInOrder.push({'Tian Di Hui':['Upgrade','Upgrade']});
+	AugsInOrder.push({'CyberSec':['Upgrade','Upgrade']});
 	AugsInOrder.push({'Tian Di Hui':['Social Negotiation Assistant (S.N.A)',  'ADR-V1 Pheromone Gene']});
 	AugsInOrder.push({'CyberSec':['Cranial Signal Processors - Gen I','Cranial Signal Processors - Gen II']});			
-	AugsInOrder.push({'The Syndicate':["The Shadow's Simulacrum","Power Recirculation Core",'Neurotrainer II']});
-	AugsInOrder.push({'The Syndicate':['The Black Hand','Neuregen Gene Modification','CRTX42-AA Gene Modification','Neurotrainer III','Artificial Synaptic Potentiation']});
+	AugsInOrder.push({'Slum Snakes':["The Shadow's Simulacrum","Power Recirculation Core",'Neurotrainer II']});
+	AugsInOrder.push({'Slum Snakes':['The Black Hand','Neuregen Gene Modification','CRTX42-AA Gene Modification','Neurotrainer III','Artificial Synaptic Potentiation']});
 	AugsInOrder.push({'Aevum':['PCMatrix']});
-	AugsInOrder.push({'The Syndicate':['Cranial Signal Processors - Gen IV','Cranial Signal Processors - Gen V','Neuralstimulator','Neural Accelerator','DataJack','Neural-Retention Enhancement']});
-	AugsInOrder.push({'The Syndicate':['OmniTek InfoLoad','SPTN-97 Gene Modification','Neuronal Densification','Artificial Bio-neural Network Implant','Enhanced Myelin Sheathing']});
+	AugsInOrder.push({'Slum Snakes':['Cranial Signal Processors - Gen IV','Cranial Signal Processors - Gen V','Neuralstimulator','Neural Accelerator','DataJack','Neural-Retention Enhancement']});
+	AugsInOrder.push({'Slum Snakes':['OmniTek InfoLoad','SPTN-97 Gene Modification','Neuronal Densification','Artificial Bio-neural Network Implant','Enhanced Myelin Sheathing']});
 	AugsInOrder.push({'CyberSec':['Upgrade']});
-	AugsInOrder.push({'The Syndicate':['PC Direct-Neural Interface NeuroNet Injector','PC Direct-Neural Interface Optimization Submodule']});
+	AugsInOrder.push({'Slum Snakes':['PC Direct-Neural Interface NeuroNet Injector','PC Direct-Neural Interface Optimization Submodule']});
 	AugsInOrder.push({'Daedalus':['The Red Pill']});
 	
-	var toJoinFaction = {'CyberSec':'CSEC', 'Tian Di Hui':'New Tokyo', 'Aevum':'Aevum', 'Sector-12':'Sector-12','The Syndicate':'Aevum','Daedalus':'New Toky'};
+	var toJoinFaction = {'CyberSec':'CSEC', 'Tian Di Hui':'New Tokyo', 'Aevum':'Aevum', 'Sector-12':'Sector-12','Slum Snakes':'Aevum','Daedalus':'New Toky'};
 	var autoWork = false;
 	var upgradesPerJob = 3;
 
@@ -147,6 +147,9 @@ export async function main(ns) {
 	ns.disableLog('workForFaction');
     ns.disableLog('scan');
 	ns.disableLog('stopAction');
+	ns.disableLog('connect');
+	ns.disableLog('installBackdoor');
+	ns.disableLog('run');
 	ns.print("============================================ Beginning Faction Up ============================================");
 	ns.tail();
 	//await draw(ns,['this is a test','line two of the test'],"Doing xyz for pdq");
@@ -162,6 +165,7 @@ export async function main(ns) {
 					if(ns.getOwnedAugmentations(true).includes(_Aug)) {
 						owned = "*owned*";
 					}
+					ns.tprint(`Aug:: ${_Aug}\t${owned}\t $${ns.getAugmentationPrice(_Aug).toLocaleString("en-US")}\t${ns.getAugmentationRepReq(_Aug)}xp`);
 					drawList(ns,`Aug:: ${_Aug}\t${owned}\t $${ns.getAugmentationPrice(_Aug).toLocaleString("en-US")}\t${ns.getAugmentationRepReq(_Aug)}xp`);				
 				}
 			}
@@ -225,14 +229,15 @@ export async function main(ns) {
 							if(inTempRound) {
 								break;
 							}
-							if(autoWork && !ns.isBusy()) {
+							if(autoWork) {
 								drawStatus(ns,"Working for rep. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining rep needed: " + (ns.getAugmentationRepReq(currentAug) - ns.getFactionRep(faction)).toLocaleString("en-US"));
 								ns.workForFaction(faction, workToDo);
 							} else {
 								drawStatus(ns,"Waiting for rep. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining rep needed: " + (ns.getAugmentationRepReq(currentAug) - ns.getFactionRep(faction)).toLocaleString("en-US"));
 							}
-    						await ns.sleep(6 * 1000);
+    						await ns.sleep(60 * 1000);
 						}
+						ns.stopAction();
 						while (!ns.getOwnedAugmentations(true).includes(currentAug)) {
 							if(ns.getServerMoneyAvailable('home') > ns.getAugmentationPrice(currentAug)) {
 								
@@ -246,7 +251,6 @@ export async function main(ns) {
 								}
 								if(autoWork && !ns.isBusy()) {
 									drawStatus(ns,"Criming for money. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining needed $"+(ns.getAugmentationPrice(currentAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US"));								
-									ns.stopAction();
 									if((ns.getServerMaxRam("home") - ns.getServerUsedRam("home")) < ns.getScriptRam("crimeItUp.js")) {
 										await ns.scriptKill("hackit.js","home");
 									}
@@ -257,26 +261,26 @@ export async function main(ns) {
 									drawStatus(ns,"Waiting for money. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining needed $"+(ns.getAugmentationPrice(currentAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US"));								
 								}
 							}
-							await ns.sleep(6 * 1000);
+							await ns.sleep(90 * 1000);
 						}		
 					}
 				}
 				if(inActiveRound && !inTempRound && AugIndex != 0) {
-					drawState(ns,"Entering Upgrade Loop at end of Aug Level "+AugIndex);
+					drawStatus(ns,"Entering Upgrade Loop at end of Aug Level "+AugIndex);
 					await runUpgradeLoop(ns,2);
 					if(AugsInOrder[AugIndex+1] !== undefined && AugsInOrder[AugIndex+1] !== null){
 						let faction = Object.keys(AugsInOrder[AugIndex+1])[0];
 						if(faction !== null && faction !== undefined) {
 							let Augs = AugsInOrder[AugIndex][faction];
 							if(ns.getServerMoneyAvailable('home') > ns.getAugmentationPrice(Augs[0])) {
-								drawState(ns,"Can afford Augmentations from next round; continueing into next round...");
+								drawStatus(ns,"Can afford Augmentations from next round; continueing into next round...");
 								continue;
 							}
 						}
 					}
 					break;
 				} else if(inTempRound) {
-					ns.print("Can't afford Augmentations from next round; ending.");
+					drawStatus(ns,"Can't afford Augmentations from next round; ending.");
 					break;
 				}
 
@@ -285,17 +289,15 @@ export async function main(ns) {
 	
 	
 	if(ns.heart.break()<35000) {
-		drawState(ns,"Installing Augmentations");	
-		ns.enableLog('sleep');
+		drawStatus(ns,"Installing Augmentations");	
 		ns.installAugmentations('init.js');
 	} else {
-		drawState(ns,"Riding out this reboot for Gang creation");
+		drawStatus(ns,"Riding out this reboot for Gang creation");
 		while(!ns.gang.inGang()) {
 			await ns.sleep('60000') 
-			drawState(ns,`Karma ${ns.heart.break()}`);
+			drawStatus(ns,`Karma ${ns.heart.break()}`);
 		}
 	}
-	ns.enableLog('sleep');
 }	
 
 async function runUpgradeLoop(ns, upgradesToGet) {
@@ -315,18 +317,18 @@ async function runUpgradeLoop(ns, upgradesToGet) {
 	for(let countit = 1;countit <= upgradesToGet;countit++) {
 		ns.stopAction();
 		let onToNext = false;
-		drawState(ns,"GradeUp Aug "+gradeUpAug+" "+countit+ " Requires $"+ns.getAugmentationPrice(gradeUpAug).toLocaleString("en-US")+" and "+ns.getAugmentationRepReq(gradeUpAug)+" Rep");
+		drawStatus(ns,"GradeUp Aug "+gradeUpAug+" "+countit+ " Requires $"+ns.getAugmentationPrice(gradeUpAug).toLocaleString("en-US")+" and "+ns.getAugmentationRepReq(gradeUpAug)+" Rep");
 		let repNeeded = ns.getAugmentationRepReq(gradeUpAug);
 		while(ns.getFactionRep(targetFaction) < repNeeded) {
 			let repRemaining = 0;
 			if(ns.getFactionRep(targetFaction) != undefined) {
 				repRemaining = ns.getFactionRep(targetFaction);
 			}
-			if(autoWork && !ns.isBusy()) {
-				drawState(ns,"Working for rep. Remaining rep needed: " + (ns.getAugmentationRepReq(gradeUpAug) - repRemaining).toLocaleString("en-US") + " with "+targetFaction);
+			if(autoWork) {
+				drawStatus(ns,"Working for rep. Remaining rep needed: " + (ns.getAugmentationRepReq(gradeUpAug) - repRemaining).toLocaleString("en-US") + " with "+targetFaction);
 				ns.workForFaction(targetFaction, workToDo);
 			} else {
-				drawState(ns,"Waiting for rep. Remaining rep needed: " + (ns.getAugmentationRepReq(gradeUpAug) - repRemaining).toLocaleString("en-US") + " with "+targetFaction);
+				drawStatus(ns,"Waiting for rep. Remaining rep needed: " + (ns.getAugmentationRepReq(gradeUpAug) - repRemaining).toLocaleString("en-US") + " with "+targetFaction);
 			}
     		await ns.sleep(60000);
 		}
@@ -334,12 +336,12 @@ async function runUpgradeLoop(ns, upgradesToGet) {
 			if(ns.getServerMoneyAvailable('home') > ns.getAugmentationPrice(gradeUpAug)) {
 				let succ = ns.purchaseAugmentation(targetFaction, gradeUpAug);
 				if(succ) {
-					drawState(ns,"Purchased Aug: ".gradeUpAug);
+					drawStatus(ns,"Purchased Aug: ".gradeUpAug);
 					onToNext = true;
 				}
 			}	else {
 					if(autoWork && !ns.isBusy()) {
-						drawState(ns,"Criming for money. Remaining needed $"+(ns.getAugmentationPrice(gradeUpAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US") + " with "+targetFaction);
+						drawStatus(ns,"Criming for money. Remaining needed $"+(ns.getAugmentationPrice(gradeUpAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US") + " with "+targetFaction);
 						if(!ns.isBusy()) {
 							ns.stopAction();
 							if((ns.getServerMaxRam("home") - ns.getServerUsedRam("home")) < ns.getScriptRam("crimeItUp.js")) {
@@ -350,7 +352,7 @@ async function runUpgradeLoop(ns, upgradesToGet) {
 							}
 						}
 					} else {
-						drawState(ns,"Waiting for money to upgrade "+gradeUpAug+". Remaining needed $"+(ns.getAugmentationPrice(gradeUpAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US") + " with "+targetFaction);
+						drawStatus(ns,"Waiting for money to upgrade "+gradeUpAug+". Remaining needed $"+(ns.getAugmentationPrice(gradeUpAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US") + " with "+targetFaction);
 					}
 				}
 			await ns.sleep(10000);
@@ -379,7 +381,7 @@ async function checkFactionMemberShipAndJoin(ns,faction) {
 		if(toJoinFaction[faction] == 'CSEC') {
 			ns.run('crimeItUp.js',1,"auto",'l');
 			while(!ns.getServer(toJoinFaction[faction]).backdoorInstalled) {		
-				ns.print("Waiting to install backdoor on CSEC");
+				drawStatus(ns,"Waiting to install backdoor on CSEC");
 				if(ns.getServer(toJoinFaction[faction])["hasAdminRights"]) {							
 					var parent = findCSEC(ns);
 					ns.connect(parent);
@@ -388,7 +390,7 @@ async function checkFactionMemberShipAndJoin(ns,faction) {
 					await ns.sleep(100);
 					var succ = await ns.installBackdoor();
 					if(succ) {
-						ns.print("Installing backdoor on "+toJoinFaction[faction]);
+						drawStatus(ns,"Installing backdoor on "+toJoinFaction[faction]);
 						ns.connect(parent);
 						await ns.sleep(1000);
 						ns.connect('home');
@@ -397,11 +399,11 @@ async function checkFactionMemberShipAndJoin(ns,faction) {
 				await ns.sleep(10000);
 			} 
 			while(!ns.getPlayer().factions.includes(faction)) {
-				ns.print("Waiting to join "+faction);
+				drawStatus(ns,"Waiting to join "+faction);
 				if(ns.checkFactionInvitations().includes(faction)) {
 					var succ = ns.joinFaction(faction);
 					if(succ) {
-						ns.print("   ...Joined "+faction);
+						drawStatus(ns,"   ...Joined "+faction);
 					}
 				}
 				await ns.sleep(5000);
@@ -416,14 +418,14 @@ async function checkFactionMemberShipAndJoin(ns,faction) {
 					if(ns.checkFactionInvitations().includes(faction)) {
 						var succ = ns.joinFaction(faction);
 						if(succ) {
-							ns.print("   ...Joined "+faction);
+							drawStatus(ns,"   ...Joined "+faction);
 						}
 					} else {
-						ns.print("waiting for invitation to "+faction);
+						drawStatus(ns,"waiting for invitation to "+faction);
 					}
 				
 				} else {
-					ns.print("waiting for enough money to travel to "+toJoinFaction[faction]);
+					drawStatus(ns,"waiting for enough money to travel to "+toJoinFaction[faction]);
 				}
 				await ns.sleep(5000);
 			}

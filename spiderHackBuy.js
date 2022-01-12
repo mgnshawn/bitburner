@@ -249,7 +249,7 @@ while (purchaseServers == true && ns.getPurchasedServers().length < ns.getPurcha
         checkForApps(ns);
         var hostname = ns.purchaseServer("attack-"+target+"-"+(ram)+"gb-"+ i, (ram));
         ns.print(`Purchased [${hostname}] for $${ns.getPurchasedServerCost(ram)} w/${ram}gb`);
-        if(hostname !== undefined && hostname !== null) {
+        if(hostname !== undefined && hostname !== null && ns.getServer(hostname) !== undefined && ns.getServer(hostname) !== null) {
             for(var s=1;s<=slice;s++) {
                 if(!ns.fileExists('hackit.js',hostname)) {
                     await ns.scp("hackit.js", hostname);
@@ -455,27 +455,31 @@ async function evalAndNuke(ns,server,origin,target) {
 		if(highestLevelSeen < level) {
 			highestLevelSeen = level;
 		}
-		if(level <= playerLevel &&  ((ns.getServerMaxRam(attackThis) - ns.getServerUsedRam(attackThis)) > Math.ceil(scriptRam) || (ns.getServerMaxRam(attackThis) < Math.ceil(scriptRam) || !ns.getServer(attackThis).backDoorInstalled))) {
-            if(crackers >= ns.getServerNumPortsRequired(attackThis) && !ns.getServer(attackThis).hasAdminRights) {
-                if(ns.fileExists("BruteSSH.exe"))
-                    ns.brutessh(attackThis);
-                if(ns.fileExists("FTPCrack.exe"))
-                    ns.ftpcrack(attackThis);
-                if(ns.fileExists("relaySMTP.exe"))
-                    ns.relaysmtp(attackThis);
-                if(ns.fileExists("HTTPWorm.exe"))
-                    ns.httpworm(attackThis);
-                if(ns.fileExists("SQLInject.exe"))
-			        ns.sqlinject(attackThis);
-                if(ns.getServer(attackThis).openPortCount >= ns.getServer(attackThis).numOpenPortsRequired) {
-    			    returnResult = ns.nuke(attackThis);
-	    		    ownedServers[server]=origin;
-		    	    if(!quiet) { ns.print(" ...conquered "+attackThis);                
-                    } else {
-                        ns.print(`Nuked ${attackThis} level ${ns.getServerRequiredHackingLevel(attackThis)}`);
-                    }
+		if(level <= playerLevel &&  ((ns.getServerMaxRam(attackThis) - ns.getServerUsedRam(attackThis)) > (scriptRam) || (ns.getServerMaxRam(attackThis) < Math.ceil(scriptRam) || !ns.getServer(attackThis).backDoorInstalled))) {
+           // ns.print(`${crackers} ${ns.getServerNumPortsRequired(attackThis)} ${ns.getServer(attackThis).hasAdminRights}`);
+            if(crackers >= ns.getServerNumPortsRequired(attackThis)) {
+                if(!ns.getServer(attackThis).hasAdminRights) {
+                    if(ns.fileExists("BruteSSH.exe",'home'))
+                        ns.brutessh(attackThis);
+                    if(ns.fileExists("FTPCrack.exe",'home'))
+                        ns.ftpcrack(attackThis);
+                    if(ns.fileExists("relaySMTP.exe",'home'))
+                        ns.relaysmtp(attackThis);
+                    if(ns.fileExists("HTTPWorm.exe",'home'))
+                        ns.httpworm(attackThis);
+                    if(ns.fileExists("SQLInject.exe",'home'))
+		    	        ns.sqlinject(attackThis);
+                    if(ns.getServer(attackThis).openPortCount >= ns.getServer(attackThis).numOpenPortsRequired) {
+        			    returnResult = ns.nuke(attackThis);
+	    		        ownedServers[server]=origin;
+		    	        if(!quiet) { ns.print(" ...conquered "+attackThis);                
+                        } else {
+                            ns.print(`Nuked ${attackThis} level ${ns.getServerRequiredHackingLevel(attackThis)}`);
+                        }
+                    }                
                 }
-            }
+                await startHacking(ns,server,target);
+            
             /*if(!ns.getServer(attackThis).backDoorInstalled) {
                 await ns.connect(attackThis);
                 await ns.sleep(100);
@@ -483,7 +487,10 @@ async function evalAndNuke(ns,server,origin,target) {
                 await ns.installBackdoor();
                 await ns.connect('home');
             }*/ //--WORK IN PROGRESS
-            await startHacking(ns,server,target);
+            
+            } else if(crackers < ns.getServerNumPortsRequired(attackThis) && attackThis !== 'darkweb') {
+                ns.print(`need ${ns.getServerNumPortsRequired(attackThis)-crackers} more crackers to nuke ${attackThis}`);
+            }
 		}
 		return returnResult;
 }
@@ -507,23 +514,22 @@ async function startHacking(ns,serv,thisTarget) {
         if(thisThreads < 1) {
             thisThreads = 1;
         }
-        if(!ns.scriptRunning('hackit.js', serv) && ((ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv)) > Math.ceil(scriptRam))) {
+        if(!ns.scriptRunning('hackit.js', serv) && ((ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv)) > scriptRam)) {
             startedNewThreads = true;
             await ns.exec("hackit.js", serv, thisThreads, thisTarget,s);
-            await ns.sleep(100);
+            await ns.sleep(500);
         }
         
     }
         
-    if((ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv)) > Math.ceil(scriptRam)) {
+    if((ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv)) > scriptRam) {
         var extraCopies = Math.floor((ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv))/scriptRam);
-        if(extraCopies > 0) {
-            
+        if(extraCopies > 0) {            
             if(!quiet)await ns.print("Starting "+extraCopies+" extra hackit threads on "+serv);
             await ns.exec("hackit.js", serv, extraCopies, thisTarget, rand, extraCopies+1);                
         }
     }
-    if(startedNewThreads) {
+    if(startedNewThreads == true) {
         ns.print(`Started hackit.js on [${serv}] attacking [${thisTarget}]`);
     }
 }
@@ -532,28 +538,40 @@ async function checkForApps(ns) {
     if(ns.getPlayer()["tor"] == false && ns.getServerMoneyAvailable("home") >= 200000) {
         ns.purchaseTor();
     }
-    if(!ns.fileExists("BruteSSH.exe") && ns.getServerMoneyAvailable("home") >= 500000) {
+    
+    if(!ns.fileExists("BruteSSH.exe",'home') && ns.getServerMoneyAvailable("home") >= 500000) {
         ns.purchaseProgram("BruteSSH.exe");
         ns.alert("Bought BruteSSH");
     }
-    if(!ns.fileExists("FTPCrack.exe") && ns.getServerMoneyAvailable("home") >= 1500000) {
+    if(!ns.fileExists("FTPCrack.exe",'home') && ns.getServerMoneyAvailable("home") >= 1500000) {
         ns.purchaseProgram("FTPCrack.exe");
         ns.alert("Bought FTPCrack");
     }
-    if(ns.getPlayer().hacking >= 300 && !ns.fileExists("relaySMTP.exe") && ns.getServerMoneyAvailable("home") >= 5000000) {
+    if(ns.getPlayer().hacking >= 300 && !ns.fileExists("relaySMTP.exe",'home') && ns.getServerMoneyAvailable("home") >= 5000000) {
         ns.purchaseProgram("relaySMTP.exe");
         ns.alert("Bought relaySMTP");
     }
-    if(ns.getPlayer().hacking >= 400 & !ns.fileExists("AutoLink.exe") && ns.getServerMoneyAvailable("home") >= 1500000) {
+    if(ns.getPlayer().hacking >= 400 & !ns.fileExists("AutoLink.exe",'home') && ns.getServerMoneyAvailable("home") >= 1500000) {
         ns.purchaseProgram("AutoLink.exe");
         ns.alert("Bought AutoLink");
     }
-    if(!ns.fileExists("HTTPWorm.exe") && ns.getServerMoneyAvailable("home") >= 30000000) {
+    if(!ns.fileExists("HTTPWorm.exe",'home') && ns.getServerMoneyAvailable("home") >= 30000000) {
         ns.purchaseProgram("HTTPWorm.exe");
         ns.alert("Bought HTTPWorm");
     }
-    if(!ns.fileExists("SQLInject.exe")&& ns.getServerMoneyAvailable("home") >= 250000000) {
+    if(!ns.fileExists("SQLInject.exe",'home')&& ns.getServerMoneyAvailable("home") >= 250000000) {
         ns.purchaseProgram("SQLInject.exe");
         ns.alert("Bought SQLInject");
     }
+    crackers = 0;
+    if(ns.fileExists("BruteSSH.exe",'home'))
+        crackers++;
+    if(ns.fileExists("FTPCrack.exe",'home'))
+        crackers++;
+    if(ns.fileExists("relaySMTP.exe",'home'))
+        crackers++;
+    if(ns.fileExists("HTTPWorm.exe",'home'))
+        crackers++;
+    if(ns.fileExists("SQLInject.exe",'home'))
+        crackers++;
 }

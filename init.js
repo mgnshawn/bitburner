@@ -29,7 +29,7 @@ export async function main(ns) {
   await ns.run('manageGang.js');
   let targetInfo = chooseTarget(ns.getPlayer()["hacking"]);
 
-  await ns.run('spiderHackBuy.ns', 1, "ram", 16, "slice", targetInfo["slice"],"target", "auto");
+  await ns.run('spiderHackBuy.ns', 1, "ram", 8, "slice", 16,"target", "auto");
 }
 
 export function chooseTarget(hackingLevel) {
