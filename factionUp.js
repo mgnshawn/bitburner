@@ -20,6 +20,7 @@ var AugsInOrder = [];
 	*/
 /** @param {NS} ns **/
 export async function main(ns) {
+	ns.disableLog('disableLog');
 	ns.disableLog('sleep');
     ns.disableLog('getServerUsedRam');
     ns.disableLog('getServerMaxRam');
@@ -32,14 +33,19 @@ export async function main(ns) {
 	ns.disableLog('getServerMoneyAvailable');
 	ns.disableLog('workForFaction');
     ns.disableLog('scan');
-	
+	ns.print("============================================ Beginning Faction Up ============================================");
 	let workToDo = "hacking contracts";
 	for(let AugObjIndex in AugsInOrder) {
 		for(let FacListObj in AugsInOrder[AugObjIndex]) {
 			for(let _AugIndex in AugsInOrder[AugObjIndex][FacListObj]) {
 				let _Aug = AugsInOrder[AugObjIndex][FacListObj][_AugIndex];
-				if(_Aug != "Upgrade")
-				ns.tprint(`${_Aug} ${ns.getAugmentationPrice(_Aug).toLocaleString("en-US")} ${ns.getAugmentationRepReq(_Aug)}xp`);				
+				if(_Aug != "Upgrade") {
+					let owned = "";
+					if(ns.getOwnedAugmentations(true).includes(_Aug)) {
+						owned = "*owned*";
+					}
+					ns.tprint(`Aug:: ${_Aug}\t${owned}\t $${ns.getAugmentationPrice(_Aug).toLocaleString("en-US")}\t${ns.getAugmentationRepReq(_Aug)}xp`);				
+				}
 			}
 		}
 	}
@@ -68,12 +74,16 @@ export async function main(ns) {
 		await checkFactionMemberShipAndJoin(ns,faction);
 		let roundTotalCost = 0;
 			for(var __aug = 0; __aug < Augs.length; __aug++) {await ns.sleep(50);
-				ns.print(`Round ${AugIndex}: \t${Augs[__aug]} \t$${ns.getAugmentationPrice(Augs[__aug]).toLocaleString('en-US')} \tRepXP: ${ns.getAugmentationRepReq(Augs[__aug])}`);
+				let owned = "";
+				if(ns.getOwnedAugmentations(true).includes(Augs[__aug])) {
+					owned = "*owned*";
+				}
+				ns.print(`Round ${AugIndex}:\t${owned}\t${Augs[__aug]} \t$${ns.getAugmentationPrice(Augs[__aug]).toLocaleString('en-US')} \tRepXP: ${ns.getAugmentationRepReq(Augs[__aug])}`);
 				roundTotalCost+=(ns.getAugmentationPrice(Augs[__aug])*(__aug+1));
 			}
 			
 			ns.print(`Total cost for Augs in round ${AugIndex} is $${roundTotalCost.toLocaleString('en-US')}`);
-				for(var aug = 0; aug < Augs.length; ++aug) {await ns.sleep(10);
+				for(var aug = 0; aug < Augs.length; ++aug) {
 					let currentAug = Augs[aug];
 					if(currentAug == "Upgrade") {
 						let uLoops = upgradesPerJob;
@@ -87,7 +97,9 @@ export async function main(ns) {
 
 					if(!ns.getOwnedAugmentations(true).includes(currentAug)) {
 						inActiveRound = true;
-						ns.stopAction();
+						if(autoWork) {
+							ns.stopAction();
+						}
 						ns.print("[Faction|| "+faction+" [Aug|| "+currentAug+ " Requires $"+ns.getAugmentationPrice(currentAug).toLocaleString("en-US")+" and "+ns.getAugmentationRepReq(currentAug).toLocaleString("en-US")+" Rep");
 			
 						let repNeeded = ns.getAugmentationRepReq(currentAug);
@@ -98,8 +110,10 @@ export async function main(ns) {
 							if(autoWork) {
 								ns.print("Working for rep. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining rep needed: " + (ns.getAugmentationRepReq(currentAug) - ns.getFactionRep(faction)).toLocaleString("en-US"));
 								ns.workForFaction(faction, workToDo);
+							} else {
+								ns.print("Waiting for rep. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining rep needed: " + (ns.getAugmentationRepReq(currentAug) - ns.getFactionRep(faction)).toLocaleString("en-US"));
 							}
-    						await ns.sleep(60000);
+    						await ns.sleep(60 * 1000);
 						}
 						while (!ns.getOwnedAugmentations(true).includes(currentAug)) {
 							if(ns.getServerMoneyAvailable('home') > ns.getAugmentationPrice(currentAug)) {
@@ -121,9 +135,11 @@ export async function main(ns) {
 									if(!ns.scriptRunning('crimeItUp.js','home')) {
 										await ns.run('crimeItUp.js',1,"auto","s");
 									}
+								} else {
+									ns.print("Waiting for money. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining needed $"+(ns.getAugmentationPrice(currentAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US"));								
 								}
 							}
-							await ns.sleep(30000);
+							await ns.sleep(60 * 1000);
 						}		
 					}
 				}

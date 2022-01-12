@@ -3,6 +3,7 @@ var crimes=['Shoplift','Rob store','Mug someone','Homicide','Kidnap and ransom',
 /** @param {NS} ns **/
 export async function main(ns) {
     ns.disableLog('sleep');
+    ns.print("===================== Beginning CrimeItUp =====================");
     var remainder = 90;
     var runByMoney = false;
     var growthTarget = 0;
