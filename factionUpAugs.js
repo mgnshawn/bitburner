@@ -225,7 +225,7 @@ export async function main(ns) {
 							if(inTempRound) {
 								break;
 							}
-							if(autoWork) {
+							if(autoWork && !ns.isBusy()) {
 								drawStatus(ns,"Working for rep. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining rep needed: " + (ns.getAugmentationRepReq(currentAug) - ns.getFactionRep(faction)).toLocaleString("en-US"));
 								ns.workForFaction(faction, workToDo);
 							} else {
@@ -244,7 +244,7 @@ export async function main(ns) {
 								if(inTempRound) {
 									break;
 								}
-								if(autoWork) {
+								if(autoWork && !ns.isBusy()) {
 									drawStatus(ns,"Criming for money. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining needed $"+(ns.getAugmentationPrice(currentAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US"));								
 									ns.stopAction();
 									if((ns.getServerMaxRam("home") - ns.getServerUsedRam("home")) < ns.getScriptRam("crimeItUp.js")) {
@@ -322,7 +322,7 @@ async function runUpgradeLoop(ns, upgradesToGet) {
 			if(ns.getFactionRep(targetFaction) != undefined) {
 				repRemaining = ns.getFactionRep(targetFaction);
 			}
-			if(autoWork) {
+			if(autoWork && !ns.isBusy()) {
 				drawState(ns,"Working for rep. Remaining rep needed: " + (ns.getAugmentationRepReq(gradeUpAug) - repRemaining).toLocaleString("en-US") + " with "+targetFaction);
 				ns.workForFaction(targetFaction, workToDo);
 			} else {
@@ -338,7 +338,7 @@ async function runUpgradeLoop(ns, upgradesToGet) {
 					onToNext = true;
 				}
 			}	else {
-					if(autoWork) {
+					if(autoWork && !ns.isBusy()) {
 						drawState(ns,"Criming for money. Remaining needed $"+(ns.getAugmentationPrice(gradeUpAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US") + " with "+targetFaction);
 						if(!ns.isBusy()) {
 							ns.stopAction();
