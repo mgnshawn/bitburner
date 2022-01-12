@@ -1,6 +1,6 @@
 const baseUrl = 'https://raw.githubusercontent.com/mgnshawn/bitburner/master/';
 const filesToDownload = [
-  'bitburner.js','crimeItUp.js','spiderHackBuy.js','hackit.js','manageGang.js','factionUpAugs.js'
+  'bitburner.js','crimeItUp.js','spiderHackBuy.js','hackit.js','manageGang.js','factionUpAugs.js','helpers.js','ioHelpers.js'
 ];
 
 export async function main(ns) {
@@ -36,7 +36,7 @@ export function chooseTarget(hackingLevel) {
   let resp = {};
   if( hackingLevel < 100) {
     resp = {"target":"n00dles","slice":1,"rungGang":false};
-  } else if(200 <= hackingLevel && hackingLevel < 350) {
+  } else if(100 <= hackingLevel && hackingLevel < 350) {
     resp = {"target":"joesguns","slice":4,"rungGang":false};
   } else if ( 350 <= hackingLevel && hackingLevel < 1000) {
     resp = {"target":"iron-gym","slice":8,"runGang":true};
