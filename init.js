@@ -9,6 +9,7 @@ export async function main(ns) {
   if(ns.args[0] !== undefined && ns.args[0] == 'nodownload') {
     doDownload= false;
   }
+  ns.disableLog('sleep');
   ns.tail();
   let hostname = ns.getHostname();
   let switchToCrimeAt = 1.8;
@@ -22,7 +23,7 @@ export async function main(ns) {
     await ns.scriptKill(filename, 'home');
     await ns.rm(filename);
     await ns.sleep(200);
-    ns.tprint(`Trying to download ${path}`);
+    ns.print(`Trying to download ${path}`);
     await ns.wget(path + '?ts=' + new Date().getTime(), filename);
   }
   }
@@ -32,10 +33,13 @@ export async function main(ns) {
     await ns.run('crimeItUp.js',1,"auto",'-l');
   }*/
   ns.run('terminal.js');
-  for(let x = 0; x < Object.keys(initialCombatStatsToGym); x++) {
+  
+  for(let x = 0; x < Object.keys(initialCombatStatsToGym).length; x++) {
     let stat = Object.keys(initialCombatStatsToGym)[x];
+    
     let statTarget = initialCombatStatsToGym[stat];
 	  let workingOut = false;
+    
 	  do {
 		  if(!workingOut) {
         ns.print(drawLCol(`Training up ${stat} from ${ns.getPlayer()[stat]} to ${statTarget}`));
@@ -44,7 +48,7 @@ export async function main(ns) {
 		      workingOut = true;
 		  }
 			await ns.sleep(1000);
-	  } while(ns.getPlayer().strength <= statTarget);
+	  } while(ns.getPlayer()[stat] <= statTarget);
 	  ns.stopAction();
   }
   await ns.sleep(1000);
@@ -52,5 +56,5 @@ export async function main(ns) {
   if(ns.heart.break() < -40000) {
     await ns.run('manageGang.js');
   }
-  await ns.run('spiderHackBuy.ns', 1, "ram", 8, "slice", 16,"target", "auto");
+  await ns.run('spiderHackBuy.js', 1, "ram", 8, "slice", 16,"target", "auto");
 }

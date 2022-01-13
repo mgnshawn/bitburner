@@ -2,7 +2,7 @@ import {drawList1, drawStatus1, drawLCol, drawDoing, clearDoingLine} from '/term
 var AugsInOrder = [];
 	
 	
-	var toJoinFaction = {'CyberSec':'CSEC', 'Tian Di Hui':'New Tokyo', 'Aevum':'Aevum', 'Sector-12':'Sector-12','Slum Snakes':'Aevum','Daedalus':'New Toky'};
+	var toJoinFaction = {'CyberSec':'CSEC','New Tokyo':'New Tokyo','Tian Di Hui':'New Tokyo', 'Aevum':'Aevum', 'Sector-12':'Sector-12','Tetrads':'New Tokyo','Slum Snakes':'Aevum','Daedalus':'New Tokyo'};
 	var autoWork = false;
 	var upgradesPerJob = 3;
 /* NeuroFlux Governor
@@ -34,23 +34,32 @@ export async function main(ns) {
 	AugsInOrder =[{'CyberSec':["Synaptic Enhancement Implant", "BitWire", "Neurotrainer I"]}];	
 	AugsInOrder.push({'Tian Di Hui':['Social Negotiation Assistant (S.N.A)',  'ADR-V1 Pheromone Gene']});
 	AugsInOrder.push({'CyberSec':['Cranial Signal Processors - Gen I','Cranial Signal Processors - Gen II']});			
-	if(ns.heart.break() > -35000 && ns.heart.break() < -4000 ) {
+	if(ns.getServerMoneyAvailable('home') < 10000000000 && ns.heart.break() > -10000 && ns.heart.break() < -4000 ) {
 		let aa = [];
 		for(let k = 1; k <= Math.ceil(ns.heart.break()/-10000); k++) {
 			aa.push('NeuroFlux Governor');
-			ns.tprint("in");
+	
 		}
 		AugsInOrder.push({'CyberSec':aa});
-		ns.tprint("end");
-	}
-		ns.tprint(AugsInOrder);
-	AugsInOrder.push({'Slum Snakes':["The Shadow's Simulacrum","Power Recirculation Core",'Neurotrainer II']});
-	AugsInOrder.push({'Slum Snakes':['The Black Hand','Neuregen Gene Modification','CRTX42-AA Gene Modification','Neurotrainer III','Artificial Synaptic Potentiation']});
-	AugsInOrder.push({'Aevum':['PCMatrix']});
-	AugsInOrder.push({'Slum Snakes':['Cranial Signal Processors - Gen IV','Cranial Signal Processors - Gen V','Neuralstimulator','Neural Accelerator','DataJack','Neural-Retention Enhancement']});
-	AugsInOrder.push({'Slum Snakes':['OmniTek InfoLoad','SPTN-97 Gene Modification','Neuronal Densification','Artificial Bio-neural Network Implant','Enhanced Myelin Sheathing']});
+	
+	}	
+	AugsInOrder.push({'Tetrads':["Power Recirculation Core","NeuroFlux Governor","NeuroFlux Governor"]});
+	AugsInOrder.push({'New Tokyo':["Neuralstimulator","DataJack","NeuroFlux Governor"]});
+	if(ns.gang.inGang()) 
+	{	AugsInOrder.push({'Slum Snakes':["The Shadow's Simulacrum","Power Recirculation Core",'Neurotrainer II']});
+		AugsInOrder.push({'Slum Snakes':['The Black Hand','Neuregen Gene Modification','CRTX42-AA Gene Modification','Neurotrainer III','Artificial Synaptic Potentiation']});
+		}
+	if(!ns.getPlayer().factions.includes('New Tokyo'))
+	{	AugsInOrder.push({'Aevum':['PCMatrix']});
+		}
+	if(ns.gang.inGang()) 
+	{	AugsInOrder.push({'Slum Snakes':['Cranial Signal Processors - Gen IV','Cranial Signal Processors - Gen V','Neuralstimulator','Neural Accelerator','DataJack','Neural-Retention Enhancement']});
+		AugsInOrder.push({'Slum Snakes':['OmniTek InfoLoad','SPTN-97 Gene Modification','Neuronal Densification','Artificial Bio-neural Network Implant','Enhanced Myelin Sheathing']});
+		}
 	AugsInOrder.push({'CyberSec':['Upgrade']});
-	AugsInOrder.push({'Slum Snakes':['PC Direct-Neural Interface NeuroNet Injector','PC Direct-Neural Interface Optimization Submodule']});
+	if(ns.gang.inGang()) 
+	{	AugsInOrder.push({'Slum Snakes':['PC Direct-Neural Interface NeuroNet Injector','PC Direct-Neural Interface Optimization Submodule']});
+		}
 	AugsInOrder.push({'Daedalus':['The Red Pill']});
 	
 	let workToDo = "hacking contracts";
@@ -65,8 +74,8 @@ export async function main(ns) {
 					} else if(FacListObj == 'Slum Snakes' && !ns.gang.inGang()) {
 						owned = "need gang";
 					}
-					ns.tprint(`Aug:: ${_Aug}\t${owned}\t $${ns.getAugmentationPrice(_Aug).toLocaleString("en-US")}\t${ns.getAugmentationRepReq(_Aug)}xp`);
-					drawList1(ns,`Aug:: ${_Aug}\t${owned}\t $${ns.getAugmentationPrice(_Aug).toLocaleString("en-US")}\t${ns.getAugmentationRepReq(_Aug)}xp`);				
+					ns.tprint(`Aug:: ${_Aug}\t${owned}\t $${ns.getAugmentationPrice(_Aug).toLocaleString("en-US")}\t${Math.round(ns.getAugmentationRepReq(_Aug))}xp`);
+					drawList1(ns,`Aug:: ${_Aug}\t${owned}\t $${ns.getAugmentationPrice(_Aug).toLocaleString("en-US")}\t${Math.round(ns.getAugmentationRepReq(_Aug))}xp`);				
 				}
 			}
 		}
@@ -87,6 +96,11 @@ export async function main(ns) {
 	let faction = Object.keys(AugsInOrder[AugIndex])[0];
 	let inTempRound = false;
 	let Augs = AugsInOrder[AugIndex][faction];
+	if(faction == 'Tetrads') {
+		workToDo = 'security work';
+	} else {
+		workToDo = 'hacking contracts';
+	}
 		await checkFactionMemberShipAndJoin(ns,faction);
 		let roundTotalCost = 0;
 			for(var __aug = 0; __aug < Augs.length; __aug++) {await ns.sleep(50);
@@ -121,7 +135,7 @@ export async function main(ns) {
 						if(autoWork) {
 							ns.stopAction();
 						}
-						drawStatus1(ns,"[Faction|| "+faction+" [Aug|| "+currentAug+ " Requires $"+ns.getAugmentationPrice(currentAug).toLocaleString("en-US")+" and "+ns.getAugmentationRepReq(currentAug).toLocaleString("en-US")+" Rep");
+						drawStatus1(ns,"[Faction|| "+faction+" [Aug|| "+currentAug+ " Requires $"+ns.getAugmentationPrice(currentAug).toLocaleString("en-US")+" and "+Math.round(ns.getAugmentationRepReq(currentAug)).toLocaleString("en-US")+" Rep");
 			
 						let repNeeded = ns.getAugmentationRepReq(currentAug);
 						while((!ns.gang.inGang() || faction != ns.gang.getGangInformation().faction) && ns.getFactionRep(faction) < repNeeded) {
@@ -129,13 +143,16 @@ export async function main(ns) {
 								break;
 							}
 							if(autoWork) {
-								drawStatus1(ns,"Working for rep. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining rep needed: " + (ns.getAugmentationRepReq(currentAug) - ns.getFactionRep(faction)).toLocaleString("en-US"));
+								drawStatus1(ns,"Working for rep. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining rep needed: " + Math.round(ns.getAugmentationRepReq(currentAug) - ns.getFactionRep(faction)).toLocaleString("en-US"));
 							
 								ns.workForFaction(faction, workToDo);
+								drawDoing(`Working for rep w/${faction}`);
 							} else {
-								drawStatus1(ns,"Waiting for rep. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining rep needed: " + (ns.getAugmentationRepReq(currentAug) - ns.getFactionRep(faction)).toLocaleString("en-US"));
+								drawStatus1(ns,"Waiting for rep. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining rep needed: " + Math.round(ns.getAugmentationRepReq(currentAug) - ns.getFactionRep(faction)).toLocaleString("en-US"));
 							}
     						await ns.sleep(60 * 1000);
+							clearDoingLine();
+							await ns.sleep(5);
 							
 						}
 						ns.stopAction();
@@ -223,7 +240,7 @@ async function runUpgradeLoop(ns, upgradesToGet) {
 	for(let countit = 1;countit <= upgradesToGet;countit++) {
 		ns.stopAction();
 		let onToNext = false;
-		drawStatus1(ns,"GradeUp Aug "+gradeUpAug+" "+countit+ " Requires $"+ns.getAugmentationPrice(gradeUpAug).toLocaleString("en-US")+" and "+ns.getAugmentationRepReq(gradeUpAug)+" Rep");
+		drawStatus1(ns,"GradeUp Aug "+gradeUpAug+" "+countit+ " Requires $"+ns.getAugmentationPrice(gradeUpAug).toLocaleString("en-US")+" and "+Math.round(ns.getAugmentationRepReq(gradeUpAug)).toLocaleString('en-US')+" Rep");
 		let repNeeded = ns.getAugmentationRepReq(gradeUpAug);
 		while(ns.getFactionRep(targetFaction) < repNeeded) {
 			let repRemaining = 0;
@@ -231,10 +248,10 @@ async function runUpgradeLoop(ns, upgradesToGet) {
 				repRemaining = ns.getFactionRep(targetFaction);
 			}
 			if(autoWork) {
-				drawStatus1(ns,"Working for rep. Remaining rep needed: " + (ns.getAugmentationRepReq(gradeUpAug) - repRemaining).toLocaleString("en-US") + " with "+targetFaction);
+				drawStatus1(ns,"Working for rep. Remaining rep needed: " + Math.round(ns.getAugmentationRepReq(gradeUpAug) - repRemaining).toLocaleString("en-US") + " with "+targetFaction);
 				ns.workForFaction(targetFaction, workToDo);
 			} else {
-				drawStatus1(ns,"Waiting for rep. Remaining rep needed: " + (ns.getAugmentationRepReq(gradeUpAug) - repRemaining).toLocaleString("en-US") + " with "+targetFaction);
+				drawStatus1(ns,"Waiting for rep. Remaining rep needed: " + Math.round(ns.getAugmentationRepReq(gradeUpAug) - repRemaining).toLocaleString("en-US") + " with "+targetFaction);
 			}
     		await ns.sleep(60000);
 		}

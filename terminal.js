@@ -6,7 +6,24 @@ var stateLines = 3;
 var lColumnChars = 100;
 
 
-
+function primeExistingBufferLists(ns) {
+	let lists = ['bufferList','statusList','status2List'];
+	for(let b of lists) {
+		let t = getItem(ns,b);		
+			for(let line in t) {
+				if(t[line] == undefined) {
+					let hours = ('0' + t.getHours()).slice(-2);
+					let minutes = ('0' + t.getMinutes()).slice(-2);
+					let seconds = ('0' + t.getSeconds()).slice(-2);
+					t[line] = [` ${hours}:${minutes}:${seconds} `,""];
+				} else if (t[line][1] == null) {
+					t[line][1] = "";
+				}
+			}
+			setItem(ns,b,t);
+		
+	}
+}
 export function drawList1(ns,newLine) {
 	if(newLine === null) {
 		return;
@@ -18,6 +35,13 @@ export function drawList1(ns,newLine) {
 		let bufferList = getItem(ns,'bufferList');
 		if(bufferList == undefined) {
 			bufferList = [];
+		}
+		for(let b in bufferList) {
+			if(bufferList[b][1] == undefined) {
+				bufferList[b][1] = "";
+			} else if(bufferList[b][1] == null) {
+				bufferList[b][1] = "";
+			}
 		}
 	if(bufferList.length >= topBufferLines) {
 		bufferList.shift();
@@ -40,6 +64,13 @@ export function drawStatus1(ns,newLine) {
 		if(status1 == undefined) {
 			status1 = [];
 		}
+		for(let b in status1) {
+			if(status1[b][1] == undefined) {
+				status1[b][1] = "";
+			} else if(status1[b][1] == null) {
+				status1[b][1] = "";
+			}
+		}
 	if(status1.length >= stateLines) {
 		status1.pop();
 		status1.unshift([` ${hours}:${minutes}:${seconds} `,newLine]);
@@ -60,6 +91,13 @@ export function drawLCol(ns,newLine) {
 		let status2 = getItem(ns,'status2List');
 		if(status2 == undefined) {
 			status2 = [];
+		}
+		for(let b in status2) {
+			if(status2[b][1] == undefined) {
+				status2[b][1] = "";
+			} else if(status2[b][1] == null) {
+				status2[b][1] = "";
+			}
 		}
 	if(status2.length >= (termHeight-2)) {
 		status2.pop();
@@ -219,10 +257,13 @@ export function clearList1(ns) {
 						 } else
 						if( y in stateListLines) {
 							if(status1[termHeight-2-y] !== undefined) {
-
 							if(x-lColumnChars >= 2 && x-lColumnChars < 10 && status1[termHeight-2-y][0][x-2-lColumnChars] !== undefined) {								
 									CurrLine += status1[termHeight-2-y][0][x-2-lColumnChars];
-							} else if(x-lColumnChars >=10 && status1[termHeight-2-y] != undefined && status1[termHeight-2-y][0] !== undefined && status1[termHeight-2-y][1][x-11-lColumnChars] != undefined) {
+							} else if(x-lColumnChars >=10 && status1[termHeight-2-y] != undefined && status1[termHeight-2-y] !=null
+									 && status1[termHeight-2-y][0] !== undefined &&status1[termHeight-2-y][0]!= null 
+									 && status1[termHeight-2-y][1] !== undefined && status1[termHeight-2-y][1] !== null 
+									 && status1[termHeight-2-y][1][x-11-lColumnChars] != undefined
+									  && status1[termHeight-2-y][1][x-11-lColumnChars]!= null ) {
 									CurrLine += status1[termHeight-2-y][1][x-11-lColumnChars];
 
 							} else {
@@ -242,6 +283,7 @@ export function clearList1(ns) {
  }
 /** @param {NS} ns **/
 export async function main(ns) {
+		primeExistingBufferLists(ns);
 	if(ns.args[0] != undefined && ns.args[0] == "clear") {
 		clearLCol(ns);
 		clearStatusList(ns);
