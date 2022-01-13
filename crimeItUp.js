@@ -1,3 +1,4 @@
+import {drawDoing, clearDoingLine} from '/terminal.js';
 var infinite=false;
 var crimes=['Shoplift','Rob store','Mug someone','Homicide','Kidnap and ransom','Assassinate','Heist'];
 /** @param {NS} ns **/
@@ -74,9 +75,11 @@ export async function main(ns) {
             crime = await chooseBestCrime(ns);
         }
 		if(!ns.isBusy()) {
+            drawDoing(ns,`Commiting ${crime}`);
 			ns.commitCrime(crime);
             --remainder;
             ns.tail(); // Force a tail window open when auto-criming, or else it's very difficult to stop if it was accidentally closed.
+            
             let wait = ns.commitCrime(crime) + 10;
             ns.print(`Karma: ${ns.heart.break()}`); 
             await ns.sleep(wait);
@@ -92,6 +95,7 @@ export async function main(ns) {
                 await ns.sleep(100);
 		        if(!ns.isBusy()) {
                     ns.tail(); // Force a tail window open when auto-criming, or else it's very difficult to stop if it was accidentally closed.
+                    //drawDoing(ns,`Commiting ${crime}`);
                     let wait = ns.commitCrime(crime) + 10;
                     await ns.sleep(wait);
 			        ns.commitCrime(longCrime);
@@ -110,7 +114,9 @@ export async function main(ns) {
                 remainder = baseRemainder;
             }
         }
+        clearDoingLine(ns);
     }
+    clearDoingLine(ns);
     ns.enableLog('sleep');
 }
 

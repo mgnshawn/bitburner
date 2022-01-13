@@ -6,6 +6,7 @@ var stateLines = 3;
 var lColumnChars = 100;
 
 
+
 export function drawList1(ns,newLine) {
 	if(newLine === null) {
 		return;
@@ -51,7 +52,7 @@ export function drawStatus1(ns,newLine) {
 export function drawLCol(ns,newLine) {
 	if(newLine === null) {
 		return;
-	}ns.tprint(`adding: ${newLine}`);
+	}
 	let t = new Date();
 		let hours = ('0' + t.getHours()).slice(-2);
 		let minutes = ('0' + t.getMinutes()).slice(-2);
@@ -67,16 +68,30 @@ export function drawLCol(ns,newLine) {
 			status2.unshift([` ${hours}:${minutes}:${seconds} `,newLine]);
 		}
 		setItem(ns,'status2List',status2);
-		ns.tprint(status2);
 	 //draw(ns);
+}
+export function drawDoing(ns,newLine) {
+	if(newLine === null) {
+		return;
+	}
+		//let doing = getItem(ns,'doingLine');
+		
+		setItem(ns,'doingLine',newLine);
+		
+	 //draw(ns);
+}
+export function clearDoingLine(ns) {
+	setItem(ns, 'doingLine', "");
 }
 export function clearLCol(ns) {
 	setItem(ns, 'status2List', []);
 }
+
  function draw(ns) {
 	 	let status1 = getItem(ns,'statusList');
 		 let status2 = getItem(ns,'status2List');
 		 let bufferList = getItem(ns,'bufferList');
+		 let doingLine = getItem(ns,'doingLine');
 		ns.clearLog();
 	
 		let listLines = [];
@@ -98,7 +113,7 @@ export function clearLCol(ns) {
 		}
 
 
-		for(let y= 0;y<termHeight;y++) {	
+		for(let y= 0;y<termHeight+2;y++) {	
 			let CurrLine = "";		
 			if(y in listLines) {
 				if(bufferList !== null && Array.isArray(bufferList) && bufferList[y-1] !== undefined && bufferList[y-1][1] !== undefined)
@@ -112,6 +127,44 @@ export function clearLCol(ns) {
 				if(status2[y-2] !== undefined && status2[y-2][1] !== undefined)
 				status2[y-2][1] = status2[y-2][1].toString().replace(/\t/g, `    `);
 			}
+			if(y >= termHeight) {
+				if(y == termHeight+1) {
+					for(let x =0; x < termWidth;x++) {
+						CurrLine+=`=`;
+					}	
+				} else {
+					let statusLine = ` [Money: $ ${Math.round(ns.getPlayer().money).toLocaleString('en-US')}   [Hack: ${ns.getPlayer().hacking}   [Karma: ${ns.heart.break()}   [str: ${ns.getPlayer().strength}  [Dex: ${ns.getPlayer().dexterity}  [Agi: ${ns.getPlayer().agility} `;
+					for(let x=0; x < termWidth;x++) {
+					if(x == 0 || x == (termWidth-1)) { // Left and Right border || Buffer splitter
+						CurrLine+=`|`;
+					} else {
+						if(x < 100) {
+						if(statusLine[x-1] !== undefined) {							
+							CurrLine+= statusLine[x-1];
+							} else {
+								CurrLine+=` `;
+							}
+						} else {
+							if(x <= 107) {
+								let he = ` Doing: `;
+								CurrLine += he[x-100];
+							} else {
+							if(doingLine != null && doingLine.length > 0) {
+								if(doingLine[x-108] !== undefined) {
+									CurrLine+= doingLine[x-108];
+								} else {
+									CurrLine+=` `;
+								}
+							} else {
+								CurrLine+= ` `;
+							}
+							}
+						}
+					
+					}
+					}
+				}
+			} else
 			for(let x =0; x < termWidth;x++) {
 				if((y == 0||y == (termHeight-1))) { // Top or Bottom border
 						CurrLine+=`=`;
@@ -182,60 +235,22 @@ export function clearLCol(ns) {
  ns.print(CurrLine);
 		}
  }
-			/*for(let x =0; x < termWidth;x++) {
-				if(y == 0||y == (termHeight-1) || y == (termHeight-2-stateLines)) { // Top or Bottom border
-					CurrLine+=`=`;
-				}				
-				 else {
-					if(x == 0 || x == (termWidth-1) || x == lColumnChars) { // Left and Right border
-						CurrLine+=`|`;
-					}else if (x == 1) {
-						CurrLine +=` `;
-					} else if (x == 10) {
-						CurrLine += ` `;
-					}
-					
-					else {
-						if(y in listLines) {					
-							if(bufferList[y-1] !== undefined)
-							{
-								if(x >= 2 && x < 10) { // left padding
-									CurrLine += bufferList[y-1][0][x-2];
-								}else 
-								if(bufferList[y-1][1][x-11] !== undefined) {
-									CurrLine += bufferList[y-1][1][x-11];
-								} else {
-									CurrLine += ` `;
-								}
-							}
-						 } else
-						if( y in stateListLines) {
-							if(status1[termHeight-2-y] !== undefined) {
-
-							if(x >= 2 && x < 10 && status1[termHeight-2-y][0][x-2] !== undefined) {								
-									CurrLine += status1[termHeight-2-y][0][x-2];
-							} else if(x >=10 && status1[termHeight-2-y] != undefined && status1[termHeight-2-y][0] !== undefined && status1[termHeight-2-y][1][x-11] != undefined) {
-									CurrLine += status1[termHeight-2-y][1][x-11];
-
-							} else {
-								CurrLine += ` `;
-							}
-						} else {
-								CurrLine += ` `;
-						}
-					}
-				}				
-			
-			}
-			}*/
-
 /** @param {NS} ns **/
 export async function main(ns) {
+	clearDoingLine(ns);
 	ns.disableLog('sleep');
 	
 	ns.tail();
+	let loop = 0;
 while(true) {
 	draw(ns);
+	await ns.sleep(5);
+	if(loop < 10) {
+		clearDoingLine(ns);
+		loop++;
+	} else {
+		loop = 0;
+	}
 	await ns.sleep(1000);
 }
 }

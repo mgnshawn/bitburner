@@ -1,4 +1,4 @@
-import {drawList1, drawStatus1, drawLCol} from '/terminal.js';
+import {drawList1, drawStatus1, drawLCol, drawDoing, clearDoingLine} from '/terminal.js';
 var AugsInOrder = [];
 	AugsInOrder =[{'CyberSec':["Synaptic Enhancement Implant", "BitWire", "Neurotrainer I"]}];
 //	AugsInOrder.push({'CyberSec':['Upgrade','Upgrade']});
@@ -127,11 +127,13 @@ export async function main(ns) {
 							}
 							if(autoWork) {
 								drawStatus1(ns,"Working for rep. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining rep needed: " + (ns.getAugmentationRepReq(currentAug) - ns.getFactionRep(faction)).toLocaleString("en-US"));
+							
 								ns.workForFaction(faction, workToDo);
 							} else {
 								drawStatus1(ns,"Waiting for rep. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining rep needed: " + (ns.getAugmentationRepReq(currentAug) - ns.getFactionRep(faction)).toLocaleString("en-US"));
 							}
     						await ns.sleep(60 * 1000);
+							
 						}
 						ns.stopAction();
 						while (!ns.getOwnedAugmentations(true).includes(currentAug)) {
