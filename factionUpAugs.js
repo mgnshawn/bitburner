@@ -1,22 +1,11 @@
 import {drawList1, drawStatus1, drawLCol, drawDoing, clearDoingLine} from '/terminal.js';
 var AugsInOrder = [];
-	AugsInOrder =[{'CyberSec':["Synaptic Enhancement Implant", "BitWire", "Neurotrainer I"]}];
-//	AugsInOrder.push({'CyberSec':['Upgrade','Upgrade']});
-	AugsInOrder.push({'Tian Di Hui':['Social Negotiation Assistant (S.N.A)',  'ADR-V1 Pheromone Gene']});
-	AugsInOrder.push({'CyberSec':['Cranial Signal Processors - Gen I','Cranial Signal Processors - Gen II']});			
-	AugsInOrder.push({'Slum Snakes':["The Shadow's Simulacrum","Power Recirculation Core",'Neurotrainer II']});
-	AugsInOrder.push({'Slum Snakes':['The Black Hand','Neuregen Gene Modification','CRTX42-AA Gene Modification','Neurotrainer III','Artificial Synaptic Potentiation']});
-	AugsInOrder.push({'Aevum':['PCMatrix']});
-	AugsInOrder.push({'Slum Snakes':['Cranial Signal Processors - Gen IV','Cranial Signal Processors - Gen V','Neuralstimulator','Neural Accelerator','DataJack','Neural-Retention Enhancement']});
-	AugsInOrder.push({'Slum Snakes':['OmniTek InfoLoad','SPTN-97 Gene Modification','Neuronal Densification','Artificial Bio-neural Network Implant','Enhanced Myelin Sheathing']});
-	AugsInOrder.push({'CyberSec':['Upgrade']});
-	AugsInOrder.push({'Slum Snakes':['PC Direct-Neural Interface NeuroNet Injector','PC Direct-Neural Interface Optimization Submodule']});
-	AugsInOrder.push({'Daedalus':['The Red Pill']});
+	
 	
 	var toJoinFaction = {'CyberSec':'CSEC', 'Tian Di Hui':'New Tokyo', 'Aevum':'Aevum', 'Sector-12':'Sector-12','Slum Snakes':'Aevum','Daedalus':'New Toky'};
 	var autoWork = false;
 	var upgradesPerJob = 3;
-/*
+/* NeuroFlux Governor
 "The Shadow's Simulacrum",
 	*/
 /** @param {NS} ns **/
@@ -42,7 +31,27 @@ export async function main(ns) {
 	ns.print("============================================ Beginning Faction Up ============================================");
 	ns.tail();
 	//await draw(ns,['this is a test','line two of the test'],"Doing xyz for pdq");
-
+	AugsInOrder =[{'CyberSec':["Synaptic Enhancement Implant", "BitWire", "Neurotrainer I"]}];	
+	AugsInOrder.push({'Tian Di Hui':['Social Negotiation Assistant (S.N.A)',  'ADR-V1 Pheromone Gene']});
+	AugsInOrder.push({'CyberSec':['Cranial Signal Processors - Gen I','Cranial Signal Processors - Gen II']});			
+	if(ns.heart.break() > -35000 && ns.heart.break() < -4000 ) {
+		let aa = [];
+		for(let k = 1; k <= Math.ceil(ns.heart.break()/-10000); k++) {
+			aa.push('NeuroFlux Governor');
+			ns.tprint("in");
+		}
+		AugsInOrder.push({'CyberSec':aa});
+		ns.tprint("end");
+	}
+		ns.tprint(AugsInOrder);
+	AugsInOrder.push({'Slum Snakes':["The Shadow's Simulacrum","Power Recirculation Core",'Neurotrainer II']});
+	AugsInOrder.push({'Slum Snakes':['The Black Hand','Neuregen Gene Modification','CRTX42-AA Gene Modification','Neurotrainer III','Artificial Synaptic Potentiation']});
+	AugsInOrder.push({'Aevum':['PCMatrix']});
+	AugsInOrder.push({'Slum Snakes':['Cranial Signal Processors - Gen IV','Cranial Signal Processors - Gen V','Neuralstimulator','Neural Accelerator','DataJack','Neural-Retention Enhancement']});
+	AugsInOrder.push({'Slum Snakes':['OmniTek InfoLoad','SPTN-97 Gene Modification','Neuronal Densification','Artificial Bio-neural Network Implant','Enhanced Myelin Sheathing']});
+	AugsInOrder.push({'CyberSec':['Upgrade']});
+	AugsInOrder.push({'Slum Snakes':['PC Direct-Neural Interface NeuroNet Injector','PC Direct-Neural Interface Optimization Submodule']});
+	AugsInOrder.push({'Daedalus':['The Red Pill']});
 	
 	let workToDo = "hacking contracts";
 	for(let AugObjIndex in AugsInOrder) {
@@ -72,12 +81,6 @@ export async function main(ns) {
 	}
 
 	ns.tail();
-	if(autoWork) {
-		ns.run('crimeItUp.js',1,"auto",'l');
-		drawStatus1(ns,"Starting to crime it up for initial money");
-	}
-	
-	
 
 	var inActiveRound = false;
 	for(var AugIndex=0;AugIndex < AugsInOrder.length; AugIndex++) {
@@ -162,6 +165,9 @@ export async function main(ns) {
 							await ns.sleep(90 * 1000);
 						}		
 					}
+				}
+				if(Augs[0] == "NeuroFlux Governor") {
+					inActiveRound = true;
 				}
 				if(inActiveRound && !inTempRound && AugIndex != 0) {
 					drawStatus1(ns,"Entering Upgrade Loop at end of Aug Level "+AugIndex);
