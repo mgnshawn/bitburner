@@ -1,3 +1,4 @@
+import {drawList1, drawStatus1, drawLCol} from '/terminal.js';
 var AugsInOrder = [];
 	AugsInOrder =[{'CyberSec':["Synaptic Enhancement Implant", "BitWire", "Neurotrainer I"]}];
 //	AugsInOrder.push({'CyberSec':['Upgrade','Upgrade']});
@@ -15,120 +16,7 @@ var AugsInOrder = [];
 	var toJoinFaction = {'CyberSec':'CSEC', 'Tian Di Hui':'New Tokyo', 'Aevum':'Aevum', 'Sector-12':'Sector-12','Slum Snakes':'Aevum','Daedalus':'New Toky'};
 	var autoWork = false;
 	var upgradesPerJob = 3;
-
-var termHeight = 28;
-var termWidth = 140;
-var statusLines = 16;
-var stateLines = 3;
-var list = [];
-var state = [];
-
-function drawList(ns,newLine) {
-	let t = new Date();
-		let hours = ('0' + t.getHours()).slice(-2);
-		let minutes = ('0' + t.getMinutes()).slice(-2);
-		let seconds = ('0' + t.getSeconds()).slice(-2);
-	if(list.length >= statusLines) {
-		list.shift();
-		list.push([`${hours}:${minutes}:${seconds}`,newLine]);
-		}else {
-			list.push([`${hours}:${minutes}:${seconds}`,newLine]);
-		}
-	 draw(ns);
-}
-function drawStatus(ns,newLine) {
-	let t = new Date();
-		let hours = ('0' + t.getHours()).slice(-2);
-		let minutes = ('0' + t.getMinutes()).slice(-2);
-		let seconds = ('0' + t.getSeconds()).slice(-2);
-	if(state.length >= stateLines) {
-		state.pop();
-		state.unshift([`${hours}:${minutes}:${seconds}`,newLine]);
-		}else {
-			state.unshift([`${hours}:${minutes}:${seconds}`,newLine]);
-		}
-		
-	 draw(ns);
-}
- function draw(ns) {
-		ns.clearLog();
-	
-		let listLines = [];
-		let stateListLines = [];
-		for(let _z = 1;_z<=statusLines;_z++) {
-			listLines.push(_z);
-		}
-		for(let _x=termHeight-1; _x > 0; _x--) {
-			if(_x <=termHeight-2 && _x >= termHeight-stateLines-1) {
-				stateListLines.push(_x);
-			} else {
-				stateListLines.push(0);
-			}
-		}
-
-
-		for(let y= 0;y<termHeight;y++) {	
-			let CurrLine = "";		
-			if(y in listLines) {
-				if(list[y-1] !== undefined && list[y-1][1])
-				list[y-1][1] = list[y-1][1].toString().replace(/\t/g, `    `);
-			}
-			if(y in stateListLines) {
-				if(state[y-1] !== undefined && state[y-1][1] !== undefined)
-				state[y-1][1] = state[y-1][1].toString().replace(/\t/g, `    `);
-			}
-			for(let x =0; x < termWidth;x++) {
-				if(y == 0||y == (termHeight-1) || y == (termHeight-2-stateLines)) { // Top or Bottom border
-					CurrLine+=`=`;
-				}				
-				 else {
-					if(x == 0 || x == (termWidth-1)) { // Left and Right border
-						CurrLine+=`|`;
-					}else if (x == 1) {
-						CurrLine +=` `;
-					} else if (x == 10) {
-						CurrLine += ` `;
-					}
-					
-					else {
-						if(y in listLines) {					
-							if(list[y-1] !== undefined)
-							{
-								if(x >= 2 && x < 10) { // left padding
-									CurrLine += list[y-1][0][x-2];
-								}else 
-								if(list[y-1][1][x-11] !== undefined) {
-									CurrLine += list[y-1][1][x-11];
-								} else {
-									CurrLine += ` `;
-								}
-							}
-						 } else
-						if( y in stateListLines) {
-							if(state[termHeight-2-y] !== undefined) {
-
-							if(x >= 2 && x < 10 && state[termHeight-2-y][0][x-2] !== undefined) {								
-									CurrLine += state[termHeight-2-y][0][x-2];
-							} else if(x >=10 && state[termHeight-2-y] != undefined && state[termHeight-2-y][0] !== undefined && state[termHeight-2-y][1][x-11] != undefined) {
-									CurrLine += state[termHeight-2-y][1][x-11];
-
-							} else {
-								CurrLine += ` `;
-							}
-						} else {
-								CurrLine += ` `;
-						}
-					}
-				}				
-			
-			}
-			}
-			ns.print(CurrLine);
-
-		
-		}
-	}
-	/*
+/*
 "The Shadow's Simulacrum",
 	*/
 /** @param {NS} ns **/
@@ -150,6 +38,7 @@ export async function main(ns) {
 	ns.disableLog('connect');
 	ns.disableLog('installBackdoor');
 	ns.disableLog('run');
+	ns.disableLog('travelToCity');
 	ns.print("============================================ Beginning Faction Up ============================================");
 	ns.tail();
 	//await draw(ns,['this is a test','line two of the test'],"Doing xyz for pdq");
@@ -164,9 +53,11 @@ export async function main(ns) {
 					let owned = "";
 					if(ns.getOwnedAugmentations(true).includes(_Aug)) {
 						owned = "*owned*";
+					} else if(FacListObj == 'Slum Snakes' && !ns.gang.inGang()) {
+						owned = "need gang";
 					}
 					ns.tprint(`Aug:: ${_Aug}\t${owned}\t $${ns.getAugmentationPrice(_Aug).toLocaleString("en-US")}\t${ns.getAugmentationRepReq(_Aug)}xp`);
-					drawList(ns,`Aug:: ${_Aug}\t${owned}\t $${ns.getAugmentationPrice(_Aug).toLocaleString("en-US")}\t${ns.getAugmentationRepReq(_Aug)}xp`);				
+					drawList1(ns,`Aug:: ${_Aug}\t${owned}\t $${ns.getAugmentationPrice(_Aug).toLocaleString("en-US")}\t${ns.getAugmentationRepReq(_Aug)}xp`);				
 				}
 			}
 		}
@@ -183,7 +74,7 @@ export async function main(ns) {
 	ns.tail();
 	if(autoWork) {
 		ns.run('crimeItUp.js',1,"auto",'l');
-		drawStatus(ns,"Starting to crime it up for initial money");
+		drawStatus1(ns,"Starting to crime it up for initial money");
 	}
 	
 	
@@ -198,13 +89,17 @@ export async function main(ns) {
 			for(var __aug = 0; __aug < Augs.length; __aug++) {await ns.sleep(50);
 				let owned = "";
 				if(ns.getOwnedAugmentations(true).includes(Augs[__aug])) {
-					owned = "*owned*";
-				}
-				drawList(ns,`Round ${AugIndex}:\t${owned}\t${Augs[__aug]} \t$${ns.getAugmentationPrice(Augs[__aug]).toLocaleString('en-US')} \tRepXP: ${ns.getAugmentationRepReq(Augs[__aug])}`);
+					owned = `  *owned*`;
+				} else if(faction == 'Slum Snakes' && !ns.gang.inGang()) {
+						owned = `  need gang`;
+					} else {
+						owned = `  `;
+					}
+				drawList1(ns,`Round ${AugIndex}:${owned}\t${Augs[__aug]} \t$${ns.getAugmentationPrice(Augs[__aug]).toLocaleString('en-US')} \tRepXP: ${ns.getAugmentationRepReq(Augs[__aug])}`);
 				roundTotalCost+=(ns.getAugmentationPrice(Augs[__aug])*(__aug+1));
 			}
 			
-			drawList(ns,`Total cost for Augs in round ${AugIndex} is $${roundTotalCost.toLocaleString('en-US')}`);
+			drawList1(ns,`Total cost for Augs in round ${AugIndex} is $${roundTotalCost.toLocaleString('en-US')}`);
 				for(var aug = 0; aug < Augs.length; ++aug) {
 					let currentAug = Augs[aug];
 					if(currentAug == "Upgrade") {
@@ -223,7 +118,7 @@ export async function main(ns) {
 						if(autoWork) {
 							ns.stopAction();
 						}
-						drawStatus(ns,"[Faction|| "+faction+" [Aug|| "+currentAug+ " Requires $"+ns.getAugmentationPrice(currentAug).toLocaleString("en-US")+" and "+ns.getAugmentationRepReq(currentAug).toLocaleString("en-US")+" Rep");
+						drawStatus1(ns,"[Faction|| "+faction+" [Aug|| "+currentAug+ " Requires $"+ns.getAugmentationPrice(currentAug).toLocaleString("en-US")+" and "+ns.getAugmentationRepReq(currentAug).toLocaleString("en-US")+" Rep");
 			
 						let repNeeded = ns.getAugmentationRepReq(currentAug);
 						while((!ns.gang.inGang() || faction != ns.gang.getGangInformation().faction) && ns.getFactionRep(faction) < repNeeded) {
@@ -231,10 +126,10 @@ export async function main(ns) {
 								break;
 							}
 							if(autoWork) {
-								drawStatus(ns,"Working for rep. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining rep needed: " + (ns.getAugmentationRepReq(currentAug) - ns.getFactionRep(faction)).toLocaleString("en-US"));
+								drawStatus1(ns,"Working for rep. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining rep needed: " + (ns.getAugmentationRepReq(currentAug) - ns.getFactionRep(faction)).toLocaleString("en-US"));
 								ns.workForFaction(faction, workToDo);
 							} else {
-								drawStatus(ns,"Waiting for rep. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining rep needed: " + (ns.getAugmentationRepReq(currentAug) - ns.getFactionRep(faction)).toLocaleString("en-US"));
+								drawStatus1(ns,"Waiting for rep. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining rep needed: " + (ns.getAugmentationRepReq(currentAug) - ns.getFactionRep(faction)).toLocaleString("en-US"));
 							}
     						await ns.sleep(60 * 1000);
 						}
@@ -244,14 +139,14 @@ export async function main(ns) {
 								
 								let succ = ns.purchaseAugmentation(faction, currentAug);
 								if(succ) {
-									drawStatus(ns,"Purchasing "+currentAug+" from "+faction);
+									drawStatus1(ns,"Purchasing "+currentAug+" from "+faction);
 								}
 							} else {
 								if(inTempRound) {
 									break;
 								}
 								if(autoWork && !ns.isBusy()) {
-									drawStatus(ns,"Criming for money. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining needed $"+(ns.getAugmentationPrice(currentAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US"));								
+									drawStatus1(ns,"Criming for money. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining needed $"+(ns.getAugmentationPrice(currentAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US"));								
 									if((ns.getServerMaxRam("home") - ns.getServerUsedRam("home")) < ns.getScriptRam("crimeItUp.js")) {
 										await ns.scriptKill("hackit.js","home");
 									}
@@ -259,7 +154,7 @@ export async function main(ns) {
 										await ns.run('crimeItUp.js',1,"auto","s");
 									}
 								} else {
-									drawStatus(ns,"Waiting for money. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining needed $"+(ns.getAugmentationPrice(currentAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US"));								
+									drawStatus1(ns,"Waiting for money. "+"[Faction|| "+faction+" [Aug|| "+currentAug+ " Remaining needed $"+(ns.getAugmentationPrice(currentAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US"));								
 								}
 							}
 							await ns.sleep(90 * 1000);
@@ -267,21 +162,21 @@ export async function main(ns) {
 					}
 				}
 				if(inActiveRound && !inTempRound && AugIndex != 0) {
-					drawStatus(ns,"Entering Upgrade Loop at end of Aug Level "+AugIndex);
+					drawStatus1(ns,"Entering Upgrade Loop at end of Aug Level "+AugIndex);
 					await runUpgradeLoop(ns,2);
 					if(AugsInOrder[AugIndex+1] !== undefined && AugsInOrder[AugIndex+1] !== null){
 						let faction = Object.keys(AugsInOrder[AugIndex+1])[0];
 						if(faction !== null && faction !== undefined) {
 							let Augs = AugsInOrder[AugIndex][faction];
 							if(ns.getServerMoneyAvailable('home') > ns.getAugmentationPrice(Augs[0])) {
-								drawStatus(ns,"Can afford Augmentations from next round; continueing into next round...");
+								drawStatus1(ns,"Can afford Augmentations from next round; continueing into next round...");
 								continue;
 							}
 						}
 					}
 					break;
 				} else if(inTempRound) {
-					drawStatus(ns,"Can't afford Augmentations from next round; ending.");
+					drawStatus1(ns,"Can't afford Augmentations from next round; ending.");
 					break;
 				}
 
@@ -290,13 +185,13 @@ export async function main(ns) {
 	
 	
 	if(ns.heart.break()<35000) {
-		drawStatus(ns,"Installing Augmentations");	
+		drawStatus1(ns,"Installing Augmentations");	
 		ns.installAugmentations('init.js');
 	} else {
-		drawStatus(ns,"Riding out this reboot for Gang creation");
+		drawStatus1(ns,"Riding out this reboot for Gang creation");
 		while(!ns.gang.inGang()) {
 			await ns.sleep('60000') 
-			drawStatus(ns,`Karma ${ns.heart.break()}`);
+			drawStatus1(ns,`Karma ${ns.heart.break()}`);
 		}
 	}
 }	
@@ -318,7 +213,7 @@ async function runUpgradeLoop(ns, upgradesToGet) {
 	for(let countit = 1;countit <= upgradesToGet;countit++) {
 		ns.stopAction();
 		let onToNext = false;
-		drawStatus(ns,"GradeUp Aug "+gradeUpAug+" "+countit+ " Requires $"+ns.getAugmentationPrice(gradeUpAug).toLocaleString("en-US")+" and "+ns.getAugmentationRepReq(gradeUpAug)+" Rep");
+		drawStatus1(ns,"GradeUp Aug "+gradeUpAug+" "+countit+ " Requires $"+ns.getAugmentationPrice(gradeUpAug).toLocaleString("en-US")+" and "+ns.getAugmentationRepReq(gradeUpAug)+" Rep");
 		let repNeeded = ns.getAugmentationRepReq(gradeUpAug);
 		while(ns.getFactionRep(targetFaction) < repNeeded) {
 			let repRemaining = 0;
@@ -326,10 +221,10 @@ async function runUpgradeLoop(ns, upgradesToGet) {
 				repRemaining = ns.getFactionRep(targetFaction);
 			}
 			if(autoWork) {
-				drawStatus(ns,"Working for rep. Remaining rep needed: " + (ns.getAugmentationRepReq(gradeUpAug) - repRemaining).toLocaleString("en-US") + " with "+targetFaction);
+				drawStatus1(ns,"Working for rep. Remaining rep needed: " + (ns.getAugmentationRepReq(gradeUpAug) - repRemaining).toLocaleString("en-US") + " with "+targetFaction);
 				ns.workForFaction(targetFaction, workToDo);
 			} else {
-				drawStatus(ns,"Waiting for rep. Remaining rep needed: " + (ns.getAugmentationRepReq(gradeUpAug) - repRemaining).toLocaleString("en-US") + " with "+targetFaction);
+				drawStatus1(ns,"Waiting for rep. Remaining rep needed: " + (ns.getAugmentationRepReq(gradeUpAug) - repRemaining).toLocaleString("en-US") + " with "+targetFaction);
 			}
     		await ns.sleep(60000);
 		}
@@ -337,12 +232,12 @@ async function runUpgradeLoop(ns, upgradesToGet) {
 			if(ns.getServerMoneyAvailable('home') > ns.getAugmentationPrice(gradeUpAug)) {
 				let succ = ns.purchaseAugmentation(targetFaction, gradeUpAug);
 				if(succ) {
-					drawStatus(ns,"Purchased Aug: ".gradeUpAug);
+					drawStatus1(ns,"Purchased Aug: ".gradeUpAug);
 					onToNext = true;
 				}
 			}	else {
 					if(autoWork && !ns.isBusy()) {
-						drawStatus(ns,"Criming for money. Remaining needed $"+(ns.getAugmentationPrice(gradeUpAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US") + " with "+targetFaction);
+						drawStatus1(ns,"Criming for money. Remaining needed $"+(ns.getAugmentationPrice(gradeUpAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US") + " with "+targetFaction);
 						if(!ns.isBusy()) {
 							ns.stopAction();
 							if((ns.getServerMaxRam("home") - ns.getServerUsedRam("home")) < ns.getScriptRam("crimeItUp.js")) {
@@ -353,7 +248,7 @@ async function runUpgradeLoop(ns, upgradesToGet) {
 							}
 						}
 					} else {
-						drawStatus(ns,"Waiting for money to upgrade "+gradeUpAug+". Remaining needed $"+(ns.getAugmentationPrice(gradeUpAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US") + " with "+targetFaction);
+						drawStatus1(ns,"Waiting for money to upgrade "+gradeUpAug+". Remaining needed $"+(ns.getAugmentationPrice(gradeUpAug) - ns.getServerMoneyAvailable('home')).toLocaleString("en-US") + " with "+targetFaction);
 					}
 				}
 			await ns.sleep(10000);
@@ -382,7 +277,7 @@ async function checkFactionMemberShipAndJoin(ns,faction) {
 		if(toJoinFaction[faction] == 'CSEC') {
 			ns.run('crimeItUp.js',1,"auto",'l');
 			while(!ns.getServer(toJoinFaction[faction]).backdoorInstalled) {		
-				drawStatus(ns,"Waiting to install backdoor on CSEC");
+				drawStatus1(ns,"Waiting to install backdoor on CSEC");
 				if(ns.getServer(toJoinFaction[faction])["hasAdminRights"]) {							
 					var parent = findCSEC(ns);
 					ns.connect(parent);
@@ -391,7 +286,7 @@ async function checkFactionMemberShipAndJoin(ns,faction) {
 					await ns.sleep(100);
 					var succ = await ns.installBackdoor();
 					if(succ) {
-						drawStatus(ns,"Installing backdoor on "+toJoinFaction[faction]);
+						drawStatus1(ns,"Installing backdoor on "+toJoinFaction[faction]);
 						ns.connect(parent);
 						await ns.sleep(1000);
 						ns.connect('home');
@@ -400,11 +295,11 @@ async function checkFactionMemberShipAndJoin(ns,faction) {
 				await ns.sleep(10000);
 			} 
 			while(!ns.getPlayer().factions.includes(faction)) {
-				drawStatus(ns,"Waiting to join "+faction);
+				drawStatus1(ns,"Waiting to join "+faction);
 				if(ns.checkFactionInvitations().includes(faction)) {
 					var succ = ns.joinFaction(faction);
 					if(succ) {
-						drawStatus(ns,"   ...Joined "+faction);
+						drawStatus1(ns,"   ...Joined "+faction);
 					}
 				}
 				await ns.sleep(5000);
@@ -419,14 +314,14 @@ async function checkFactionMemberShipAndJoin(ns,faction) {
 					if(ns.checkFactionInvitations().includes(faction)) {
 						var succ = ns.joinFaction(faction);
 						if(succ) {
-							drawStatus(ns,"   ...Joined "+faction);
+							drawStatus1(ns,"   ...Joined "+faction);
 						}
 					} else {
-						drawStatus(ns,"waiting for invitation to "+faction);
+						drawStatus1(ns,"waiting for invitation to "+faction);
 					}
 				
 				} else {
-					drawStatus(ns,"waiting for enough money to travel to "+toJoinFaction[faction]);
+					drawStatus1(ns,"waiting for enough money to travel to "+toJoinFaction[faction]);
 				}
 				await ns.sleep(5000);
 			}
