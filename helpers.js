@@ -2,6 +2,9 @@
 export async function main(ns) {
 
 }
+export function money(num) {
+	return Math.round(num).toLocaleString('en-US');
+}
 
 export var _allServers = [];
 export var _pathToTarget = [];
@@ -57,4 +60,31 @@ async function localFindServerPath(ns,target) {
 		}
 		
 	}
+}
+
+export function chooseTarget(ns,hackingLevel) {
+  let resp = {};
+  let memmoryLevels = [8,32,256,1024,2048,4096,32768,(128*1024),(512*1024),(1024*1024)];
+  if( hackingLevel < 100) {
+    resp = {"target":"n00dles","slice":1,"rungGang":false,"ram":8};
+  } else if(100 <= hackingLevel && hackingLevel < 350) {
+    resp = {"target":"joesguns","slice":4,"rungGang":false,"ram":8};
+  } else if ( 350 <= hackingLevel && hackingLevel < 1000) {
+    resp = {"target":"iron-gym","slice":8,"runGang":true,"ram":8};
+  } else if ( 1000 <= hackingLevel && hackingLevel < 1350) {
+    resp = {"target":"catalyst","slice":16,"runGang":true,"ram":8};
+  } else {
+    resp = {"target":"megacorp","slice":60,"runGang":true,"ram":8};
+  }
+  for(let m of memmoryLevels) {
+	  if(ns.getPurchasedServerCost(m) <= ns.getServerMoneyAvailable('home')) {
+		  resp.ram = m;
+	  }
+  }
+  for(let r in memmoryLevels) {
+	  if(memmoryLevels[r] == resp.ram) {
+		  resp.slice = (r+1)*8
+	  }
+  }
+  return resp;
 }

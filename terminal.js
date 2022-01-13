@@ -125,11 +125,11 @@ export function clearList1(ns) {
 				bufferList[y-1][1] = bufferList[y-1][1].toString().replace(/\t/g, `    `);
 			}
 			if(y in stateListLines) {
-				if(status1[y-1] !== undefined && status1[y-1][1] !== undefined)
+				if(Array.isArray(status1) && status1[y-1] !== undefined && Array.isArray(status1[y-1]) && status1[y-1][1] !== undefined && status1[y-1][1] != null)
 				status1[y-1][1] = status1[y-1][1].toString().replace(/\t/g, `    `);
 			}
 			if(y in lColListLines) {
-				if(status2[y-2] !== undefined && status2[y-2][1] !== undefined)
+				if(status2[y-2] !== undefined && status2[y-2][1] !== undefined && status2[y-2][1] !== null)
 				status2[y-2][1] = status2[y-2][1].toString().replace(/\t/g, `    `);
 			}
 			if(y >= termHeight) {

@@ -1,17 +1,10 @@
-import { chooseTarget } from './init.js';
 import {drawList1, drawStatus1, drawLCol, clearLCol} from '/terminal.js';
-import { scan, findServerPath } from './helpers.js'
+import { scan, findServerPath, money, chooseTarget } from './helpers.js';
 
 var ownedServers = {'home':'home'};
 var highestLevelSeen = 1;
 var scriptRam = 0;
 var purchaseServers = true;
-var haveTor = false;
-var level1 = false;
-var level2 = false;
-var level3 = false;
-var level4 = false;
-var level5 = false;
 var slice = 1;
 var crackers = 0;
 var networkMap = {'home':{}};
@@ -21,6 +14,9 @@ var designateTarget = false;
 var quiet = true;
 var autoTarget = false;
 var memmoryLevels = [8,32,256,1024,2048,4096,32768,(128*1024),(512*1024),(1024*1024)];
+
+const timeBetweenUpgradeLoops = 1 * 60 * 1000;
+ const timeBetweenNewPurchaseAndUpgradeLoop = .5 * 60 * 1000;
 
 
 // args Ram, Slices, Target
@@ -77,7 +73,11 @@ export async function main(ns) {
             {
                 if(ns.args[z+1] == "nopurchase" || ns.args[z+1] == "n") {
                     purchaseServers = false;
+                    if(ns.args[z+2] !== undefined) {
                     var ram = ns.args[z+2];
+                    } else {
+                        var ram = 1024;
+                    }
                 } else {
                     var ram = ns.args[z+1];
                 }
@@ -92,8 +92,9 @@ export async function main(ns) {
                 } else if(ns.args[z+1] == "auto") {
                     designateTarget = true;
                     autoTarget = true;
-                    var target = chooseTarget(ns.getPlayer()["hacking"])["target"];                    
-                    slice = chooseTarget(ns.getPlayer()["hacking"])["slice"];
+                    var target = chooseTarget(ns,ns.getPlayer()["hacking"])["target"];                    
+                    slice = chooseTarget(ns,ns.getPlayer()["hacking"])["slice"];
+                    ram = chooseTarget(ns, ns.getPlayer()["hacking"])["ram"];
                     ns.print("Target Chosen: "+target);
                 } else {
                     designateTarget = true;
@@ -105,7 +106,12 @@ export async function main(ns) {
 	}    
     ns.tail();
 
-    
+    for (let m of memmoryLevels) {
+        if(ram < m) {
+            ram = m;
+            break;
+        }
+    }
 	
 
     if(ns.fileExists("BruteSSH.exe"))
@@ -133,8 +139,8 @@ export async function main(ns) {
     }
     var currentServerLevel = memmoryLevels[currentServerLevelIndex];
 
-    level2 = false;level3 = false;level4=false;level5=false;
-    if(!quiet)await ns.print("Cost to purchase these servers: "+ns.getPurchasedServerCost(ram));
+    if(!quiet)await ns.print(`Cost to purchase these servers with ${ram}gb: $${Math.round(ns.getPurchasedServerCost(ram)).toLocaleString('en-US')}`);
+    drawLCol(`Cost to purchase these servers with ${ram}gb: $${Math.round(ns.getPurchasedServerCost(ram)).toLocaleString('en-US')}`);
 
 
     var serv = 'home';
@@ -250,8 +256,9 @@ while (purchaseServers == true && ns.getPurchasedServers().length < ns.getPurcha
     await scanServer(ns,{'home':'home'}, target, 0);
 
     if(autoTarget) {
-        slice = chooseTarget(ns.getPlayer()["hacking"])["slice"];
-        target = chooseTarget(ns.getPlayer()["hacking"])["target"];
+        slice = chooseTarget(ns,ns.getPlayer()["hacking"])["slice"];
+        target = chooseTarget(ns,ns.getPlayer()["hacking"])["target"];
+        ram = chooseTarget(ns,ns.getPlayer()["hacking"])["ram"];
     }
     // Check if we have enough money to purchase a server
     
@@ -265,11 +272,12 @@ while (purchaseServers == true && ns.getPurchasedServers().length < ns.getPurcha
                 if(!ns.fileExists('hackit.js',hostname)) {
                     await ns.scp("hackit.js", hostname);
                 }
-                let thisThreads = Math.floor(Math.floor((ram)/(scriptRam))/slice);
+                let thisThreads = Math.floor(ram/slice/scriptRam);
+                if(!quiet) ns.print(`Calculated for ${slice} slices it should thread at ${ram} / ${scriptRam} / ${slice} is ${thisThreads}`);
                 if(thisThreads < 1) {
                     thisThreads = 1;
                 }
-                if(!ns.scriptRunning('hackit.js', hostname)) {
+                if((ns.getServerMaxRam(hostname) - ns.getServerUsedRam(hostname)) >= (scriptRam*thisThreads)) {
                     await ns.exec("hackit.js", hostname, thisThreads, target,s, thisThreads);
                 }
                 await ns.sleep(300);
@@ -286,7 +294,7 @@ while (purchaseServers == true && ns.getPurchasedServers().length < ns.getPurcha
         ++i;
     }
 
-    await ns.sleep(10000);
+    await ns.sleep(timeBetweenNewPurchaseAndUpgradeLoop);
 }
 if(!quiet)ns.print("Spidering...");
 drawLCol(ns,"scanning for servers now in attack level...");
@@ -294,7 +302,7 @@ await scanServer(ns,{'home':'home'}, target, 0);
 
 ns.print("Moving on to upgrade loop in 10 minutes...");
 drawLCol(ns,"Moving on to upgrade loop in 10 minutes...");
-await ns.sleep(60 * 10 * 1000);
+
 while (purchaseServers == true && currentServerLevel <= memmoryLevels[(memmoryLevels.length-1)]) {
     await checkForApps(ns);
     crackers = 0;
@@ -309,8 +317,9 @@ while (purchaseServers == true && currentServerLevel <= memmoryLevels[(memmoryLe
     if(ns.fileExists("SQLInject.exe"))
         crackers++;
     if(autoTarget) {
-        slice = chooseTarget(ns.getPlayer()["hacking"])["slice"];
-        target = chooseTarget(ns.getPlayer()["hacking"])["target"];
+        slice = chooseTarget(ns,ns.getPlayer()["hacking"])["slice"];
+        target = chooseTarget(ns,ns.getPlayer()["hacking"])["target"];
+        currentServerLevel = chooseTarget(ns,ns.getPlayer()["hacking"])["ram"];
     }
     var upgrade = true;
     var servers = ns.getPurchasedServers();
@@ -343,7 +352,8 @@ while (purchaseServers == true && currentServerLevel <= memmoryLevels[(memmoryLe
                         if(!ns.fileExists('hackit.js', hostname)) {
                             await ns.scp("hackit.js", hostname);
                         }
-                        let extraCopies = Math.floor((currentServerLevel)/(Math.floor(slice/scriptRam)));
+                        let extraCopies = Math.floor((currentServerLevel/slice/scriptRam));
+                        if(!quiet) ns.print(`Calculated for ${slice} slices it should thread at ${currentServerLevel} / ${scriptRam} / ${slice} is ${extraCopies}`);
                         for(var s=1;s<=slice;s++) {
                             if(extraCopies < 1) {
                                 extraCopies = 1;
@@ -351,7 +361,7 @@ while (purchaseServers == true && currentServerLevel <= memmoryLevels[(memmoryLe
                             await ns.exec("hackit.js", hostname, extraCopies , target,s,extraCopies);
                             await ns.sleep(100);
                         }
-                        if((ns.getServerMaxRam(hostname) - ns.getServerUsedRam(hostname)) > Math.ceil(scriptRam)) {
+                        if((ns.getServerMaxRam(hostname) - ns.getServerUsedRam(hostname)) >= (scriptRam*extraCopies)) {
                             let extraCopies = Math.floor((ns.getServerMaxRam(hostname) - ns.getServerUsedRam(hostname))/scriptRam);
                             if(extraCopies < 1) {
                                 extraCopies = 1;
@@ -367,8 +377,8 @@ while (purchaseServers == true && currentServerLevel <= memmoryLevels[(memmoryLe
             
         } 
         } else {
-                if(!quiet)await ns.print("Not enough money to upgrade yet, need: "+ns.getPurchasedServerCost(currentServerLevel));
-                await ns.sleep(60000);
+                if(!quiet)await ns.print("Not enough money to upgrade yet, need: $"+money(ns.getPurchasedServerCost(currentServerLevel)));
+                await ns.sleep(Math.round(timeBetweenUpgradeLoops/2));
         }
         for(var a = 0;a < ns.getPurchasedServers().length; a++) {
             if(upgrade == false || ns.getServerMaxRam(servers[a]) < currentServerLevel) {
@@ -387,24 +397,12 @@ while (purchaseServers == true && currentServerLevel <= memmoryLevels[(memmoryLe
             upgrade = false;
         }
         upgrade = true;
-        await ns.sleep(10000);
+        await ns.sleep(timeBetweenUpgradeLoops);
         
     }
 
     while(true) {
         await checkForApps(ns);
-        crackers = 0;
-        if(ns.fileExists("BruteSSH.exe"))
-            crackers++;
-        if(ns.fileExists("FTPCrack.exe"))
-            crackers++;
-        if(ns.fileExists("relaySMTP.exe"))
-            crackers++;
-        if(ns.fileExists("HTTPWorm.exe"))
-            crackers++;
-        if(ns.fileExists("SQLInject.exe"))
-            crackers++;
-
         if(!quiet)ns.print("Spidering...");
         drawLCol(ns,"scanning for servers now in attack level...");
         await scanServer(ns,{'home':'home'}, target, 0);
@@ -421,7 +419,6 @@ async function scanServer(ns,source, target, level) {
     for(var sp=0; sp < level; sp++) {
         spacer = spacer+" ";
     }
-    if(!quiet)ns.print(spacer+"Scanning "+Object.keys(source)[0]+" coming from "+source[Object.keys(source)[0]]+"...");
     let files = ns.ls(Object.keys(source)[0],".cct");
     if(files !== undefined && files !== null && files.length > 0) {
         if(!contractsFound.includes(Object.keys(source)[0])) {
@@ -437,7 +434,6 @@ async function scanServer(ns,source, target, level) {
             var serverInfo = ns.getServer(connectionsp[c]);
             if(serverInfo.purchasedByPlayer != true) {
                 connections.push(connectionsp[c]);
-                if(!quiet)ns.print("kept "+connectionsp[c]);
             }
         }
     }
@@ -445,8 +441,6 @@ async function scanServer(ns,source, target, level) {
         
     for(var a = 0; a < connections.length; a++) {
         await ns.sleep(150);
-        if(!quiet)ns.print("=>"+connections[a]);        
-
         var result = await evalAndNuke(ns,connections[a],Object.keys(source)[0], target);
         var nextUp = {};
         nextUp[connections[a]]=Object.keys(source)[0];
@@ -456,7 +450,6 @@ async function scanServer(ns,source, target, level) {
 }
 
 async function evalAndNuke(ns,server,origin,target) {
-        if(!quiet)ns.print("   ..evaluating "+server);
 		var attackThis = server;
 		var serverInfo = ns.getServer(attackThis);
 		var returnResult = false;
@@ -531,20 +524,24 @@ async function startHacking(ns,serv,thisTarget) {
     var rand = Math.random();
     await ns.sleep(50);
     let startedNewThreads = false;
-    for(var s=1;s<=slice;s++) {           
-        let thisThreads = Math.floor((targetRam)/Math.ceil(scriptRam)/slice);
+    let maxSlices = Math.floor((targetRam/scriptRam));
+    if( maxSlices > slice) {
+        slice = maxSlices;
+    }
+    for(var s=1;s<=slice;s++) {                   
+        let thisThreads = Math.floor(targetRam/slice/scriptRam);
         if(thisThreads < 1) {
             thisThreads = 1;
         }
-        if(!ns.scriptRunning('hackit.js', serv) && ((ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv)) > scriptRam)) {
+        if(((ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv)) > scriptRam)) {
             startedNewThreads = true;
             await ns.exec("hackit.js", serv, thisThreads, thisTarget,s);
-            await ns.sleep(500);
+            await ns.sleep(100);
         }
         
     }
         
-    if((ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv)) > scriptRam) {
+    if((ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv)) >= (scriptRam*extraCopies)) {
         var extraCopies = Math.floor((ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv))/scriptRam);
         if(extraCopies > 0) {            
             if(!quiet)await ns.print("Starting "+extraCopies+" extra hackit threads on "+serv);
@@ -564,27 +561,27 @@ async function checkForApps(ns) {
     
     if(!ns.fileExists("BruteSSH.exe",'home') && ns.getServerMoneyAvailable("home") >= 500000) {
         ns.purchaseProgram("BruteSSH.exe");
-        ns.alert("Bought BruteSSH");
+        ns.toast("Bought BruteSSH");
     }
     if(!ns.fileExists("FTPCrack.exe",'home') && ns.getServerMoneyAvailable("home") >= 1500000) {
         ns.purchaseProgram("FTPCrack.exe");
-        ns.alert("Bought FTPCrack");
+        ns.toast("Bought FTPCrack");
     }
     if(ns.getPlayer().hacking >= 300 && !ns.fileExists("relaySMTP.exe",'home') && ns.getServerMoneyAvailable("home") >= 5000000) {
         ns.purchaseProgram("relaySMTP.exe");
-        ns.alert("Bought relaySMTP");
+        ns.toast("Bought relaySMTP");
     }
     if(ns.getPlayer().hacking >= 400 & !ns.fileExists("AutoLink.exe",'home') && ns.getServerMoneyAvailable("home") >= 1500000) {
         ns.purchaseProgram("AutoLink.exe");
-        ns.alert("Bought AutoLink");
+        ns.toast("Bought AutoLink");
     }
     if(!ns.fileExists("HTTPWorm.exe",'home') && ns.getServerMoneyAvailable("home") >= 30000000) {
         ns.purchaseProgram("HTTPWorm.exe");
-        ns.alert("Bought HTTPWorm");
+        ns.toast("Bought HTTPWorm");
     }
     if(!ns.fileExists("SQLInject.exe",'home')&& ns.getServerMoneyAvailable("home") >= 250000000) {
         ns.purchaseProgram("SQLInject.exe");
-        ns.alert("Bought SQLInject");
+        ns.toast("Bought SQLInject");
     }
     crackers = 0;
     if(ns.fileExists("BruteSSH.exe",'home'))

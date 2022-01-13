@@ -98,7 +98,7 @@ export async function main(ns) {
 					} else {
 						owned = `  `;
 					}
-				drawList1(ns,`Round ${AugIndex}:${owned}\t${Augs[__aug]} \t$${ns.getAugmentationPrice(Augs[__aug]).toLocaleString('en-US')} \tRepXP: ${ns.getAugmentationRepReq(Augs[__aug])}`);
+				drawList1(ns,`Round ${AugIndex}:${owned}\t${Augs[__aug]} \t$${ns.getAugmentationPrice(Augs[__aug]).toLocaleString('en-US')} \tRepXP: ${Math.round(ns.getAugmentationRepReq(Augs[__aug])).toLocaleString('en-US')}`);
 				roundTotalCost+=(ns.getAugmentationPrice(Augs[__aug])*(__aug+1));
 			}
 			
@@ -172,10 +172,12 @@ export async function main(ns) {
 				if(inActiveRound && !inTempRound && AugIndex != 0) {
 					drawStatus1(ns,"Entering Upgrade Loop at end of Aug Level "+AugIndex);
 					await runUpgradeLoop(ns,2);
+					inTempRound = true;
+					drawStatus1(ns,"Checking for remaining money before installing...");
 					if(AugsInOrder[AugIndex+1] !== undefined && AugsInOrder[AugIndex+1] !== null){
 						let faction = Object.keys(AugsInOrder[AugIndex+1])[0];
 						if(faction !== null && faction !== undefined) {
-							let Augs = AugsInOrder[AugIndex][faction];
+							let Augs = AugsInOrder[AugIndex+1][faction];
 							if(ns.getServerMoneyAvailable('home') > ns.getAugmentationPrice(Augs[0])) {
 								drawStatus1(ns,"Can afford Augmentations from next round; continueing into next round...");
 								continue;

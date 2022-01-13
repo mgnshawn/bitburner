@@ -7,6 +7,7 @@ export async function main(ns) {
 	ns.tprint(`owned augs:::::: ${ns.getOwnedAugmentations()}`);
 	ns.tprint(`player info::::::: ${ns.getPlayer()}`);
 ns.tprint("---------------------------");
+	if(ns.gang.inGang()) {
 	let otherGangs = ns.gang.getOtherGangInformation();
 	ns.tprint(otherGangs);
 	let lowestChance = 1;
@@ -14,15 +15,30 @@ ns.tprint("---------------------------");
 	for (const otherGang in otherGangs) {
 		ns.tprint(otherGangs[otherGang]);
 	}
+	}
 	let firstTargets = ns.scan("home");
 	var commingFrom = "home";
-	await scan(ns,firstTargets,'home');
+	/*await scan(ns,firstTargets,'home');
 	
 	ns.tprint(servers);
 	let target = "The-Cave";
 		path.push(target);
 	await findServerPath(ns,target);
 	ns.tprint(path);
+	*/
+	let s = ns.getPlayer().strength;
+	let workingOut = false;
+	do {
+		if(!workingOut) {
+		let tried = ns.gymWorkout('powerhouse gym','strength');
+		if(tried)
+		workingOut = true;
+		else 
+		break;
+		}
+			await ns.sleep(1000);
+	} while(ns.getPlayer().strength == s);
+	ns.stopAction();
 }
 var path = [];
 
