@@ -63,7 +63,7 @@ export async function main(ns) {
         case "auto":
         autoCrime = true;
         crime=await chooseBestCrime(ns);
-        ns.tprint("Performing "+crime);
+        ns.print("Performing "+crime);
         break;
     }
     }

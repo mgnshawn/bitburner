@@ -265,7 +265,7 @@ while (purchaseServers == true && ns.getPurchasedServers().length < ns.getPurcha
                 if(!ns.fileExists('hackit.js',hostname)) {
                     await ns.scp("hackit.js", hostname);
                 }
-                let thisThreads = Math.floor((ram)/Math.ceil(scriptRam)/slice);
+                let thisThreads = Math.floor(Math.floor((ram)/(scriptRam))/slice);
                 if(thisThreads < 1) {
                     thisThreads = 1;
                 }
@@ -343,7 +343,7 @@ while (purchaseServers == true && currentServerLevel <= memmoryLevels[(memmoryLe
                         if(!ns.fileExists('hackit.js', hostname)) {
                             await ns.scp("hackit.js", hostname);
                         }
-                        let extraCopies = Math.floor((currentServerLevel)/(Math.ceil(scriptRam*slice)));
+                        let extraCopies = Math.floor((currentServerLevel)/(Math.floor(slice/scriptRam)));
                         for(var s=1;s<=slice;s++) {
                             if(extraCopies < 1) {
                                 extraCopies = 1;

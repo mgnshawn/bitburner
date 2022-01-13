@@ -86,7 +86,12 @@ export function clearDoingLine(ns) {
 export function clearLCol(ns) {
 	setItem(ns, 'status2List', []);
 }
-
+export function clearStatusList(ns) {
+	setItem(ns, 'statusList', []);
+}
+export function clearList1(ns) {
+	setItem(ns, 'bufferList', []);
+}
  function draw(ns) {
 	 	let status1 = getItem(ns,'statusList');
 		 let status2 = getItem(ns,'status2List');
@@ -133,7 +138,7 @@ export function clearLCol(ns) {
 						CurrLine+=`=`;
 					}	
 				} else {
-					let statusLine = ` [Money: $ ${Math.round(ns.getPlayer().money).toLocaleString('en-US')}   [Hack: ${ns.getPlayer().hacking}   [Karma: ${ns.heart.break()}   [str: ${ns.getPlayer().strength}  [Dex: ${ns.getPlayer().dexterity}  [Agi: ${ns.getPlayer().agility} `;
+					let statusLine = ` [Money: $ ${Math.round(ns.getPlayer().money).toLocaleString('en-US')}   [Hack: ${ns.getPlayer().hacking}   [Karma: ${Math.round(ns.heart.break()).toLocaleString('en-US')}   [str: ${ns.getPlayer().strength}  [Dex: ${ns.getPlayer().dexterity}  [Agi: ${ns.getPlayer().agility} `;
 					for(let x=0; x < termWidth;x++) {
 					if(x == 0 || x == (termWidth-1)) { // Left and Right border || Buffer splitter
 						CurrLine+=`|`;
@@ -237,6 +242,11 @@ export function clearLCol(ns) {
  }
 /** @param {NS} ns **/
 export async function main(ns) {
+	if(ns.args[0] != undefined && ns.args[0] == "clear") {
+		clearLCol(ns);
+		clearStatusList(ns);
+		clearList1(ns);
+	}
 	clearDoingLine(ns);
 	ns.disableLog('sleep');
 	
