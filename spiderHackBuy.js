@@ -377,6 +377,7 @@ while (purchaseServers == true && ram <= memmoryLevels[(memmoryLevels.length-1)]
                 if(!quiet)await ns.print("Not enough money to upgrade yet, need: $"+money(ns.getPurchasedServerCost(ram)));
                 await ns.sleep(Math.round(timeBetweenUpgradeLoops/2));
         }
+        servers = ns.getPurchasedServers();
         for(var a = 0;a < ns.getPurchasedServers().length; a++) {
             if(upgrade == false || ns.getServerMaxRam(servers[a]) < ram) {
                 upgrade = false;

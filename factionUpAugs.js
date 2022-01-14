@@ -31,7 +31,7 @@ export async function main(ns) {
 	ns.print("============================================ Beginning Faction Up ============================================");
 	ns.tail();
 	//await draw(ns,['this is a test','line two of the test'],"Doing xyz for pdq");
-	AugsInOrder =[{'CyberSec':["Synaptic Enhancement Implant", "BitWire", "Neurotrainer I"]}];	
+	AugsInOrder =[{'CyberSec':["Synaptic Enhancement Implant", "BitWire", "Neurotrainer I",'Cranial Signal Processors - Gen I','Cranial Signal Processors - Gen II','NeuroFlux Governor','NeuroFlux Governor','NeuroFlux Governor']}];	
 	AugsInOrder.push({'Tian Di Hui':['Social Negotiation Assistant (S.N.A)',  'ADR-V1 Pheromone Gene']});
 	AugsInOrder.push({'CyberSec':['Cranial Signal Processors - Gen I','Cranial Signal Processors - Gen II']});			
 	if(ns.getServerMoneyAvailable('home') < 10000000000 && ns.heart.break() > -10000 && ns.heart.break() < -4000 ) {
