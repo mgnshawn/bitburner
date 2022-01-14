@@ -1,9 +1,10 @@
 import {getItem, setItem} from '/ioHelpers.js';
 var termHeight = 28;
 var termWidth = 220;
-var topBufferLines = 16;
+var topBufferLines = 20;
 var stateLines = 3;
 var lColumnChars = 100;
+var bottomSectionLines = 2;
 
 
 function primeExistingBufferLists(ns) {
@@ -50,6 +51,7 @@ export function drawList1(ns,newLine) {
 			bufferList.push([` ${hours}:${minutes}:${seconds} `,newLine]);
 		}
 		setItem(ns,'bufferList',bufferList);
+		return newLine;
 	 //draw(ns);
 }
 export function drawStatus1(ns,newLine) {
@@ -78,6 +80,7 @@ export function drawStatus1(ns,newLine) {
 			status1.unshift([` ${hours}:${minutes}:${seconds} `,newLine]);
 		}
 	setItem(ns,'statusList',status1);
+	return newLine;
 	 //draw(ns);
 }
 export function drawLCol(ns,newLine) {
@@ -106,6 +109,7 @@ export function drawLCol(ns,newLine) {
 			status2.unshift([` ${hours}:${minutes}:${seconds} `,newLine]);
 		}
 		setItem(ns,'status2List',status2);
+		return newLine;
 	 //draw(ns);
 }
 export function drawDoing(ns,newLine) {
@@ -115,6 +119,7 @@ export function drawDoing(ns,newLine) {
 		//let doing = getItem(ns,'doingLine');
 		
 		setItem(ns,'doingLine',newLine);
+		return newLine;
 		
 	 //draw(ns);
 }
@@ -156,7 +161,7 @@ export function clearList1(ns) {
 		}
 
 
-		for(let y= 0;y<termHeight+2;y++) {	
+		for(let y= 0;y<termHeight+1+bottomSectionLines;y++) {	
 			let CurrLine = "";		
 			if(y in listLines) {
 				if(bufferList !== null && Array.isArray(bufferList) && bufferList[y-1] !== undefined && bufferList[y-1][1] !== undefined)
@@ -170,13 +175,17 @@ export function clearList1(ns) {
 				if(status2[y-2] !== undefined && status2[y-2][1] !== undefined && status2[y-2][1] !== null)
 				status2[y-2][1] = status2[y-2][1].toString().replace(/\t/g, `    `);
 			}
-			if(y >= termHeight) {
-				if(y == termHeight+1) {
+			if(y >= termHeight) { // Draw the bottom running totals area
+				if(y == termHeight+bottomSectionLines) {
 					for(let x =0; x < termWidth;x++) {
 						CurrLine+=`=`;
 					}	
 				} else {
-					let statusLine = ` [Money: $ ${Math.round(ns.getPlayer().money).toLocaleString('en-US')}   [Hack: ${ns.getPlayer().hacking}   [Karma: ${Math.round(ns.heart.break()).toLocaleString('en-US')}   [str: ${ns.getPlayer().strength}  [Dex: ${ns.getPlayer().dexterity}  [Agi: ${ns.getPlayer().agility} `;
+					let statusLineHolder = [` ${y} ${termHeight - y} test test`];
+					statusLineHolder[1] = ` [Money: $ ${Math.round(ns.getPlayer().money).toLocaleString('en-US')}   [Hack: ${ns.getPlayer().hacking}   [Karma: ${Math.round(ns.heart.break()).toLocaleString('en-US')}   [str: ${ns.getPlayer().strength}  [Dex: ${ns.getPlayer().dexterity}  [Agi: ${ns.getPlayer().agility} `;
+					let statusLine = statusLineHolder[y-termHeight];
+					let onDoingLine = y-termHeight != 0;
+					
 					for(let x=0; x < termWidth;x++) {
 					if(x == 0 || x == (termWidth-1)) { // Left and Right border || Buffer splitter
 						CurrLine+=`|`;
@@ -188,7 +197,7 @@ export function clearList1(ns) {
 								CurrLine+=` `;
 							}
 						} else {
-							if(x <= 107) {
+							if(onDoingLine && x <= 107) {
 								let he = ` Doing: `;
 								CurrLine += he[x-100];
 							} else {
@@ -206,6 +215,7 @@ export function clearList1(ns) {
 					
 					}
 					}
+					
 				}
 			} else
 			for(let x =0; x < termWidth;x++) {
