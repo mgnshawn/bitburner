@@ -1,4 +1,4 @@
-import {drawList1, drawStatus1, drawLCol, drawDoing, clearDoingLine} from '/terminal.js';
+import {drawList1, drawStatus1, drawLCol, drawDoing, clearDoingLine, clearList1} from '/terminal.js';
 var AugsInOrder = [];
 	
 	
@@ -31,7 +31,7 @@ export async function main(ns) {
 	ns.print("============================================ Beginning Faction Up ============================================");
 	ns.tail();
 	//await draw(ns,['this is a test','line two of the test'],"Doing xyz for pdq");
-	AugsInOrder =[{'CyberSec':["Synaptic Enhancement Implant", "BitWire", "Neurotrainer I",'Cranial Signal Processors - Gen I','Cranial Signal Processors - Gen II','NeuroFlux Governor','NeuroFlux Governor','NeuroFlux Governor']}];	
+	AugsInOrder =[{'CyberSec':["Synaptic Enhancement Implant", "BitWire", "Neurotrainer I"]}];	
 	AugsInOrder.push({'Tian Di Hui':['Social Negotiation Assistant (S.N.A)',  'ADR-V1 Pheromone Gene']});
 	AugsInOrder.push({'CyberSec':['Cranial Signal Processors - Gen I','Cranial Signal Processors - Gen II']});			
 	if(ns.getServerMoneyAvailable('home') < 10000000000 && ns.heart.break() > -10000 && ns.heart.break() < -4000 ) {
@@ -102,21 +102,7 @@ export async function main(ns) {
 		workToDo = 'hacking contracts';
 	}
 		await checkFactionMemberShipAndJoin(ns,faction);
-		let roundTotalCost = 0;
-			for(var __aug = 0; __aug < Augs.length; __aug++) {await ns.sleep(50);
-				let owned = "";
-				if(ns.getOwnedAugmentations(true).includes(Augs[__aug])) {
-					owned = `  *owned*`;
-				} else if(faction == 'Slum Snakes' && !ns.gang.inGang()) {
-						owned = `  need gang`;
-					} else {
-						owned = `  `;
-					}
-				drawList1(ns,`Round ${AugIndex}:${owned}\t${Augs[__aug]} \t$${ns.getAugmentationPrice(Augs[__aug]).toLocaleString('en-US')} \tRepXP: ${Math.round(ns.getAugmentationRepReq(Augs[__aug])).toLocaleString('en-US')}`);
-				roundTotalCost+=(ns.getAugmentationPrice(Augs[__aug])*(__aug+1));
-			}
-			
-			drawList1(ns,`Total cost for Augs in round ${AugIndex} is $${roundTotalCost.toLocaleString('en-US')}`);
+		await updateAugListDisplay(ns,Augs, AugIndex, faction);
 				for(var aug = 0; aug < Augs.length; ++aug) {
 					let currentAug = Augs[aug];
 					if(currentAug == "Upgrade") {
@@ -161,6 +147,8 @@ export async function main(ns) {
 								
 								let succ = ns.purchaseAugmentation(faction, currentAug);
 								if(succ) {
+									await clearList1(ns);
+									await updateAugListDisplay(ns,Augs, AugIndex,faction);
 									drawStatus1(ns,"Purchasing "+currentAug+" from "+faction);
 								}
 							} else {
@@ -222,6 +210,24 @@ export async function main(ns) {
 		}
 	}
 }	
+async function updateAugListDisplay(ns, Augs, AugIndex,faction) {
+		let roundTotalCost = 0;
+			for(var __aug = 0; __aug < Augs.length; __aug++) {await ns.sleep(50);
+				let owned = "";
+				if(ns.getOwnedAugmentations(true).includes(Augs[__aug])) {
+					owned = `  *owned*`;
+				} else if(faction == 'Slum Snakes' && !ns.gang.inGang()) {
+						owned = `  need gang`;
+					} else {
+						owned = `  `;
+					}
+				drawList1(ns,`Round ${AugIndex}:${owned}\t${Augs[__aug]} \t$${ns.getAugmentationPrice(Augs[__aug]).toLocaleString('en-US')} \tRepXP: ${Math.round(ns.getAugmentationRepReq(Augs[__aug])).toLocaleString('en-US')}`);
+				roundTotalCost+=(ns.getAugmentationPrice(Augs[__aug])*(__aug+1));
+			}
+			
+			drawList1(ns,`Total cost for Augs in round ${AugIndex} is $${roundTotalCost.toLocaleString('en-US')}`);
+
+}
 
 async function runUpgradeLoop(ns, upgradesToGet) {
 	let gradeUpAug = "NeuroFlux Governor";

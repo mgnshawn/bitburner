@@ -1,7 +1,11 @@
 import {drawLCol} from '/terminal.js';
 const baseUrl = 'https://raw.githubusercontent.com/mgnshawn/bitburner/master/';
 const filesToDownload = [
-  'bitburner.js','crimeItUp.js','spiderHackBuy.js','hackit.js','manageGang.js','factionUpAugs.js','helpers.js','ioHelpers.js','terminal.js'
+  'bitburner.js','init.js',
+  'crimeItUp.js','lite_crimeItUp.js',
+  'spiderHackBuy.js','lite_spiderHackBuy.js',
+  'hackit.js','manageGang.js','factionUpAugs.js',
+  'helpers.js','ioHelpers.js','terminal.js'
 ];
 const initialCombatStatsToGym = {'strength':10,'dexterity':10,'agility':10};
 var doDownload = true;
