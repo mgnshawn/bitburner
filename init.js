@@ -1,15 +1,13 @@
-import {drawLCol} from '/terminal.js';
+import {drawLCol, drawStatus1, drawList1, drawDoing } from '/terminal.js';
 const baseUrl = 'https://raw.githubusercontent.com/mgnshawn/bitburner/master/';
-const filesToDownload = [
-  'bitburner.js','init.js',
-  'crimeItUp.js','lite_crimeItUp.js',
-  'spiderHackBuy.js','lite_spiderHackBuy.js',
-  'hackit.js','manageGang.js','factionUpAugs.js',
-  'helpers.js','ioHelpers.js','terminal.js'
-];
 const initialCombatStatsToGym = {'strength':10,'dexterity':10,'agility':10};
 var doDownload = true;
 export async function main(ns) {
+		primeExistingBufferLists(ns);
+		clearLCol(ns);
+		clearStatusList(ns);
+		clearList1(ns);
+	clearDoingLine(ns);
   if(ns.args[0] !== undefined && ns.args[0] == 'nodownload') {
     doDownload= false;
   }
@@ -21,15 +19,7 @@ export async function main(ns) {
     throw new Exception('Run the script from home');
   }
   if(doDownload) {
-  for (let i = 0; i < filesToDownload.length; i++) {
-    const filename = filesToDownload[i];
-    const path = baseUrl + filename;
-    await ns.scriptKill(filename, 'home');
-    await ns.rm(filename);
-    await ns.sleep(200);
-    ns.print(`Trying to download ${path}`);
-    await ns.wget(path + '?ts=' + new Date().getTime(), filename);
-  }
+   await ns.run('download.js');
   }
   /*if(ns.getPlayer()["hacking_mult"] < switchToCrimeAt) {
     await ns.run('factionUp.js');
@@ -37,7 +27,13 @@ export async function main(ns) {
     await ns.run('crimeItUp.js',1,"auto",'-l');
   }*/
   ns.run('terminal.js');
-  
+  await ns.run('spiderHackBuy.js', 1, "ram", 8, "slice", 16,"target", "auto");
+  do {
+    await ns.sleep(30000);
+    drawStatus1(ns, "Waiting for owned srv > 1 to proceed");
+  } while (ns.getPurchasedServers().length <= 1)
+
+  drawStatus1(ns, "Exercising up combat stats to 10");
   for(let x = 0; x < Object.keys(initialCombatStatsToGym).length; x++) {
     let stat = Object.keys(initialCombatStatsToGym)[x];
     
@@ -55,10 +51,14 @@ export async function main(ns) {
 	  } while(ns.getPlayer()[stat] <= statTarget);
 	  ns.stopAction();
   }
+  drawStatus1(ns, "Beginning crimeItUp for cash until 10 servers owned");
+  do {
+    await ns.sleep(60000);
+    drawStatus1(ns, "Waiting for owned srv >= 10 to proceed");
+  } while (ns.getPurchasedServers().length <= 10)
   await ns.sleep(1000);
   await ns.run('factionUpAugs.js');
   if(ns.heart.break() < -40000) {
     await ns.run('manageGang.js');
   }
-  await ns.run('spiderHackBuy.js', 1, "ram", 8, "slice", 16,"target", "auto");
 }

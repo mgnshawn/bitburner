@@ -14,9 +14,9 @@ export async function scan(ns) {
 	return _allServers;
 }
 
-async function localScan(ns, targets, parent) {
+function localScan(ns, targets, parent) {
 	for (const a in targets) {
-		await ns.sleep(10);
+		//await ns.sleep(10);
 		_allServers.push([targets[a], parent]);
 		//ns.tprint(`${parent} => ${targets[a]}`);
 		let b = ns.scan(targets[a]);
@@ -26,13 +26,23 @@ async function localScan(ns, targets, parent) {
 				bb.push(b[zz]);
 			}
 		}
-		await localScan(ns, bb, targets[a]);
+		localScan(ns, bb, targets[a]);
 	}
 }
 
-export async function findServerPath(ns, target) {
+export function travelToServer(ns, server) {
+let pathing = findServerPath(ns, server);
+return pathing;
+}
+
+/**
+ * @param {ns} ns NS object
+ * @param {string} target desired server to find
+ * @returns {Array}
+ */
+export function findServerPath(ns, target) {
 	_pathToTarget = [];
-	await localFindServerPath(ns, target);
+	localFindServerPath(ns, target);
 	let response = [];
 
 	for (let q = _pathToTarget.length - 1; q >= 0; q--) {
@@ -41,13 +51,13 @@ export async function findServerPath(ns, target) {
 	response.push(target);
 	return response;
 }
-async function localFindServerPath(ns, target) {
+function localFindServerPath(ns, target) {
 	if (_allServers.length == 0) {
-		await localScan(ns, ns.scan("home"), 'home');
+		localScan(ns, ns.scan("home"), 'home');
 	}
 
 	for (let sIndex in _allServers) {
-		await ns.sleep(10);
+//		await ns.sleep(10);
 		//ns.tprint(`${_allServers[sIndex][0]} =?= ${target}`);
 		if (_allServers[sIndex][0] == target) {
 			_pathToTarget.push(_allServers[sIndex][1])
@@ -55,7 +65,7 @@ async function localFindServerPath(ns, target) {
 			if (_allServers[sIndex][0] == "home") {
 				break;
 			}
-			await localFindServerPath(ns, _allServers[sIndex][1])
+			localFindServerPath(ns, _allServers[sIndex][1])
 			break;
 		}
 
