@@ -31,16 +31,22 @@ function localScan(ns, targets, parent) {
 	}
 }
 
-export function travelToServer(ns, server) {
+export async function travelToServer(ns, server) {
 let pathing = findServerPath(ns, server);
+await ns.sleep(100);
 ns.tprint(pathing);
+for(let a = 0; a < pathing.length; a++) {
+	ns.connect(pathing[a]);
+	await ns.sleep(100);
+}
 return pathing;
 }
-export function travelBackHome(ns, server) {
+export async function travelBackHome(ns, server) {
 let pathing = findServerPath(ns, server);
 ns.tprint(pathing);
 for(let a = pathing.length-1;a>=0;a--) {
 		ns.connect(pathing[a]);
+		await ns.sleep(100);
 }
 
 return pathing;
@@ -60,6 +66,7 @@ export function findServerPath(ns, target) {
 		response.push(_pathToTarget[q]);
 	}
 	response.push(target);
+	ns.tprint(response);
 	return response;
 }
 function localFindServerPath(ns, target) {

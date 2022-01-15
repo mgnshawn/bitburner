@@ -336,14 +336,17 @@ async function checkFactionMemberShipAndJoin(ns,faction) {
 				ns.print(drawStatus1(ns,`Waiting to install backdoor on ${faction}`));
 				if(ns.getServer(toJoinFaction[faction])["hasAdminRights"]) {									
 					ns.print(`traveling to ${toJoinFaction[faction]}`);		
-					travelToServer(ns,toJoinFaction[faction]);
-					await ns.sleep(100);
+					await travelToServer(ns,toJoinFaction[faction]);
+					await ns.sleep(1000);
+					ns.tprint(`location is ${ns.getCurrentServer()}`);
+					await ns.sleep(1000);
 					var succ = await ns.installBackdoor();
+					await ns.sleep(1000);
 					if(succ)  {
 						drawStatus1(ns,"Installing backdoor on "+toJoinFaction[faction]);						
 						await ns.sleep(1000);
 					ns.print(`traveling back home via ${findServerPath(ns,toJoinFaction[faction])} `);		
-						travelBackHome(ns,parent);
+						await travelBackHome(ns,parent);
 					} else {
 						ns.print('failed to install backdoor');
 					}
