@@ -11,6 +11,7 @@ export var _pathToTarget = [];
 export async function scan(ns) {
 	_allServers = [];
 	await localScan(ns, ns.scan("home"), 'home');
+	await ns.sleep(2000);
 	return _allServers;
 }
 
@@ -32,6 +33,8 @@ function localScan(ns, targets, parent) {
 
 export function travelToServer(ns, server) {
 let pathing = findServerPath(ns, server);
+	await ns.sleep(1000);
+	ns.tprint(pathing);
 return pathing;
 }
 
