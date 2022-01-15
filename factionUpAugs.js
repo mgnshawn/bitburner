@@ -326,19 +326,26 @@ function findCSEC(ns) {
 }
 
 async function checkFactionMemberShipAndJoin(ns,faction) {
+	ns.print(`checking membership for ${faction}`);
 	if(!ns.getPlayer().factions.includes(faction)) {
-		if(['CSEC','The Black Hand','BitRunners'].includes(toJoinFaction[faction])) {
+		ns.print(`not in ${faction}`);
+		if(['CyberSec','The Black Hand','BitRunners'].includes(faction)) {
+			ns.print(`join loop for ${faction}`);
 			ns.run('crimeItUp.js',1,"auto",'l');
 			while(!ns.getServer(toJoinFaction[faction]).backdoorInstalled) {		
-				drawStatus1(ns,`Waiting to install backdoor on ${faction}`);
-				if(ns.getServer(toJoinFaction[faction])["hasAdminRights"]) {											
+				ns.print(drawStatus1(ns,`Waiting to install backdoor on ${faction}`));
+				if(ns.getServer(toJoinFaction[faction])["hasAdminRights"]) {									
+					ns.print(`traveling to ${toJoinFaction[faction]}`);		
 					travelToServer(ns,toJoinFaction[faction]);
 					await ns.sleep(100);
 					var succ = await ns.installBackdoor();
-					if(succ) {
+					if(succ)  {
 						drawStatus1(ns,"Installing backdoor on "+toJoinFaction[faction]);						
 						await ns.sleep(1000);
+					ns.print(`traveling back home via ${findServerPath(ns,toJoinFaction[faction])} `);		
 						travelBackHome(ns,parent);
+					} else {
+						ns.print('failed to install backdoor');
 					}
 				}
 				await ns.sleep(10000);
@@ -375,5 +382,5 @@ async function checkFactionMemberShipAndJoin(ns,faction) {
 				await ns.sleep(5000);
 			}
 		}
-	}
+	} else { ns.print(`in ${faction}`);}
 }
