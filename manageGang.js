@@ -24,8 +24,7 @@ export async function main(ns) {
 	ns.disableLog("gang.ascendMember");
 	ns.disableLog("gang.setTerritoryWarfare");
 	ns.tail();
-	previousTerritoryHeld = ns.gang.getGangInformation().territory.toLocaleString('en-US');
-	ns.print(`Territory Held: ${100*previousTerritoryHeld}`);
+	
 	for(let z=0;z<ns.args.length;z++) {
 		if(ns.args[z] !== undefined) {
 			if(ns.args[z] == 'v') {
@@ -47,7 +46,8 @@ export async function main(ns) {
 		}
 		await ns.sleep(60000);
 	}
-
+	previousTerritoryHeld = ns.gang.getGangInformation().territory.toLocaleString('en-US');
+	ns.print(`Territory Held: ${100*previousTerritoryHeld}`);
 
 
 	var names = ['shawn','joe','mike','roger','snakes','acey','tony','bobby','billy','lance','sarah','heather'];

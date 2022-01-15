@@ -27,7 +27,14 @@ export async function main(ns) {
     await ns.run('crimeItUp.js',1,"auto",'-l');
   }*/
   ns.run('terminal.js');
+  await ns.sleep(1000);
+  await ns.run('factionUpAugs.js',1,'autowork');
+  if(ns.heart.break() < -40000) {
+    await ns.run('manageGang.js');
+  }
+  await ns.sleep(1000);
   await ns.run('spiderHackBuy.js', 1, "ram", 8, "slice", 16,"target", "auto");
+  await ns.sleep(1000);
   do {
     await ns.sleep(30000);
     drawStatus1(ns, "Waiting for owned srv > 1 to proceed");
@@ -51,14 +58,9 @@ export async function main(ns) {
 	  } while(ns.getPlayer()[stat] <= statTarget);
 	  ns.stopAction();
   }
-  drawStatus1(ns, "Beginning crimeItUp for cash until 10 servers owned");
+  /*drawStatus1(ns, "Beginning crimeItUp for cash until 10 servers owned");
   do {
     await ns.sleep(60000);
     drawStatus1(ns, "Waiting for owned srv >= 10 to proceed");
-  } while (ns.getPurchasedServers().length <= 10)
-  await ns.sleep(1000);
-  await ns.run('factionUpAugs.js');
-  if(ns.heart.break() < -40000) {
-    await ns.run('manageGang.js');
-  }
+  } while (ns.getPurchasedServers().length <= 10)*/
 }
