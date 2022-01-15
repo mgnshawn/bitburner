@@ -129,10 +129,35 @@ export function chooseTarget(ns, hackingLevel, currentMemmoryLevel) {
 			}
 		}
 	}
-	for (let r in memmoryLevels) {
-		if (memmoryLevels[r] == resp.ram) {
-			resp.slice = (parseInt(r,10) + 1) * 8
-		}
-	}
+			let multiplier = 8;
+			if(resp.ram >= 32) {
+				multiplier = 8;
+			}
+			if(resp.ram >= 256) {
+				multiplier = 32;
+			}
+			if(resp.ram >= 1024) {
+				multiplier = 64;
+			}
+			if(resp.ram >= 4096 ) {
+				multiplier = 128;
+			}
+			if(resp.ram >= 16384 ) {
+				multiplier = 512;
+			}
+			if(resp.ram >= 32768) {
+				multiplier = 1024;
+			}
+			if(resp.ram >= (128*1024) ) {
+				multiplier = 2056;
+			}
+			if(resp.ram >= (512*1024) ) {
+				multiplier = 10000;
+			}
+			if(resp.ram >= (1024*1024) ) {
+				multiplier = 20000;
+			}
+			resp.slice = multiplier;
+			ns.tprint(`target stats chosen ${resp}`);
 	return resp;
 }

@@ -1,6 +1,6 @@
 const baseUrl = 'https://raw.githubusercontent.com/mgnshawn/bitburner/master/';
 const filesToDownload = [
-  'bitburner.js','init.js','goto.js',
+  'bitburner.js','init.js','goto.js','singleDownload.js',
   'crimeItUp.js','lite_crimeItUp.js',
   'spiderHackBuy.js','lite_spiderHackBuy.js',
   'hackit.js','manageGang.js','factionUpAugs.js',
@@ -22,5 +22,6 @@ export async function main(ns) {
     ns.print(`Trying to download ${path}`);
     await ns.wget(path + '?ts=' + new Date().getTime(), filename);
   }
+  ns.sleep(2000);
   }
 }

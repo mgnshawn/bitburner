@@ -223,8 +223,10 @@ if(designateTarget !== false ) {
                     tag = `${s}:${thisThreads}`;
                 await ns.exec("hackit.js", hostname, thisThreads, target,tag);
                 await ns.sleep(3);
-            }
             await ns.sleep(sleepBetweenSlices);
+            } else {
+                break;
+            }
         }
         if((ns.getServerMaxRam(hostname) - ns.getServerUsedRam(hostname)) > scriptRam) {
             var extraCopies = Math.floor((ns.getServerMaxRam(hostname) - ns.getServerUsedRam(hostname))/scriptRam);
@@ -299,8 +301,10 @@ while (purchaseServers == true && ns.getPurchasedServers().length < ns.getPurcha
                     tag = `${s}:${thisThreads}`;
                 if((ns.getServerMaxRam(hostname) - ns.getServerUsedRam(hostname)) >= (scriptRam*thisThreads)) {
                     await ns.exec("hackit.js", hostname, thisThreads, target,s, tag);
+                    await ns.sleep(sleepBetweenSlices);
+                } else {
+                    break;
                 }
-                await ns.sleep(sleepBetweenSlices);
             }
             if((ns.getServerMaxRam(hostname) - ns.getServerUsedRam(hostname)) > scriptRam) {
                 var extraCopies = Math.floor((ns.getServerMaxRam(hostname) - ns.getServerUsedRam(hostname))/scriptRam);
@@ -396,8 +400,12 @@ while (purchaseServers == true && ram <= memmoryLevels[(memmoryLevels.length-1)]
                                 tag = extraCopies;
                             else
                                 tag = `${s}:${extraCopies}`;
-                            await ns.exec("hackit.js", hostname, extraCopies , target,s,tag);
-                            await ns.sleep(sleepBetweenSlices);
+                            if((ns.getServerMaxRam(hostname) - ns.getServerUsedRam(hostname)) >= (scriptRam*extraCopies)) {
+                                await ns.exec("hackit.js", hostname, extraCopies , target,s,tag);
+                                await ns.sleep(sleepBetweenSlices);
+                            } else {
+                                break;
+                            }
                         }
                         if((ns.getServerMaxRam(hostname) - ns.getServerUsedRam(hostname)) >= (scriptRam*extraCopies)) {
                             let extraCopies = Math.floor((ns.getServerMaxRam(hostname) - ns.getServerUsedRam(hostname))/scriptRam);
@@ -583,6 +591,8 @@ async function startHacking(ns,serv,thisTarget) {
             startedNewThreads = true;
             await ns.exec("hackit.js", serv, thisThreads, thisTarget,s);
             await ns.sleep(100);
+        } else {
+            break;
         }
         
     }

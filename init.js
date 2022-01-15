@@ -20,6 +20,7 @@ export async function main(ns) {
   }
   if(doDownload) {
    await ns.run('download.js');
+   ns.sleep(10000);
   }
   /*if(ns.getPlayer()["hacking_mult"] < switchToCrimeAt) {
     await ns.run('factionUp.js');
@@ -31,6 +32,7 @@ export async function main(ns) {
   await ns.run('factionUpAugs.js',1,'autowork');
   if(ns.heart.break() < -40000) {
     await ns.run('manageGang.js');
+    await ns.sleep(1000);
   }
   await ns.sleep(1000);
   await ns.run('spiderHackBuy.js', 1, "ram", 8, "slice", 16,"target", "auto");
@@ -58,6 +60,7 @@ export async function main(ns) {
 	  } while(ns.getPlayer()[stat] <= statTarget);
 	  ns.stopAction();
   }
+  await ns.run('crimeItUp.js',1,'auto','l');
   /*drawStatus1(ns, "Beginning crimeItUp for cash until 10 servers owned");
   do {
     await ns.sleep(60000);

@@ -1,6 +1,6 @@
 /** @param {NS} ns **/
 var repThreshold = 15; // When to switch to improving wanted level
-var timeCycle = 2 * 60;
+var timeCycle = .5 * 60;
 var goToWarWhenChancesOver = 70
 var maximumFullGangAtWar = 8; // Most members that can being doing Territory Warface
 var minimumFullGangTerror =1; // Minimum number of members doing Terrorism
@@ -11,7 +11,7 @@ var maxMembersToAscendDuringWar = 2;
 // If a gang member's string is under the number it selects the highest option
 //var jumpLevels = {"Train Combat":100,"Mug People":200, "Strongarm Civilians":250, "Armed Robbery":300, "Traffick Illegal Arms":400, "Human Trafficking":1200};
 var jumpLevels = {"Mug People":50,"Train Combat":100,"Strongarm Civilians":325,"Territory Warfare":350,"Human Trafficking":900,"Terrorism":1500};
-
+var names = ['shawn','joe','mike','heather','irene','anna','tony','bobby','billy','lance','sarah'];
 export async function main(ns) {
 	ns.disableLog("sleep");
 	ns.disableLog("getServerMoneyAvailable");
@@ -63,7 +63,7 @@ export async function main(ns) {
 	ns.print(`Territory Held: ${100*previousTerritoryHeld}`);
 
 
-	var names = ['shawn','joe','mike','roger','snakes','acey','tony','bobby','billy','lance','sarah','heather'];
+	
 	var members = ns.gang.getMemberNames();
 	var recruitedLastRound = false;
 	while(true) {
@@ -125,7 +125,7 @@ async function evalCurrentRep(ns) {
 		ns.print(`  Rep Level: ${mygangInfo.wantedPenalty} ...Rebalancing Member Tasks`);
 		ns.print(`   Current rate of wanted change: ${mygangInfo.wantedLevelGainRate}`);
 		for(var a=0; a < members.length; a++) {			
-			if(mygangInfo.wantedLevelGainRate > 0 ) {
+			if(mygangInfo.wantedLevelGainRate >= 0 || mygangInfo.wantedLevelGainRate == undefined ) {
 				thisMemberInfo = ns.gang.getMemberInformation(members[a]);
 				if((mygangInfo.respect / mygangInfo.wantedLevel) <= 2) {
 					if(a == 0) { // First person needs to Mug for initial Rep offset
@@ -147,6 +147,25 @@ async function evalCurrentRep(ns) {
 			}
 		}
 		mygangInfo = ns.gang.getGangInformation();
+
+		if(ns.gang.canRecruitMember()) {
+			ns.print("Recruiting new member while in Rep Fixing loop");		
+			var append = false;
+			var newMember = "";
+			for(var a = 0;a<names.length;a++) {
+				if(!members.includes(names[a]) && newMember == "") {
+					await ns.gang.recruitMember(names[a]);
+					await ns.sleep(1000);
+					recruitedLastRound = true;
+					members = ns.gang.getMemberNames();
+					newMember = names[a];	
+					ns.print("Added gang member "+newMember);
+					await ns.gang.setMemberTask(newMember,"Train Combat");
+					break;				
+				}
+			}
+		}
+
 		await ns.sleep(60000);
 		await evalMemberUpgrades(ns);
 	}
