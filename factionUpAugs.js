@@ -1,5 +1,5 @@
 import {drawList1, drawStatus1, drawLCol, drawDoing, clearDoingLine, clearList1} from '/terminal.js';
-import {money} from '/helpers.js';
+import {money,travelToServer,travelBackHome} from '/helpers.js';
 var AugsInOrder = [];
 	
 	
@@ -331,15 +331,14 @@ async function checkFactionMemberShipAndJoin(ns,faction) {
 			ns.run('crimeItUp.js',1,"auto",'l');
 			while(!ns.getServer(toJoinFaction[faction]).backdoorInstalled) {		
 				drawStatus1(ns,`Waiting to install backdoor on ${faction}`);
-				if(ns.getServer(toJoinFaction[faction])["hasAdminRights"]) {							
-					await ns.run('goto.js',1,toJoinFaction[faction]);
+				if(ns.getServer(toJoinFaction[faction])["hasAdminRights"]) {											
+					travelToServer(ns,toJoinFaction[faction]);
 					await ns.sleep(100);
 					var succ = await ns.installBackdoor();
 					if(succ) {
-						drawStatus1(ns,"Installing backdoor on "+toJoinFaction[faction]);
-						ns.connect(parent);
+						drawStatus1(ns,"Installing backdoor on "+toJoinFaction[faction]);						
 						await ns.sleep(1000);
-						ns.connect('home');
+						travelBackHome(ns,parent);
 					}
 				}
 				await ns.sleep(10000);

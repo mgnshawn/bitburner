@@ -11,7 +11,7 @@ export var _pathToTarget = [];
 export async function scan(ns) {
 	_allServers = [];
 	await localScan(ns, ns.scan("home"), 'home');
-	await ns.sleep(2000);
+	ns.tprint(_allServers);
 	return _allServers;
 }
 
@@ -33,8 +33,18 @@ function localScan(ns, targets, parent) {
 
 export function travelToServer(ns, server) {
 let pathing = findServerPath(ns, server);
-	await ns.sleep(1000);
-	ns.tprint(pathing);
+ns.tprint(pathing);
+return pathing;
+}
+export function travelBackHome(ns, server) {
+let pathing = findServerPath(ns, server);
+ns.tprint(pathing);
+for(let a = pathing.length-1;a>=0;a--) {
+	if(!onlyShow) {
+		ns.connect(pathing[a]);
+	}
+}
+
 return pathing;
 }
 
