@@ -214,15 +214,19 @@ async function updateAugListDisplay(ns, Augs, AugIndex,faction) {
 		let roundTotalCost = 0;
 			for(var __aug = 0; __aug < Augs.length; __aug++) {await ns.sleep(50);
 				let owned = "";
-				if(ns.getOwnedAugmentations(true).includes(Augs[__aug])) {
+				let augName = Augs[__aug];
+				if(augName == "Upgrade") {
+					augName = "NeuroFlux Governor";
+				}
+				if(ns.getOwnedAugmentations(true).includes(augName)) {
 					owned = `  *owned*`;
 				} else if(faction == 'Slum Snakes' && !ns.gang.inGang()) {
 						owned = `  need gang`;
 					} else {
 						owned = `  `;
 					}
-				drawList1(ns,`Round ${AugIndex}:${owned}\t${Augs[__aug]} \t$${ns.getAugmentationPrice(Augs[__aug]).toLocaleString('en-US')} \tRepXP: ${Math.round(ns.getAugmentationRepReq(Augs[__aug])).toLocaleString('en-US')}`);
-				roundTotalCost+=(ns.getAugmentationPrice(Augs[__aug])*(__aug+1));
+				drawList1(ns,`Round ${AugIndex}:${owned}\t${augName} \t$${ns.getAugmentationPrice(augName).toLocaleString('en-US')} \tRepXP: ${Math.round(ns.getAugmentationRepReq(augName)).toLocaleString('en-US')}`);
+				roundTotalCost+=(ns.getAugmentationPrice(augName)*(__aug+1));
 			}
 			
 			drawList1(ns,`Total cost for Augs in round ${AugIndex} is $${roundTotalCost.toLocaleString('en-US')}`);
