@@ -34,6 +34,14 @@ export async function main(ns) {
 	}
 	var letCreate = false;
 	while(!await ns.gang.inGang()) {
+		if(ns.checkFactionInvitations().includes('The Syndicate')) {
+			ns.joinFaction('The Syndicate');
+			await ns.sleep(1000);
+		}
+		if(ns.checkFactionInvitations().includes('Slum Snakes')) {
+			ns.joinFaction('Slum Snakes');
+			await ns.sleep(1000);
+		}
 		if(ns.getPlayer().factions.includes("The Syndicate")) {
 			ns.print("Joining The Syndicate");
 			letCreate = await ns.gang.createGang("The Syndicate");
@@ -43,6 +51,11 @@ export async function main(ns) {
 		if(letCreate) {
 			ns.alert("Created your gang!");
 			ns.print("CREATED GANG !!!!!");
+			if(ns.scriptRunning('factionUpAugs.js','home')) {
+				await ns.scriptKill('factionUpAugs.js','home');
+				await ns.sleep(1000);
+				await ns.run('factionUpAugs.js',1,'autowork');
+			}
 		}
 		await ns.sleep(60000);
 	}

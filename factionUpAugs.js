@@ -6,6 +6,7 @@ var AugsInOrder = [];
 	var toJoinFaction = {'CyberSec':'CSEC','The Black Hand':'I.I.I.I','BitRunners':'run4theh111z','New Tokyo':'New Tokyo','Tian Di Hui':'New Tokyo', 'Aevum':'Aevum', 'Sector-12':'Sector-12','Tetrads':'New Tokyo','Slum Snakes':'Aevum','Daedalus':'New Tokyo'};
 	var autoWork = false;
 	var upgradesPerJob = 3;
+	var gangName = "";
 /* NeuroFlux Governor
 "The Shadow's Simulacrum",
 	*/
@@ -32,6 +33,9 @@ export async function main(ns) {
 	ns.print("============================================ Beginning Faction Up ============================================");
 	ns.tail();
 	//await draw(ns,['this is a test','line two of the test'],"Doing xyz for pdq");
+	if(ns.gang.inGang()) {
+		gangName = ns.gang.getGangInformation().faction;
+	}
 	AugsInOrder =[{'CyberSec':["Synaptic Enhancement Implant", "BitWire", "Neurotrainer I"]}];	
 	AugsInOrder.push({'Tian Di Hui':['Social Negotiation Assistant (S.N.A)',  'ADR-V1 Pheromone Gene']});
 	AugsInOrder.push({'CyberSec':['Cranial Signal Processors - Gen I','Cranial Signal Processors - Gen II']});			
@@ -49,8 +53,13 @@ export async function main(ns) {
 	AugsInOrder.push({'The Black Hand':["Embedded Netburner Module","Artificial Synaptic Potentiation"]});
 	AugsInOrder.push({'BitRunners':['Embedded Netburner Module','Neurotrainer II']});
 	if(ns.gang.inGang()) 
-	{	AugsInOrder.push({'Slum Snakes':["The Shadow's Simulacrum","Power Recirculation Core",'Neurotrainer II']});
-		AugsInOrder.push({'Slum Snakes':['The Black Hand','Neuregen Gene Modification','CRTX42-AA Gene Modification','Neurotrainer III','Artificial Synaptic Potentiation']});
+	{
+		let temp1 = {};
+		temp1[gangName] = ["The Shadow's Simulacrum","Power Recirculation Core",'Neurotrainer II'];
+		AugsInOrder.push(temp1);
+		let temp2 = {};
+		temp2[gangName] =['The Black Hand','Neuregen Gene Modification','CRTX42-AA Gene Modification','Neurotrainer III','Artificial Synaptic Potentiation'];
+		AugsInOrder.push(temp2);
 		}
 	if(!ns.getPlayer().factions.includes('New Tokyo'))
 	{	AugsInOrder.push({'Aevum':['PCMatrix']});
@@ -60,8 +69,13 @@ export async function main(ns) {
 	AugsInOrder.push({'The Black Hand':["Enhanced Myelin Sheathing","Cranial Signal Processors - Gen III","The Black Hand"]});
 	
 	if(ns.gang.inGang()) 
-	{	AugsInOrder.push({'Slum Snakes':['Cranial Signal Processors - Gen IV','Cranial Signal Processors - Gen V','Neuralstimulator','Neural Accelerator','DataJack','Neural-Retention Enhancement']});
-		AugsInOrder.push({'Slum Snakes':['OmniTek InfoLoad','SPTN-97 Gene Modification','Neuronal Densification','Artificial Bio-neural Network Implant','Enhanced Myelin Sheathing']});
+	{
+		let temp3 = {};
+		temp3[gangName] = ['Cranial Signal Processors - Gen IV','Cranial Signal Processors - Gen V','Neuralstimulator','Neural Accelerator','DataJack','Neural-Retention Enhancement'];
+		AugsInOrder.push(temp3);
+		let temp4 = {};
+		temp4[gangName] = ['OmniTek InfoLoad','SPTN-97 Gene Modification','Neuronal Densification','Artificial Bio-neural Network Implant','Enhanced Myelin Sheathing'];
+		AugsInOrder.push(temp4);
 		}
 	else
 	{
@@ -70,7 +84,10 @@ export async function main(ns) {
 		}
 	AugsInOrder.push({'CyberSec':['Upgrade']});
 	if(ns.gang.inGang()) 
-	{	AugsInOrder.push({'Slum Snakes':['PC Direct-Neural Interface NeuroNet Injector','PC Direct-Neural Interface Optimization Submodule']});
+	{
+		let temp5 = {};
+		temp5[gangName] = ['PC Direct-Neural Interface NeuroNet Injector','PC Direct-Neural Interface Optimization Submodule'];
+		AugsInOrder.push(temp5);
 		}
 	AugsInOrder.push({'Daedalus':['The Red Pill']});
 	
