@@ -1,8 +1,9 @@
 import {drawList1, drawStatus1, drawLCol, drawDoing, clearDoingLine, clearList1} from '/terminal.js';
+import {money} from '/helpers.js';
 var AugsInOrder = [];
 	
 	
-	var toJoinFaction = {'CyberSec':'CSEC','New Tokyo':'New Tokyo','Tian Di Hui':'New Tokyo', 'Aevum':'Aevum', 'Sector-12':'Sector-12','Tetrads':'New Tokyo','Slum Snakes':'Aevum','Daedalus':'New Tokyo'};
+	var toJoinFaction = {'CyberSec':'CSEC','The Black Hand':'I.I.I.I','BitRunners':'run4theh111z','New Tokyo':'New Tokyo','Tian Di Hui':'New Tokyo', 'Aevum':'Aevum', 'Sector-12':'Sector-12','Tetrads':'New Tokyo','Slum Snakes':'Aevum','Daedalus':'New Tokyo'};
 	var autoWork = false;
 	var upgradesPerJob = 3;
 /* NeuroFlux Governor
@@ -45,6 +46,8 @@ export async function main(ns) {
 	}	
 	AugsInOrder.push({'Tetrads':["Power Recirculation Core","NeuroFlux Governor","NeuroFlux Governor"]});
 	AugsInOrder.push({'New Tokyo':["Neuralstimulator","DataJack","NeuroFlux Governor"]});
+	AugsInOrder.push({'The Black Hand':["Embedded Netburner Module","Artificial Synaptic Potentiation"]});
+	AugsInOrder.push({'BitRunners':['Embedded Netburner Module','Neurotrainer II']});
 	if(ns.gang.inGang()) 
 	{	AugsInOrder.push({'Slum Snakes':["The Shadow's Simulacrum","Power Recirculation Core",'Neurotrainer II']});
 		AugsInOrder.push({'Slum Snakes':['The Black Hand','Neuregen Gene Modification','CRTX42-AA Gene Modification','Neurotrainer III','Artificial Synaptic Potentiation']});
@@ -52,9 +55,18 @@ export async function main(ns) {
 	if(!ns.getPlayer().factions.includes('New Tokyo'))
 	{	AugsInOrder.push({'Aevum':['PCMatrix']});
 		}
+	AugsInOrder.push({'BitRunners':['Cranial Signal Processors - Gen III']});
+	AugsInOrder.push({'BitRunners':['Enhanced Myelin Sheathing','Cranial Signal Processors - Gen IV']});
+	AugsInOrder.push({'The Black Hand':["Enhanced Myelin Sheathing","Cranial Signal Processors - Gen III","The Black Hand"]});
+	
 	if(ns.gang.inGang()) 
 	{	AugsInOrder.push({'Slum Snakes':['Cranial Signal Processors - Gen IV','Cranial Signal Processors - Gen V','Neuralstimulator','Neural Accelerator','DataJack','Neural-Retention Enhancement']});
 		AugsInOrder.push({'Slum Snakes':['OmniTek InfoLoad','SPTN-97 Gene Modification','Neuronal Densification','Artificial Bio-neural Network Implant','Enhanced Myelin Sheathing']});
+		}
+	else
+	{
+		AugsInOrder.push({'BitRunners':['Neural Accelerator','Artificial Bio-neural Network Implant']});
+		AugsInOrder.push({'BitRunners':['BitRunners Neurolink']});
 		}
 	AugsInOrder.push({'CyberSec':['Upgrade']});
 	if(ns.gang.inGang()) 
@@ -94,6 +106,10 @@ export async function main(ns) {
 	var inActiveRound = false;
 	for(var AugIndex=0;AugIndex < AugsInOrder.length; AugIndex++) {
 	let faction = Object.keys(AugsInOrder[AugIndex])[0];
+	if(faction == 'New Tokyo' && ns.getPlayer().factions.includes('Aevum'))
+		continue;
+	if(faction == 'Aevum' && ns.getPlayer().factions.includes('New York'))
+		continue;
 	let inTempRound = false;
 	let Augs = AugsInOrder[AugIndex][faction];
 	if(faction == 'Tetrads') {
@@ -229,7 +245,7 @@ async function updateAugListDisplay(ns, Augs, AugIndex,faction) {
 				roundTotalCost+=(ns.getAugmentationPrice(augName)*(__aug+1));
 			}
 			
-			drawList1(ns,`Total cost for Augs in round ${AugIndex} is $${roundTotalCost.toLocaleString('en-US')}`);
+			drawList1(ns,`Total cost for Augs in round ${AugIndex} is $${money(roundTotalCost)}`);
 
 }
 
@@ -311,15 +327,12 @@ function findCSEC(ns) {
 
 async function checkFactionMemberShipAndJoin(ns,faction) {
 	if(!ns.getPlayer().factions.includes(faction)) {
-		if(toJoinFaction[faction] == 'CSEC') {
+		if(['CSEC','The Black Hand','BitRunners'].includes(toJoinFaction[faction])) {
 			ns.run('crimeItUp.js',1,"auto",'l');
 			while(!ns.getServer(toJoinFaction[faction]).backdoorInstalled) {		
-				drawStatus1(ns,"Waiting to install backdoor on CSEC");
+				drawStatus1(ns,`Waiting to install backdoor on ${faction}`);
 				if(ns.getServer(toJoinFaction[faction])["hasAdminRights"]) {							
-					var parent = findCSEC(ns);
-					ns.connect(parent);
-					await ns.sleep(500);
-					ns.connect(toJoinFaction[faction]);
+					await ns.run('goto.js',1,toJoinFaction[faction]);
 					await ns.sleep(100);
 					var succ = await ns.installBackdoor();
 					if(succ) {
