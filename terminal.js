@@ -161,17 +161,17 @@ export function clearList1(ns) {
 		}
 
 
-		for(let y= 0;y<termHeight+1+bottomSectionLines;y++) {	
+		for(let y= 0;y<termHeight+1+bottomSectionLines;y++) {
 			let CurrLine = "";		
-			if(y in listLines) {
+			if((y-1) in listLines) {
 				if(bufferList !== null && Array.isArray(bufferList) && bufferList[y-1] !== undefined && bufferList[y-1][1] !== undefined)
 				bufferList[y-1][1] = bufferList[y-1][1].toString().replace(/\t/g, `    `);
 			}
-			if(y in stateListLines) {
+			if((y-1) in stateListLines) {
 				if(Array.isArray(status1) && status1[y-1] !== undefined && Array.isArray(status1[y-1]) && status1[y-1][1] !== undefined && status1[y-1][1] != null)
 				status1[y-1][1] = status1[y-1][1].toString().replace(/\t/g, `    `);
 			}
-			if(y in lColListLines) {
+			if((y-1) in lColListLines) {
 				if(status2[y-2] !== undefined && status2[y-2][1] !== undefined && status2[y-2][1] !== null)
 				status2[y-2][1] = status2[y-2][1].toString().replace(/\t/g, `    `);
 			}
@@ -249,8 +249,8 @@ export function clearList1(ns) {
 							 CurrLine += ` `;
 						  }
 						}
-						} else {						
-						if(y in listLines) {					
+						} else {
+						if((y-1) in listLines) {					
 							if(bufferList[y-1] !== undefined)
 							{
 								if(x-lColumnChars >= 2 && x-lColumnChars < 10) { // left padding
@@ -265,7 +265,7 @@ export function clearList1(ns) {
 								CurrLine += ` `;
 							}
 						 } else
-						if( y in stateListLines) {
+						if( (y-1) in stateListLines) {
 							if(status1[termHeight-2-y] !== undefined) {
 							if(x-lColumnChars >= 2 && x-lColumnChars < 10 && status1[termHeight-2-y][0][x-2-lColumnChars] !== undefined) {								
 									CurrLine += status1[termHeight-2-y][0][x-2-lColumnChars];
