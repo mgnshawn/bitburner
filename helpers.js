@@ -79,9 +79,9 @@ export function chooseTarget(ns, hackingLevel, currentMemmoryLevel) {
 		resp = { "target": "n00dles", "slice": 1, "rungGang": false, "ram": 8 };
 	} else if (100 <= hackingLevel && hackingLevel < 350) {
 		resp = { "target": "joesguns", "slice": 4, "rungGang": false, "ram": 8 };
-	} else if (350 <= hackingLevel && hackingLevel < 1000) {
+	} else if (350 <= hackingLevel && hackingLevel < 600) {
 		resp = { "target": "iron-gym", "slice": 8, "runGang": true, "ram": 8 };
-	} else if (1000 <= hackingLevel && hackingLevel < 1350) {
+	} else if (600 <= hackingLevel && hackingLevel < 1350) {
 		resp = { "target": "catalyst", "slice": 16, "runGang": true, "ram": 8 };
 	} else {
 		resp = { "target": "megacorp", "slice": 60, "runGang": true, "ram": 8 };

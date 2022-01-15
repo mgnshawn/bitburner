@@ -15,7 +15,7 @@ var quiet = true;
 var autoTarget = false;
 var singleSlice = false;
 var memmoryLevels = [8,32,256,1024,2048,4096,32768,(128*1024),(512*1024),(1024*1024)];
-var sleepBetweenSlices = 1 * 1000;
+var sleepBetweenSlices = .001 * 1000;
 
 const timeBetweenUpgradeLoops = 1 * 60 * 1000;
  const timeBetweenNewPurchaseAndUpgradeLoop = .5 * 60 * 1000;
@@ -202,25 +202,27 @@ if(designateTarget !== false ) {
     for(var a = 0; a < attackServers.length; a++) {
         var hostname = attackServers[a];
         if(!quiet)ns.print(` analyzing server ${a+1} ${hostname}`);
+        if(!ns.fileExists('hackit.js',hostname)) {
+            await ns.scp("hackit.js", hostname);
+        }
         if(singleSlice) {
             slice = 1;
         }
-        for(var s=1;s<=slice;s++) {
-            if(!ns.fileExists('hackit.js',hostname)) {
-                await ns.scp("hackit.js", hostname);
-            }
-            let thisThreads = Math.floor((ram)/Math.ceil(scriptRam)/slice);
+        if(!quiet)await ns.print("...preparing to use "+slice+" slices");
+        if(!quiet)await ns.print(`thisThreads = Math.floor((${ns.getServerMaxRam(hostname)}/${scriptRam}/${slice}) = ${Math.floor((ns.getServerMaxRam(hostname))/scriptRam/slice)}`);
+        let thisThreads = Math.floor((ns.getServerMaxRam(hostname))/scriptRam/slice);
+        for(var s=1;s<=slice;s++) {                        
             if(thisThreads < 1) {
                 thisThreads = 1;
             }
-            let tag = s;
+            let tag = s;            
             if(ns.getServerMaxRam(hostname) - ns.getServerUsedRam(hostname) > (scriptRam*thisThreads)) {
                 if(singleSlice)
                     tag = thisThreads;
                 else
                     tag = `${s}:${thisThreads}`;
                 await ns.exec("hackit.js", hostname, thisThreads, target,tag);
-                await ns.sleep(300);
+                await ns.sleep(3);
             }
             await ns.sleep(sleepBetweenSlices);
         }
@@ -275,14 +277,16 @@ while (purchaseServers == true && ns.getPurchasedServers().length < ns.getPurcha
         ns.print(`Purchased [${hostname}] for $${money(ns.getPurchasedServerCost(ram))} w/${money(ram)}gb`);
         drawLCol(ns,`Purchased [${hostname}] for $${money(ns.getPurchasedServerCost(ram))} w/${money(ram)}gb`);
         if(ns.serverExists(hostname)) {
+            if(!quiet)await ns.print("...preparing to use "+slice+" slices");
+            if(!quiet)await ns.print(`thisThreads = Math.floor((${ns.getServerMaxRam(hostname)}/${scriptRam}/${slice}) = ${Math.floor((ns.getServerMaxRam(hostname))/scriptRam/slice)}`);
+            let thisThreads = Math.floor((ns.getServerMaxRam(hostname))/scriptRam/slice);
             for(var s=1;s<=slice;s++) {
                 if(!ns.fileExists('hackit.js',hostname)) {
                     await ns.scp("hackit.js", hostname);
                 }
                 if(singleSlice) {
                    slice = 1;
-                }
-                let thisThreads = Math.floor(ram/slice/scriptRam);
+                }                
                 if(!quiet) ns.print(`Calculated for ${slice} slices it should thread at ${money(ram)} / ${scriptRam} / ${slice} is ${thisThreads}`);
                 if(thisThreads < 1) {
                     thisThreads = 1;
@@ -376,7 +380,10 @@ while (purchaseServers == true && ram <= memmoryLevels[(memmoryLevels.length-1)]
                         if(!ns.fileExists('hackit.js', hostname)) {
                             await ns.scp("hackit.js", hostname);
                         }
-                        let extraCopies = Math.floor((ram/slice/scriptRam));
+                        
+                        if(!quiet)await ns.print("...preparing to use "+slice+" slices");
+                        if(!quiet)await ns.print(`extraCopies = Math.floor((${ns.getServerMaxRam(hostname)}/${scriptRam}/${slice}) = ${Math.floor((ns.getServerMaxRam(hostname))/scriptRam/slice)}`);
+                        let extraCopies = Math.floor((ns.getServerMaxRam(hostname))/scriptRam/slice);
                         if(!quiet) ns.print(`Calculated for ${slice} slices it should thread at ${money(ram)} / ${scriptRam} / ${slice} is ${extraCopies}`);
                         for(var s=1;s<=slice;s++) {
                             if(extraCopies < 1) {
