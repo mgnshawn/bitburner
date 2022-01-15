@@ -40,9 +40,7 @@ export function travelBackHome(ns, server) {
 let pathing = findServerPath(ns, server);
 ns.tprint(pathing);
 for(let a = pathing.length-1;a>=0;a--) {
-	if(!onlyShow) {
 		ns.connect(pathing[a]);
-	}
 }
 
 return pathing;
