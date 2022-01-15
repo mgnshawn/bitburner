@@ -7,7 +7,7 @@ var lColumnChars = 100;
 var bottomSectionLines = 2;
 
 
-function primeExistingBufferLists(ns) {
+export function primeExistingBufferLists(ns) {
 	let lists = ['bufferList','statusList','status2List'];
 	for(let b of lists) {
 		let t = getItem(ns,b);		

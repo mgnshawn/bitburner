@@ -1,4 +1,4 @@
-import {drawLCol, drawStatus1, drawList1, drawDoing } from '/terminal.js';
+import {drawLCol, drawStatus1, drawList1, drawDoing,primeExistingBufferLists, clearLCol, clearStatusList, clearList1, clearDoingLine } from '/terminal.js';
 const baseUrl = 'https://raw.githubusercontent.com/mgnshawn/bitburner/master/';
 const initialCombatStatsToGym = {'strength':10,'dexterity':10,'agility':10};
 var doDownload = true;
