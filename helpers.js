@@ -140,25 +140,25 @@ export function chooseTarget(ns, hackingLevel, currentMemmoryLevel) {
 				multiplier = 16;
 			}
 			if(resp.ram >= 1024) {
-				multiplier = 64;
+				multiplier = 32;
 			}
 			if(resp.ram >= 4096 ) {
-				multiplier = 128;
+				multiplier = 64;
 			}
 			if(resp.ram >= 16384 ) {
-				multiplier = 512;
+				multiplier = 128;
 			}
 			if(resp.ram >= 32768) {
-				multiplier = 1024;
+				multiplier = 256;
 			}
 			if(resp.ram >= (128*1024) ) {
-				multiplier = 2056;
+				multiplier = 512;
 			}
 			if(resp.ram >= (512*1024) ) {
-				multiplier = 5000;
+				multiplier = 1024;
 			}
 			if(resp.ram >= (1024*1024) ) {
-				multiplier = 10000;
+				multiplier = 1538;
 			}
 			resp.slice = multiplier;
 	return resp;

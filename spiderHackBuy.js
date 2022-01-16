@@ -15,7 +15,7 @@ var quiet = true;
 var autoTarget = false;
 var singleSlice = false;
 var memmoryLevels = [8,32,256,1024,2048,4096,32768,(128*1024),(512*1024),(1024*1024)];
-var sleepBetweenSlices = .001 * 1000;
+var sleepBetweenSlices = .01 * 1000;
 
 const timeBetweenUpgradeLoops = 1 * 60 * 1000;
  const timeBetweenNewPurchaseAndUpgradeLoop = .5 * 60 * 1000;
@@ -114,13 +114,6 @@ export async function main(ns) {
 	}    
     ns.tail();
 if(!autoTarget)
-for(let y=memmoryLevels.length-1;y>=0;y--) {
-    if(memmoryLevels[y] >= ram) {
-        ram = memmoryLevels[y];
-    } else {
-        break;
-    }
-}
 	
 
     if(ns.fileExists("BruteSSH.exe"))
@@ -144,6 +137,7 @@ for(let y=memmoryLevels.length-1;y>=0;y--) {
     for(var l = 0; l < memmoryLevels.length; l++) {
         if(ram > memmoryLevels[l]) {
             currentServerLevelIndex = (l+1);
+					break;
         }
     }
     var currentServerLevel = ram;
@@ -306,6 +300,7 @@ while (purchaseServers == true && ns.getPurchasedServers().length < ns.getPurcha
                 } else {
                     break;
                 }
+                await ns.sleep(sleepBetweenSlices);
             }
             if((ns.getServerMaxRam(hostname) - ns.getServerUsedRam(hostname)) > scriptRam) {
                 var extraCopies = Math.floor((ns.getServerMaxRam(hostname) - ns.getServerUsedRam(hostname))/scriptRam);
