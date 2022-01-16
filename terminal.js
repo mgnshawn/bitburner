@@ -1,6 +1,6 @@
 import {getItem, setItem} from '/ioHelpers.js';
 var termHeight = 28;
-var termWidth = 220;
+var termWidth = 240;
 var topBufferLines = 20;
 var stateLines = 3;
 var lColumnChars = 100;

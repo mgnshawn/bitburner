@@ -14,7 +14,7 @@ var designateTarget = false;
 var quiet = true;
 var autoTarget = false;
 var singleSlice = false;
-var memmoryLevels = [8,16,32,256,1024,2048,4096,32768,(128*1024),(512*1024),(1024*1024)];
+var memmoryLevels = [4,8,16,32,256,1024,2048,4096,32768,(128*1024),(512*1024),(1024*1024)];
 var sleepBetweenSlices = .01 * 1000;
 
 const timeBetweenUpgradeLoops = 1 * 60 * 1000;
@@ -103,11 +103,10 @@ export async function main(ns) {
                     var target = chooseTarget(ns,ns.getPlayer()["hacking"],8)["target"];                    
                     slice = chooseTarget(ns,ns.getPlayer()["hacking"],8)["slice"];
                     ram = chooseTarget(ns, ns.getPlayer()["hacking"],8)["ram"];
-                    ns.print(`Initial AutoTarget Chosen: ${target} purchase level set ${ram}gb ${slice} slices`);
+                    ns.print(`Target Chosen: ${target} purchase level set ${ram}gb ${slice} slices`);
                 } else {
                     designateTarget = true;
                     var target = ns.args[z+1];
-                    ns.print(`Designated target: ${target}`);
                 }
                 
             }
@@ -133,12 +132,6 @@ export async function main(ns) {
     var currentServerLevelIndex = 0;
     if(ram == 'n') {
         ram = 8;
-    }
-    for(var l = 0; l < memmoryLevels.length; l++) {
-        if(ram > memmoryLevels[l]) {
-            currentServerLevelIndex = (l+1);
-            break;
-        }
     }
     var currentServerLevel = ram;
 

@@ -137,7 +137,6 @@ if(!autoTarget)
     for(var l = 0; l < memmoryLevels.length; l++) {
         if(ram > memmoryLevels[l]) {
             currentServerLevelIndex = (l+1);
-					break;
         }
     }
     var currentServerLevel = ram;
@@ -329,7 +328,7 @@ drawLCol(ns,"Moving on to upgrade loop in 10 minutes...");
         target = chooseTarget(ns,ns.getPlayer()["hacking"],ram)["target"];
         ram = chooseTarget(ns,ns.getPlayer()["hacking"],ram)["ram"];
     }
-    ns.print(drawLCol(ns,`Starting Upgrade Loop at ${money(ram)}gb and ${slice} slices @ ${money(ns.getPurchasedServerCost(ram))}`));
+    ns.print(drawLCol(ns,`Starting Upgrade Loop at ${money(ram)}gb and ${slice} slices @ $${money(ns.getPurchasedServerCost(ram))}`));
 
 while (purchaseServers == true && ram <= memmoryLevels[(memmoryLevels.length-1)]) {
     await checkForApps(ns);

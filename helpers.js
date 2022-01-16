@@ -1,6 +1,11 @@
 /** @param {NS} ns **/
 export async function main(ns) {
-
+	for(let a in ns.args) {
+		if(ns.args[a] == "scan" && ns.args[a+1] !== undefined) {
+			await ns.sleep(1000);
+			ns.tprint(await findServerPath(ns,ns.args[1]));
+		}
+	}
 }
 export function money(num) {
 	return Math.round(num).toLocaleString('en-US');
@@ -8,14 +13,16 @@ export function money(num) {
 
 export var _allServers = [];
 export var _pathToTarget = [];
+
 export async function scan(ns) {
+	ns.tprint('Scanning..');
 	_allServers = [];
 	await localScan(ns, ns.scan("home"), 'home');
-	ns.tprint(_allServers);
+	ns.print(_allServers);
 	return _allServers;
 }
 
-function localScan(ns, targets, parent) {
+async function localScan(ns, targets, parent) {
 	for (const a in targets) {
 		//await ns.sleep(10);
 		_allServers.push([targets[a], parent]);
@@ -27,12 +34,12 @@ function localScan(ns, targets, parent) {
 				bb.push(b[zz]);
 			}
 		}
-		localScan(ns, bb, targets[a]);
+		await localScan(ns, bb, targets[a]);
 	}
 }
 
 export async function travelToServer(ns, server) {
-let pathing = findServerPath(ns, server);
+let pathing = await findServerPath(ns, server);
 await ns.sleep(100);
 ns.tprint(pathing);
 for(let a = 0; a < pathing.length; a++) {
@@ -42,7 +49,7 @@ for(let a = 0; a < pathing.length; a++) {
 return pathing;
 }
 export async function travelBackHome(ns, server) {
-let pathing = findServerPath(ns, server);
+let pathing = await findServerPath(ns, server);
 ns.tprint(pathing);
 for(let a = pathing.length-1;a>=0;a--) {
 		ns.connect(pathing[a]);
@@ -57,9 +64,9 @@ return pathing;
  * @param {string} target desired server to find
  * @returns {Array}
  */
-export function findServerPath(ns, target) {
+export async function findServerPath(ns, target) {
 	_pathToTarget = [];
-	localFindServerPath(ns, target);
+	await localFindServerPath(ns, target);
 	let response = [];
 
 	for (let q = _pathToTarget.length - 1; q >= 0; q--) {
@@ -67,9 +74,10 @@ export function findServerPath(ns, target) {
 	}
 	response.push(target);
 	ns.tprint(response);
+	await ns.sleep(100);
 	return response;
 }
-function localFindServerPath(ns, target) {
+async function localFindServerPath(ns, target) {
 	if (_allServers.length == 0) {
 		localScan(ns, ns.scan("home"), 'home');
 	}
@@ -83,10 +91,10 @@ function localFindServerPath(ns, target) {
 			if (_allServers[sIndex][0] == "home") {
 				break;
 			}
-			localFindServerPath(ns, _allServers[sIndex][1])
+			await localFindServerPath(ns, _allServers[sIndex][1])
 			break;
 		}
-
+		await ns.sleep(10);
 	}
 }
 
