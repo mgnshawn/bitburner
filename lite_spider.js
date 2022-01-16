@@ -103,10 +103,11 @@ export async function main(ns) {
                     var target = chooseTarget(ns,ns.getPlayer()["hacking"],8)["target"];                    
                     slice = chooseTarget(ns,ns.getPlayer()["hacking"],8)["slice"];
                     ram = chooseTarget(ns, ns.getPlayer()["hacking"],8)["ram"];
-                    ns.print(`Target Chosen: ${target} purchase level set ${ram}gb ${slice} slices`);
+                    ns.print(`Initial AutoTarget Chosen: ${target} purchase level set ${ram}gb ${slice} slices`);
                 } else {
                     designateTarget = true;
                     var target = ns.args[z+1];
+                    ns.print(`Designated target: ${target}`);
                 }
                 
             }
