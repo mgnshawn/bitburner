@@ -92,7 +92,7 @@ function localFindServerPath(ns, target) {
 
 export function chooseTarget(ns, hackingLevel, currentMemmoryLevel) {
 	let resp = {};
-	let memmoryLevels = [8, 32, 96, 256, 1024, 2048, 4096, 16384, 32768, (128 * 1024), (512 * 1024), (1024 * 1024)];
+	let memmoryLevels = [8, 32, 128, 256, 1024, 2048, 4096, 16384, 32768, (128 * 1024), (512 * 1024), (1024 * 1024)];
 	if (hackingLevel < 100) {
 		resp = { "target": "n00dles", "slice": 1, "rungGang": false, "ram": 8 };
 	} else if (100 <= hackingLevel && hackingLevel < 350) {
@@ -133,7 +133,7 @@ export function chooseTarget(ns, hackingLevel, currentMemmoryLevel) {
 			if(resp.ram >= 32) {
 				multiplier = 8;
 			}
-			if(resp.ram >= 96) {
+			if(resp.ram >= 128) {
 				multiplier = 10;
 			}
 			if(resp.ram >= 256) {

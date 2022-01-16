@@ -11,7 +11,7 @@ var maxMembersToAscendDuringWar = 2;
 // If a gang member's string is under the number it selects the highest option
 //var jumpLevels = {"Mug People":50,"Train Combat":100,"Strongarm Civilians":325,"Human Trafficking":500,"Terrorism":1500};
 var jumpLevels = [["Train Combat",50],["Mug People",130],["Strongarm Civilians",300],["Human Trafficking",400],["Terrorism",100000]];
-var names = ['shawn','joe','mike','heather','irene','anna','tony','bobby','billy','lance','sarah'];
+var names = ['shawn','joe','mike','heather','irene','anna','tony','bobby','billy','lance','sarah','misty'];
 export async function main(ns) {
 	ns.disableLog("sleep");
 	ns.disableLog("getServerMoneyAvailable");
@@ -211,9 +211,12 @@ async function evalMemberTasks(ns) {
 			}
 			for(let JL in jumpLevels) {
 				if(thisMemberInfo.str > jumpLevels[JL][1]) {
+					if(verbose) ns.print(`evaluating ${members[a]} str ${thisMemberInfo.str} > ${jumpLevels[JL][1]} JL=${JL}`);
 					continue;
 				} else {
+					if(verbose) ns.print(`evaluating ${members[a]} str ${thisMemberInfo.str} <= ${jumpLevels[JL][1]} JL=${JL} so setting destinationTask= ${jumpLevels[JL][0]}`);
 					destinationTask = jumpLevels[JL][0];
+					break;
 				}
 			}
 			if(members.length >= 12) {
