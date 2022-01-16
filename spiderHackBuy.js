@@ -270,10 +270,11 @@ while (purchaseServers == true && ns.getPurchasedServers().length < ns.getPurcha
         slice = chooseTarget(ns,ns.getPlayer()["hacking"],ram)["slice"];
         target = chooseTarget(ns,ns.getPlayer()["hacking"],ram)["target"];
         ram = chooseTarget(ns,ns.getPlayer()["hacking"],ram)["ram"];
+        await ns.sleep(100);
+        await ns.print(await drawLCol(ns,`AutoTarget:: RAM ${money(ram)}gb SLICES ${money(slice)} TARGET ${target} $${money(ns.getPurchasedServerCost(ram))}`));
     }
     // Check if we have enough money to purchase a server
-    
-    if (ns.getServerMoneyAvailable("home") > ns.getPurchasedServerCost(ram)) {        
+    if (ns.getServerMoneyAvailable("home") > ns.getPurchasedServerCost(ram)) {     
         var hostname = ns.purchaseServer("attack-"+target+"-"+(ram)+"gb-"+ i, (ram));
         checkForApps(ns);
         ns.print(`Purchased [${hostname}] for $${money(ns.getPurchasedServerCost(ram))} w/${money(ram)}gb`);
@@ -316,8 +317,9 @@ while (purchaseServers == true && ns.getPurchasedServers().length < ns.getPurcha
             }
         }
         ++i;
+    } else {
+        ns.print(` ... need $${money(ns.getPurchasedServerCost(ram) -ns.getServerMoneyAvailable('home'))} more `);
     }
-
     await ns.sleep(timeBetweenNewPurchaseAndUpgradeLoop);
 }
 
