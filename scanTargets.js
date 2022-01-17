@@ -17,7 +17,7 @@ drawList(ns);
 }
 
 function drawList(ns) {
-	const row = '%-20s | %8s | %12s | %12s';
+	const row = '%-20s | %5s | %8s | %12s | %12s';
 ns.tprintf(row, 'HOSTNAME', 'HACK LVL', 'MIN SEC', 'MAX $$', 'CASH $$');
 ns.tprintf(row, '---------', '-------', '------', '------', '-------');
 for (const target of targets) {
