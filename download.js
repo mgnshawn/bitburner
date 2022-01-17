@@ -1,8 +1,9 @@
 const baseUrl = 'https://raw.githubusercontent.com/mgnshawn/bitburner/master/';
 const filesToDownload = [
-  'bitburner.js','init.js','goto.js','singleDownload.js',
+	'aliasUp.js','betterScan','scanTargets.js','test.js',
+  'init.js','goto.js','singleDownload.js',
   'crimeItUp.js','lite_crimeItUp.js',
-  'spiderHackBuy.js','lite_spiderHackBuy.js',
+  'spiderHackBuy.js','lite_spider.js',
   'hackit.js','manageGang.js','factionUpAugs.js',
   'helpers.js','ioHelpers.js','terminal.js'
 ];
