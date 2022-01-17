@@ -1,7 +1,8 @@
 import {drawList1, drawStatus1, drawLCol, clearLCol} from '/terminal.js';
-import { scan, findServerPath, money, chooseTarget } from './helpers.js';
+import { scan, findServerPath, money, chooseTarget, travelToServer, travelBackHome } from './helpers.js';
 
 var ownedServers = {'home':'home'};
+var autoJoinServerFactions = true;
 var highestLevelSeen = 1;
 var scriptRam = 0;
 var purchaseServers = true;
@@ -542,7 +543,30 @@ async function evalAndNuke(ns,server,origin,target) {
                         } else {
                             ns.print(`Nuked ${attackThis} level ${ns.getServerRequiredHackingLevel(attackThis)}`);
                             drawLCol(ns,`Nuked ${attackThis} level ${ns.getServerRequiredHackingLevel(attackThis)}`);
+if (autoJoinServerFactions == true) {
+                        if (['CSEC', 'I.I.I.I', 'run4theh111z'].includes(attackThis)) {
+                            await travelToServer(ns, attackThis);
+                            await ns.sleep(1000);
+                            if (ns.getCurrentServer() != 'home') {
+                                ns.toast(`!!!!!!!!!! Failed to travel to ${attackThis} for backdooring`, 'warning', 60000);
+                            } else {
+                                let successInstall = ns.installBackdoor();
+                                await ns.sleep(1000);
+                                if (successInstall) {
+                                    ns.print(`Installed BACKDOOR into ${attackThis}`);
+                                    ns.toast(`Installed BACKDOOR into ${attackThis}`, 'success', 10000);
+                                } else {
+                                    ns.print(`!!!!!!!!!! Failed to install BACKDOOR into ${attackThis}`);
+                                    ns.toast(`!!!!!!!!!! Failed to install BACKDOOR into ${attackThis}`, 'warning', 60000);
+                                }
+                                await travelBackHome(ns, attackThis);
+                                await ns.sleep(1000);
+                                if (ns.getCurrentServer() != 'home') {
+                                    ns.toast(`!!!!!!!!!! Failed to return home from ${attackThis}`, 'warning', 60000);
+                                }
+                            }
                         }
+                    }                        }
                     }                
                 }
                 await startHacking(ns,server,target);
