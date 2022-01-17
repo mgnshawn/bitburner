@@ -1,11 +1,6 @@
 /** @param {NS} ns **/
 export async function main(ns) {
-	for(let a in ns.args) {
-		if(ns.args[a] == "scan" && ns.args[a+1] !== undefined) {
-			await ns.sleep(1000);
-			ns.tprint(await findServerPath(ns,ns.args[1]));
-		}
-	}
+
 }
 export function money(num) {
 	return Math.round(num).toLocaleString('en-US');
@@ -13,16 +8,14 @@ export function money(num) {
 
 export var _allServers = [];
 export var _pathToTarget = [];
-
 export async function scan(ns) {
-	ns.tprint('Scanning..');
 	_allServers = [];
 	await localScan(ns, ns.scan("home"), 'home');
-	ns.print(_allServers);
+	ns.tprint(_allServers);
 	return _allServers;
 }
 
-async function localScan(ns, targets, parent) {
+function localScan(ns, targets, parent) {
 	for (const a in targets) {
 		//await ns.sleep(10);
 		_allServers.push([targets[a], parent]);
@@ -34,12 +27,12 @@ async function localScan(ns, targets, parent) {
 				bb.push(b[zz]);
 			}
 		}
-		await localScan(ns, bb, targets[a]);
+		localScan(ns, bb, targets[a]);
 	}
 }
 
 export async function travelToServer(ns, server) {
-let pathing = await findServerPath(ns, server);
+let pathing = findServerPath(ns, server);
 await ns.sleep(100);
 ns.tprint(pathing);
 for(let a = 0; a < pathing.length; a++) {
@@ -49,7 +42,7 @@ for(let a = 0; a < pathing.length; a++) {
 return pathing;
 }
 export async function travelBackHome(ns, server) {
-let pathing = await findServerPath(ns, server);
+let pathing = findServerPath(ns, server);
 ns.tprint(pathing);
 for(let a = pathing.length-1;a>=0;a--) {
 		ns.connect(pathing[a]);
@@ -64,9 +57,9 @@ return pathing;
  * @param {string} target desired server to find
  * @returns {Array}
  */
-export async function findServerPath(ns, target) {
+export function findServerPath(ns, target) {
 	_pathToTarget = [];
-	await localFindServerPath(ns, target);
+	localFindServerPath(ns, target);
 	let response = [];
 
 	for (let q = _pathToTarget.length - 1; q >= 0; q--) {
@@ -74,10 +67,9 @@ export async function findServerPath(ns, target) {
 	}
 	response.push(target);
 	ns.tprint(response);
-	await ns.sleep(100);
 	return response;
 }
-async function localFindServerPath(ns, target) {
+function localFindServerPath(ns, target) {
 	if (_allServers.length == 0) {
 		localScan(ns, ns.scan("home"), 'home');
 	}
@@ -91,10 +83,10 @@ async function localFindServerPath(ns, target) {
 			if (_allServers[sIndex][0] == "home") {
 				break;
 			}
-			await localFindServerPath(ns, _allServers[sIndex][1])
+			localFindServerPath(ns, _allServers[sIndex][1])
 			break;
 		}
-		await ns.sleep(10);
+
 	}
 }
 
@@ -103,11 +95,11 @@ export function chooseTarget(ns, hackingLevel, currentMemmoryLevel) {
 	let memmoryLevels = [8, 32, 128, 256, 1024, 2048, 4096, 16384, 32768, (128 * 1024), (512 * 1024), (1024 * 1024)];
 	if (hackingLevel < 50) {
 		resp = { "target": "n00dles", "slice": 1, "rungGang": false, "ram": 8 };
-	} else if (50 <= hackingLevel && hackingLevel < 120) {
+	} else if (50 <= hackingLevel && hackingLevel < 150) {
 		resp = { "target": "joesguns", "slice": 4, "rungGang": false, "ram": 8 };
-	} else if (120 <= hackingLevel && hackingLevel < 450) {
+	} else if (150 <= hackingLevel && hackingLevel < 500) {
 		resp = { "target": "iron-gym", "slice": 8, "runGang": true, "ram": 8 };
-	} else if (450 <= hackingLevel && hackingLevel < 1350) {
+	} else if (500 <= hackingLevel && hackingLevel < 1350) {
 		resp = { "target": "catalyst", "slice": 16, "runGang": true, "ram": 8 };
 	} else {
 		resp = { "target": "megacorp", "slice": 60, "runGang": true, "ram": 8 };
@@ -168,6 +160,6 @@ export function chooseTarget(ns, hackingLevel, currentMemmoryLevel) {
 			if(resp.ram >= (1024*1024) ) {
 				multiplier = 1538;
 			}
-			resp.slice = multiplier;
+			resp.slice = multiplier;			
 	return resp;
 }
