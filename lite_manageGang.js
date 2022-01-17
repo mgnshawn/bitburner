@@ -44,14 +44,6 @@ export async function main(ns) {
 	}
 	var letCreate = false;
 	while(!await ns.gang.inGang()) {
-		if(ns.checkFactionInvitations().includes('The Syndicate')) {
-			ns.joinFaction('The Syndicate');
-			await ns.sleep(1000);
-		}
-		if(ns.checkFactionInvitations().includes('Slum Snakes')) {
-			ns.joinFaction('Slum Snakes');
-			await ns.sleep(1000);
-		}
 		if(ns.getPlayer().factions.includes("The Syndicate")) {
 			ns.print("Joining The Syndicate");
 			letCreate = await ns.gang.createGang("The Syndicate");
