@@ -1,6 +1,7 @@
 /** @param {NS} ns **/
 var repThreshold = 15; // When to switch to improving wanted level
 var timeCycle = .4* 60;
+var maximumMembersAtWarfareBeforeWar = 3;
 var goToWarWhenChancesOver = 70
 var maximumFullGangAtWar = 8; // Most members that can being doing Territory Warface
 var minimumFullGangTerror =1; // Minimum number of members doing Terrorism
@@ -8,6 +9,7 @@ var purchaseHackingAugs = false;
 var verbose = false;
 var previousTerritoryHeld = 0;
 var maxMembersToAscendDuringWar = 2;
+var endGameFocus = "Reputation"; //options Reputation, Money
 // If a gang member's string is under the number it selects the highest option
 //var jumpLevels = {"Mug People":50,"Train Combat":100,"Strongarm Civilians":325,"Human Trafficking":500,"Terrorism":1500};
 var jumpLevels = [["Train Combat",50],["Mug People",130],["Strongarm Civilians",300],["Human Trafficking",400],["Terrorism",100000000]];
@@ -29,6 +31,9 @@ export async function main(ns) {
 		if(ns.args[z] !== undefined) {
 			if(ns.args[z] == 'v') {
 				verbose = true;
+			}
+			if(ns.args[z] == 'endgame' && ns.args[z+1] !== undefined) {
+				endGameFocus = ns.args[z+1];
 			}
 		}
 	}
@@ -72,8 +77,18 @@ export async function main(ns) {
 			if(ns.gang.getGangInformation().territory < 1 && await calculateWarChance(ns) < goToWarWhenChancesOver) {
 				jumpLevels = [["Train Combat",250],["Terrorism",350],["Territory Warfare",3500],["Human Trafficking",5900000]];
 			} 
-			if(ns.getServerMoneyAvailable("home") > 11000000000) {
-				jumpLevels = [["Train Combat",300],["Vigilante Justice",350],["Territory Warfare",9900000]];
+			if(ns.getServerMoneyAvailable("home") > 10000000000) {
+				if(endGameFocus == "Reputation") {
+					jumpLevels = [["Train Combat",300],["Vigilante Justice",350],["Terrorism",99000000]];
+				}
+				if(endGameFocus == "Money") {
+					if(ns.gang.getGangInformation().territory < 1) {
+						jumpLevels = [["Train Combat",300],["Vigilante Justice",350],["Territory Warfare",99000000]];
+					} else {
+						jumpLevels = [["Train Combat",300],["Vigilante Justice",350],["Human Trafficking",99000000]];
+
+					}
+				}
 			}
 		}
 		 else if(ns.gang.canRecruitMember()) {			
@@ -193,12 +208,21 @@ async function evalMemberTasks(ns) {
 			thisMemberInfo = ns.gang.getMemberInformation(members[a]);
 			var destinationTask = "Territory Warfare";
 			if(members.length >= 12) {
-				jumpLevels = [["Train Combat",250],["Terrorism",350],["Territory Warfare",600],["Human Trafficking",5555900]];				
+				jumpLevels = [["Train Combat",250],["Terrorism",350],["Territory Warfare",600],["Human Trafficking",5900000]];				
 				if(ns.gang.getGangInformation().territory < 1 && await calculateWarChance(ns) < goToWarWhenChancesOver) {
-					jumpLevels = [["Train Combat",250],["Terrorism",350],["Territory Warfare",3500],["Human Trafficking",5555900]];
+					jumpLevels = [["Train Combat",250],["Terrorism",350],["Territory Warfare",3500],["Human Trafficking",5900000]];
 				} 
-				if(ns.getServerMoneyAvailable("home") > 11000000000) {
-					jumpLevels = [["Train Combat",300],["Vigilante Justice",350],["Territory Warfare",9900]];
+				if(ns.getServerMoneyAvailable("home") > 10000000000) {
+					if(endGameFocus == "Reputation") {
+						jumpLevels = [["Train Combat",300],["Vigilante Justice",350],["Terrorism",99000000]];
+					}
+					if(endGameFocus == "Money") {
+						if(ns.gang.getGangInformation().territory < 1) {
+							jumpLevels = [["Train Combat",300],["Vigilante Justice",350],["Territory Warfare",99000000]];
+						} else {
+							jumpLevels = [["Train Combat",300],["Vigilante Justice",350],["Human Trafficking",99000000]];
+						}
+					}
 				}
 			}
 			if(members.length == 12 && membersInWarfare >=maximumFullGangAtWar) {
