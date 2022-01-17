@@ -15,10 +15,10 @@ var quiet = true;
 var autoTarget = false;
 var singleSlice = false;
 var memmoryLevels = [8,32,256,1024,2048,4096,32768,(128*1024),(512*1024),(1024*1024)];
-var sleepBetweenSlices = .01 * 1000;
+var sleepBetweenSlices = .0001 * 1000;
 
-const timeBetweenUpgradeLoops = 1 * 60 * 1000;
- const timeBetweenNewPurchaseAndUpgradeLoop = .5 * 60 * 1000;
+const timeBetweenUpgradeLoops = .1 * 60 * 1000;
+ const timeBetweenNewPurchaseAndUpgradeLoop = .05 * 60 * 1000;
 
 
 // args Ram, Slices, Target
@@ -54,7 +54,7 @@ export async function main(ns) {
     for(let z=0;z<ns.args.length;z++) {
 		if(ns.args[z] !== undefined) {
             if(ns.args[z] == "-h" || ns.args[z] == "-?" || ns.args[z] == "?"|| ns.args[z] == "h") {
-                await ns.tprint("freshstart.js Req:(ram nopurchase||Ram in GB)   Req:(slice count)  (target self||auto||target name) (singleslice)  (findserver targethere) (v verbose) ");
+                await ns.tprint("spiderHackBuy.js fullauto ||  Req:(ram nopurchase||Ram in GB)   Req:(slice count)  (target self||auto||target name) (singleslice)  (findserver targethere) (v verbose) ");
                 await ns.tprint("Options:Purchase servers     This can run against net servers only or also buy player owned. If buying, specify the starting ram in GB, it will continue to evolve the servers size once the max has been purchased.");
                 await ns.tprint("Options:Slice count     How many copies of the hackit.js app should run. More yields better overall returns. The thread count will be calculated based on server size and slice count. Minimum 1");
                 await ns.tprint("Options: singleslice    This doesnt use multiple spawns per server just a single spawn with high threading");
@@ -66,54 +66,61 @@ export async function main(ns) {
 			if(ns.args[z] == 'v') {
 				quiet = false;
 			}
-            if(ns.args[z] == 'findserver' && ns.args[z+1] != undefined) {
-                let foundServers = await scan(ns);                
-                var searchTarget = ns.args[z+1];
-                let pathToTarget = await findServerPath(ns,searchTarget);
-	            ns.tprint(pathToTarget);
-                ns.exit();
-            }
-            if(ns.args[z] == 'ram' && ns.args[z+1] != undefined)
-            {
-                if(ns.args[z+1] == "nopurchase" || ns.args[z+1] == "n") {
-                    purchaseServers = false;
-                    if(ns.args[z+2] !== undefined) {
-                    var ram = ns.args[z+2];
+            if(ns.args.length == 0 || ns.args[0] == "fullauto") {
+                designateTarget = true;
+                autoTarget = true;
+                var target = chooseTarget(ns,ns.getPlayer()["hacking"],8)["target"];                    
+                slice = chooseTarget(ns,ns.getPlayer()["hacking"],8)["slice"];
+                ram = chooseTarget(ns, ns.getPlayer()["hacking"],8)["ram"];
+                ns.print(`Target Chosen: ${target} purchase level set ${ram}gb ${slice} slices`);
+            } else {
+                if(ns.args[z] == 'findserver' && ns.args[z+1] != undefined) {
+                    let foundServers = await scan(ns);                
+                    var searchTarget = ns.args[z+1];
+                    let pathToTarget = await findServerPath(ns,searchTarget);
+	                ns.tprint(pathToTarget);
+                    ns.exit();
+                }
+                if(ns.args[z] == 'ram' && ns.args[z+1] != undefined)
+                {
+                    if(ns.args[z+1] == "nopurchase" || ns.args[z+1] == "n") {
+                        purchaseServers = false;
+                        if(ns.args[z+2] !== undefined) {
+                        var ram = ns.args[z+2];
+                        } else {
+                            var ram = 1024;
+                        }
                     } else {
-                        var ram = 1024;
+                        var ram = ns.args[z+1];
                     }
-                } else {
-                    var ram = ns.args[z+1];
                 }
-            }
-            if(ns.args[z] == 'slice' && ns.args[z+1] != undefined)
-            {   slice = ns.args[z+1];                
-            }
-            if(ns.args[z] == 'singleslice') {
-                singleSlice = true;
-                slice = 1;
-            }
-            if(ns.args[z] == 'target' && ns.args[z+1] != undefined)
-            {
-                if(ns.args[z+1] == "self") {
-                    designateTarget = false;
-                } else if(ns.args[z+1] == "auto") {
-                    designateTarget = true;
-                    autoTarget = true;
-                    var target = chooseTarget(ns,ns.getPlayer()["hacking"],8)["target"];                    
-                    slice = chooseTarget(ns,ns.getPlayer()["hacking"],8)["slice"];
-                    ram = chooseTarget(ns, ns.getPlayer()["hacking"],8)["ram"];
-                    ns.print(`Target Chosen: ${target} purchase level set ${ram}gb ${slice} slices`);
-                } else {
-                    designateTarget = true;
-                    var target = ns.args[z+1];
+                if(ns.args[z] == 'slice' && ns.args[z+1] != undefined)
+                {   slice = ns.args[z+1];                
                 }
-                
+                if(ns.args[z] == 'singleslice') {
+                    singleSlice = true;
+                    slice = 1;
+                }
+                if(ns.args[z] == 'target' && ns.args[z+1] != undefined)
+                {
+                    if(ns.args[z+1] == "self") {
+                        designateTarget = false;
+                    } else if(ns.args[z+1] == "auto") {
+                        designateTarget = true;
+                        autoTarget = true;
+                        var target = chooseTarget(ns,ns.getPlayer()["hacking"],8)["target"];                    
+                        slice = chooseTarget(ns,ns.getPlayer()["hacking"],8)["slice"];
+                        ram = chooseTarget(ns, ns.getPlayer()["hacking"],8)["ram"];
+                        ns.print(`Target Chosen: ${target} purchase level set ${ram}gb ${slice} slices`);
+                    } else {
+                        designateTarget = true;
+                        var target = ns.args[z+1];
+                    }
+                }
             }
 		}
 	}    
     ns.tail();
-if(!autoTarget)
 	
 
     if(ns.fileExists("BruteSSH.exe"))
@@ -328,7 +335,7 @@ drawLCol(ns,"Moving on to upgrade loop in 10 minutes...");
         target = chooseTarget(ns,ns.getPlayer()["hacking"],ram)["target"];
         ram = chooseTarget(ns,ns.getPlayer()["hacking"],ram)["ram"];
     }
-    ns.print(drawLCol(ns,`Starting Upgrade Loop at ${money(ram)}gb and ${slice} slices @ $${money(ns.getPurchasedServerCost(ram))}`));
+    ns.print(drawLCol(ns,`Starting Upgrade Loop at ${money(ram)}gb and ${slice} slices @ ${money(ns.getPurchasedServerCost(ram))}`));
 
 while (purchaseServers == true && ram <= memmoryLevels[(memmoryLevels.length-1)]) {
     await checkForApps(ns);
