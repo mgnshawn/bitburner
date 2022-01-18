@@ -251,6 +251,7 @@ var i = 0;
 if(purchaseServers == true && ns.getPurchasedServers().length < ns.getPurchasedServerLimit()) {
     drawLCol(ns,"Beginning NEW server purchase loop");
 }
+var lastTarget = "";
 while (purchaseServers == true && ns.getPurchasedServers().length < ns.getPurchasedServerLimit()) {
     await checkForApps(ns);
     crackers = 0;
@@ -272,7 +273,10 @@ while (purchaseServers == true && ns.getPurchasedServers().length < ns.getPurcha
         target = chooseTarget(ns,ns.getPlayer()["hacking"],ram)["target"];
         ram = chooseTarget(ns,ns.getPlayer()["hacking"],ram)["ram"];
         await ns.sleep(100);
-        await ns.print(await drawLCol(ns,`AutoTarget:: RAM ${money(ram)}gb SLICES ${money(slice)} TARGET ${target} $${money(ns.getPurchasedServerCost(ram))}`));
+        if(lastTarget != target) {
+            await ns.print(await drawLCol(ns,`AutoTarget:: RAM ${money(ram)}gb SLICES ${money(slice)} TARGET ${target} $${money(ns.getPurchasedServerCost(ram))}`));
+            lastTarget = target;
+        }
     }
     // Check if we have enough money to purchase a server
     if (ns.getServerMoneyAvailable("home") > ns.getPurchasedServerCost(ram)) {     
