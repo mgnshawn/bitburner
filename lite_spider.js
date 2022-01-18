@@ -1,7 +1,8 @@
 import {drawList1, drawStatus1, drawLCol, clearLCol} from '/terminal.js';
-import { scan, findServerPath, money, chooseTarget } from './helpers.js';
+import { scan, findServerPath, money, chooseTarget, travelToServer, travelBackHome } from './helpers.js';
 
 var ownedServers = {'home':'home'};
+var autoJoinServerFactions = true;
 var highestLevelSeen = 1;
 var scriptRam = 0;
 var purchaseServers = true;
@@ -135,6 +136,19 @@ export async function main(ns) {
         crackers++;
     scriptRam = ns.getScriptRam('hackit.js');
     
+    
+    
+    var currentServerLevelIndex = 0;
+    if(ram == 'n') {
+        ram = 8;
+    }
+    for(var l = 0; l < memmoryLevels.length; l++) {
+        if(ram > memmoryLevels[l]) {
+            currentServerLevelIndex = (l+1);
+        }
+    }
+    var currentServerLevel = ram;
+
     if(!quiet)await ns.print(`Cost to purchase these servers with ${money(ram)}gb: $${Math.round(ns.getPurchasedServerCost(ram)).toLocaleString('en-US')}`);
     drawLCol(`Cost to purchase these servers with ${money(ram)}gb: $${Math.round(ns.getPurchasedServerCost(ram)).toLocaleString('en-US')}`);
 
@@ -237,6 +251,7 @@ var i = 0;
 if(purchaseServers == true && ns.getPurchasedServers().length < ns.getPurchasedServerLimit()) {
     drawLCol(ns,"Beginning NEW server purchase loop");
 }
+var lastTarget = "";
 while (purchaseServers == true && ns.getPurchasedServers().length < ns.getPurchasedServerLimit()) {
     await checkForApps(ns);
     crackers = 0;
@@ -258,7 +273,10 @@ while (purchaseServers == true && ns.getPurchasedServers().length < ns.getPurcha
         target = chooseTarget(ns,ns.getPlayer()["hacking"],ram)["target"];
         ram = chooseTarget(ns,ns.getPlayer()["hacking"],ram)["ram"];
         await ns.sleep(100);
-        await ns.print(await drawLCol(ns,`AutoTarget:: RAM ${money(ram)}gb SLICES ${money(slice)} TARGET ${target} $${money(ns.getPurchasedServerCost(ram))}`));
+        if(lastTarget != target) {
+            await ns.print(await drawLCol(ns,`AutoTarget:: RAM ${money(ram)}gb SLICES ${money(slice)} TARGET ${target} $${money(ns.getPurchasedServerCost(ram))}`));
+            lastTarget = target;
+        }
     }
     // Check if we have enough money to purchase a server
     if (ns.getServerMoneyAvailable("home") > ns.getPurchasedServerCost(ram)) {     
@@ -352,7 +370,6 @@ while (purchaseServers == true && ram <= memmoryLevels[(memmoryLevels.length-1)]
                 if(ns.getServerMaxRam(servers[a]) < ram) {
                     if(!quiet)await ns.print("Upgrading "+servers[a]+" from "+ ns.getServerMaxRam(servers[a])+" to "+ram);
                     var skillSuck = ns.scriptKill("hackit.js",servers[a]);                    
-                    var delSuc = ns.deleteServer(servers[a]);
                     if(delSuc == true) {
                     if(!quiet)await ns.print(" Deleted "+servers[a]);
                     upgrade = false;
@@ -529,7 +546,29 @@ async function evalAndNuke(ns,server,origin,target) {
                         } else {
                             ns.print(`Nuked ${attackThis} level ${ns.getServerRequiredHackingLevel(attackThis)}`);
                             drawLCol(ns,`Nuked ${attackThis} level ${ns.getServerRequiredHackingLevel(attackThis)}`);
+if (autoJoinServerFactions == true) {
+                        if (['CSEC', 'I.I.I.I', 'run4theh111z'].includes(attackThis)) {
+                            await travelToServer(ns, attackThis);
+                            await ns.sleep(1000);
+                            if (ns.getCurrentServer() != 'home') {
+                                ns.toast(`!!!!!!!!!! Failed to travel to ${attackThis} for backdooring`, 'warning', 60000);
+                            } else {
+                                await ns.sleep(1000);
+                                if (successInstall) {
+                                    ns.print(`Installed BACKDOOR into ${attackThis}`);
+                                    ns.toast(`Installed BACKDOOR into ${attackThis}`, 'success', 10000);
+                                } else {
+                                    ns.print(`!!!!!!!!!! Failed to install BACKDOOR into ${attackThis}`);
+                                    ns.toast(`!!!!!!!!!! Failed to install BACKDOOR into ${attackThis}`, 'warning', 60000);
+                                }
+                                await travelBackHome(ns, attackThis);
+                                await ns.sleep(1000);
+                                if (ns.getCurrentServer() != 'home') {
+                                    ns.toast(`!!!!!!!!!! Failed to return home from ${attackThis}`, 'warning', 60000);
+                                }
+                            }
                         }
+                    }                        }
                     }                
                 }
                 await startHacking(ns,server,target);
