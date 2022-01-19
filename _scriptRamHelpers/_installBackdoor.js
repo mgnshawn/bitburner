@@ -1,4 +1,4 @@
-import {setItem} from '/ioHelpers.js';
+import {setItem} from '/_helpers/ioHelpers.js';
 export async function main(ns) {
     let result = false;
     let = ns.installBackdoor();

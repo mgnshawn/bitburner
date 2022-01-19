@@ -1,6 +1,6 @@
 import { drawList1, drawStatus1, drawLCol, clearLCol } from '/terminal.js';
-import { scan, findServerPath, money, chooseTarget, travelToServer, travelBackHome } from './helpers.js';
-import { getItem, setItem } from '/ioHelpers.js';
+import { scan, findServerPath, money, chooseTarget, travelToServer, travelBackHome } from '/_helpers/helpers.js';
+import { getItem, setItem } from '/_helpers/ioHelpers.js';
 
 
 var ownedServers = { 'home': 'home' };
@@ -188,7 +188,7 @@ export async function main(ns) {
         await ns.sleep(1000);
         for (var a = 0; a < attackServers.length; a++) {
             var hostname = attackServers[a];
-            await ns.scp(["/_helpers/hackit.js","ioHelpers.js"], hostname);
+            await ns.scp(["/_helpers/hackit.js","/_helpers/ioHelpers.js"], hostname);
             if (!quiet) ns.print(` analyzing server ${a + 1} ${hostname}`);
             if (!ns.fileExists('/_helpers/hackit.js', hostname)) {
                 await ns.scp("/_helpers/hackit.js", hostname);
@@ -283,7 +283,7 @@ export async function main(ns) {
                 if (!quiet) ns.print(`Calculated for ${slice} slices it should thread at ${money(ram)} / ${scriptRam} / ${slice} is ${thisThreads}`);
                 for (var s = 1; s <= slice; s++) {
                     await ns.scp("/_helpers/hackit.js", serv);
-                    await ns.scp(["/_helpers/hackit.js","ioHelpers.js"], serv);
+                    await ns.scp(["/_helpers/hackit.js","/_helpers/ioHelpers.js"], serv);
                     if (!ns.fileExists('/_helpers/hackit.js', hostname)) {
                         await ns.scp("/_helpers/hackit.js", hostname);
                     }
@@ -397,7 +397,7 @@ export async function main(ns) {
                             if (!ns.fileExists('/_helpers/hackit.js', hostname)) {
                                 await ns.scp("/_helpers/hackit.js", hostname);
                             }
-                            await ns.scp(["/_helpers/hackit.js","ioHelpers.js"], serv);
+                            await ns.scp(["/_helpers/hackit.js","/_helpers/ioHelpers.js"], serv);
 
                             if (!quiet) await ns.print("...preparing to use " + slice + " slices");
                             if (!quiet) await ns.print(`extraCopies = Math.floor((${ns.getServerMaxRam(hostname)}/${scriptRam}/${slice}) = ${Math.floor((ns.getServerMaxRam(hostname)) / scriptRam / slice)}`);
@@ -605,7 +605,7 @@ async function evalAndNuke(ns, server, origin, target) {
 
 async function startHacking(ns, serv, thisTarget) {
 await ns.scp("/_helpers/hackit.js", serv);
-await ns.scp(["/_helpers/hackit.js","ioHelpers.js"], serv);
+await ns.scp(["/_helpers/hackit.js","/_helpers/ioHelpers.js"], serv);
     if (!ns.fileExists("/_helpers/hackit.js", serv)) {
         await ns.scp("/_helpers/hackit.js", serv);
     }

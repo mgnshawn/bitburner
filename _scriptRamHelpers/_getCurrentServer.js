@@ -1,4 +1,4 @@
-import { setItem } from '/ioHelpers.js';
+import { setItem } from '/_helpers/ioHelpers.js';
 
 // args Ram, Slices, Target
 export async function main(ns) {

@@ -1,4 +1,4 @@
-import { travelToServer, getServers } from '/helpers.js';
+import { travelToServer, getServers } from '/_helpers/helpers.js';
 /** @param {NS} ns **/
 export async function main(ns) {
 	var onlyShow = false;

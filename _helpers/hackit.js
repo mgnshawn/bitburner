@@ -1,4 +1,4 @@
-import { getItem, setItem, getLockAndUpdate } from '/ioHelpers.js';
+import { getItem, setItem, getLockAndUpdate } from '/_helpers/ioHelpers.js';
 export async function main(ns) {
     if(ns.args[0] == undefined) {
         ns.print(`No target.. Exit()`);

@@ -1,5 +1,5 @@
 import {drawDoing, clearDoingLine} from '/terminal.js';
-import {getItem}from '/ioHelpers.js';
+import {getItem}from '/_helpers/ioHelpers.js';
 var infinite=false;
 var crimes=['Shoplift','Rob store','Mug someone','Homicide','Kidnap and ransom','Assassinate','Heist'];
 /** @param {NS} ns **/
@@ -77,7 +77,6 @@ export async function main(ns) {
 		if(!ns.isBusy()) {
             drawDoing(ns,`Commiting ${crime}`);            
             ns.tail(); // Force a tail window open when auto-criming, or else it's very difficult to stop if it was accidentally closed.
-            ns.toast(`Commiting ${crime}`,'info',1000);
             ns.run('/_scriptRamHelpers/_commitCrime.js',1,crime);
             let wait = getItem(ns,`commitCrime_${crime}_wait`);
             await ns.sleep(250);

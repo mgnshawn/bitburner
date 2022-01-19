@@ -1,4 +1,4 @@
-import { getItem, setItem, getLockAndUpdate } from '/ioHelpers.js';
+import { getItem, setItem, getLockAndUpdate } from '/_helpers/ioHelpers.js';
 /** @param {NS} ns **/
 export async function main(ns) {
     ns.tail();

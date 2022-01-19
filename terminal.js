@@ -1,4 +1,4 @@
-import {getItem, setItem} from '/ioHelpers.js';
+import {getItem, setItem} from '/_helpers/ioHelpers.js';
 var termHeight = 28;
 var termWidth = 240;
 var topBufferLines = 20;

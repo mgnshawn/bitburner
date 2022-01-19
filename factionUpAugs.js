@@ -1,5 +1,5 @@
 import {drawList1, drawStatus1, drawLCol, drawDoing, clearDoingLine, clearList1} from '/terminal.js';
-import {money,travelToServer,travelBackHome} from '/helpers.js';
+import {money,travelToServer,travelBackHome} from '/_helpers/helpers.js';
 var AugsInOrder = [];
 	
 	

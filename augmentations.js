@@ -1,8 +1,16 @@
-import { money } from '/helpers.js';
+import { money } from '/_helpers/helpers.js';
 /** @param {NS} ns **/
 export async function main(ns) {
 	const factions = ['CyberSec', 'The Black Hand', 'Slum Snakes', 'The Syndicate', 'Tian Di Hui', 'BitRunners', 'New Tokyo', 'Sector-12', 'Tetrads', 'Tian Di Hui'];
 	var augs = [];
+	var sortBy = "";
+	for(let n in ns.args) {
+		if(ns.args[n] == sortby && ns.args[n+1] !== undefined) {
+			sortBy = ns.args[n+1];
+		}
+	}
+
+
 	factions.forEach(fac => {
 		let augsInFac = [];
 		let facAugs = ns.getAugmentationsFromFaction(fac);

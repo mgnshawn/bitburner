@@ -1,4 +1,4 @@
-import {getServers} from '/helpers.js';
+import {getServers} from '/_helpers/helpers.js';
 export async function main(ns) {
     const servers = getServers(ns);
     var output = "";
