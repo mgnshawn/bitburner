@@ -46,12 +46,14 @@ export async function main(ns) {
 	}
 	var letCreate = false;
 	while (!await ns.gang.inGang()) {
-		if (ns.checkFactionInvitations().includes('The Syndicate')) {
-			ns.joinFaction('The Syndicate');
+		let facInvites = getItem(ns,'factionInvitations');
+		if (facInvites !== null && facInvites.includes('The Syndicate')) {
+			ns.run('/_scriptRamHelpers/_joinFaction','The Syndicate');
 			await ns.sleep(1000);
 		}
-		if (ns.checkFactionInvitations().includes('Slum Snakes')) {
-			ns.joinFaction('Slum Snakes');
+		await ns.sleep(1000);
+		if (facInvites !== null && facInvites.includes('Slum Snakes')) {
+			ns.run('/_scriptRamHelpers/_joinFaction','Slum Snakes');
 			await ns.sleep(1000);
 		}
 		if (ns.getPlayer().factions.includes("The Syndicate")) {

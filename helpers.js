@@ -32,24 +32,19 @@ function localScan(ns, targets, parent) {
 }
 
 export async function travelToServer(ns, server) {
-let pathing = findServerPath(ns, server);
-await ns.sleep(100);
-ns.tprint(pathing);
-for(let a = 0; a < pathing.length; a++) {
-	ns.connect(pathing[a]);
-	await ns.sleep(100);
-}
-return pathing;
+	let serverPath = findServerPath(ns, server);
+	for (let server of serverPath) {
+		ns.run('/_scriptRamHelpers.js',1,server);
+		await ns.sleep(100);
+	}
 }
 export async function travelBackHome(ns, server) {
-let pathing = findServerPath(ns, server);
-ns.tprint(pathing);
-for(let a = pathing.length-1;a>=0;a--) {
-		ns.connect(pathing[a]);
+	let serverPath = findServerPath(ns, server);
+	for (let a = serverPath.length - 1; a >= 0; a--) {
+		ns.run('/_scriptRamHelpers.js',1,a);
 		await ns.sleep(100);
-}
+	}
 
-return pathing;
 }
 
 /**
@@ -58,36 +53,9 @@ return pathing;
  * @returns {Array}
  */
 export function findServerPath(ns, target) {
-	_pathToTarget = [];
-	localFindServerPath(ns, target);
-	let response = [];
-
-	for (let q = _pathToTarget.length - 1; q >= 0; q--) {
-		response.push(_pathToTarget[q]);
-	}
-	response.push(target);
-	ns.tprint(response);
-	return response;
-}
-function localFindServerPath(ns, target) {
-	if (_allServers.length == 0) {
-		localScan(ns, ns.scan("home"), 'home');
-	}
-
-	for (let sIndex in _allServers) {
-//		await ns.sleep(10);
-		//ns.tprint(`${_allServers[sIndex][0]} =?= ${target}`);
-		if (_allServers[sIndex][0] == target) {
-			_pathToTarget.push(_allServers[sIndex][1])
-			//ns.tprint(`${target} <== ${_allServers[sIndex][1]}`);
-			if (_allServers[sIndex][0] == "home") {
-				break;
-			}
-			localFindServerPath(ns, _allServers[sIndex][1])
-			break;
-		}
-
-	}
+	let servers = getServers(ns, true);
+	const server = servers.find(({ name }) => name === target)
+	return server.path;
 }
 
 export function chooseTarget(ns, hackingLevel, currentMemmoryLevel) {
@@ -106,7 +74,7 @@ export function chooseTarget(ns, hackingLevel, currentMemmoryLevel) {
 	}
 	resp.ram = currentMemmoryLevel;
 	for (let m in memmoryLevels) {
-		if(currentMemmoryLevel == undefined) {
+		if (currentMemmoryLevel == undefined) {
 			currentMemmoryLevel = 16;
 		}
 		if (memmoryLevels[m] < currentMemmoryLevel) {
@@ -129,37 +97,87 @@ export function chooseTarget(ns, hackingLevel, currentMemmoryLevel) {
 			}
 		}
 	}
-			let multiplier = 8;
-			if(resp.ram >= 32) {
-				multiplier = 8;
-			}
-			if(resp.ram >= 128) {
-				multiplier = 10;
-			}
-			if(resp.ram >= 256) {
-				multiplier = 16;
-			}
-			if(resp.ram >= 1024) {
-				multiplier = 32;
-			}
-			if(resp.ram >= 4096 ) {
-				multiplier = 64;
-			}
-			if(resp.ram >= 16384 ) {
-				multiplier = 128;
-			}
-			if(resp.ram >= 32768) {
-				multiplier = 256;
-			}
-			if(resp.ram >= (128*1024) ) {
-				multiplier = 512;
-			}
-			if(resp.ram >= (512*1024) ) {
-				multiplier = 1024;
-			}
-			if(resp.ram >= (1024*1024) ) {
-				multiplier = 1538;
-			}
-			resp.slice = multiplier;			
+	let multiplier = 8;
+	if (resp.ram >= 32) {
+		multiplier = 8;
+	}
+	if (resp.ram >= 128) {
+		multiplier = 10;
+	}
+	if (resp.ram >= 256) {
+		multiplier = 16;
+	}
+	if (resp.ram >= 1024) {
+		multiplier = 32;
+	}
+	if (resp.ram >= 4096) {
+		multiplier = 64;
+	}
+	if (resp.ram >= 16384) {
+		multiplier = 128;
+	}
+	if (resp.ram >= 32768) {
+		multiplier = 256;
+	}
+	if (resp.ram >= (128 * 1024)) {
+		multiplier = 512;
+	}
+	if (resp.ram >= (512 * 1024)) {
+		multiplier = 1024;
+	}
+	if (resp.ram >= (1024 * 1024)) {
+		multiplier = 1538;
+	}
+	resp.slice = multiplier;
 	return resp;
+}
+
+let svObj = (name = 'home', depth = 0, path = "") => ({ name: name, depth: depth, path: path });
+export function getServers(ns, withConnect = true) {
+	let result = [];
+	let visited = { 'home': 0 };
+	let queue = Object.keys(visited);
+	let name;
+	while ((name = queue.pop())) {
+		let depth = visited[name];
+
+		// @TODO better variable names
+		var pathToTarget = [];
+		let paths = { "home": "" };
+		let queue1 = Object.keys(paths);
+		let name1;
+
+		/* For producing the path to the server
+		@TODO remove as most of this is already done by its parent function
+		*/
+		while ((name1 = queue1.shift())) {
+			let path = paths[name1];
+			let scanRes = ns.scan(name1);
+			for (let newSv of scanRes) {
+				if (paths[newSv] === undefined) {
+					queue1.push(newSv);
+					paths[newSv] = `${path},${newSv}`;
+					if (newSv == name) {
+						pathToTarget = paths[newSv].substr(1).split(",");
+					}
+				}
+			}
+		}
+		let pre = "";
+		let post = "";
+		if (withConnect) {
+			pre = "connect ";
+			post = ";";
+		}
+		const path = pathToTarget.map(server => pre + server + post);
+		result.push(svObj(name, depth, path));
+		let scanRes = ns.scan(name);
+		for (let i = scanRes.length; i >= 0; i--) {
+			if (visited[scanRes[i]] === undefined) {
+				queue.push(scanRes[i]);
+				visited[scanRes[i]] = depth + 1;
+			}
+		}
+	}
+	return result;
 }

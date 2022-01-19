@@ -1,3 +1,4 @@
+import {getServers} from '/helpers.js';
 export async function main(ns) {
     const servers = getServers(ns);
     var output = "";
@@ -64,46 +65,3 @@ export async function main(ns) {
 }
 
 let svObj = (name = 'home', depth = 0, path = "") => ({ name: name, depth: depth, path: path });
-export function getServers(ns) {
-    let result = [];
-    let visited = { 'home': 0 };
-    let queue = Object.keys(visited);
-    let name;
-    while ((name = queue.pop())) {
-        let depth = visited[name];
-
-        // @TODO better variable names
-        var pathToTarget = [];
-        let paths = { "home": "" };
-        let queue1 = Object.keys(paths);
-        let name1;
-
-        /* For producing the path to the server
-        @TODO remove as most of this is already done by its parent function
-        */
-        while ((name1 = queue1.shift())) {
-            let path = paths[name1];
-            let scanRes = ns.scan(name1);
-            for (let newSv of scanRes) {
-                if (paths[newSv] === undefined) {
-                    queue1.push(newSv);
-                    paths[newSv] = `${path},${newSv}`;
-                    if (newSv == name) {
-                        pathToTarget = paths[newSv].substr(1).split(",");
-                    }
-                }
-            }
-        }
-
-        const path = pathToTarget.map(server => "connect " + server + ";")
-        result.push(svObj(name, depth, path));
-        let scanRes = ns.scan(name);
-        for (let i = scanRes.length; i >= 0; i--) {
-            if (visited[scanRes[i]] === undefined) {
-                queue.push(scanRes[i]);
-                visited[scanRes[i]] = depth + 1;
-            }
-        }
-    }
-    return result;
-}

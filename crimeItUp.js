@@ -1,9 +1,11 @@
 import {drawDoing, clearDoingLine} from '/terminal.js';
+import {getItem}from '/ioHelpers.js';
 var infinite=false;
 var crimes=['Shoplift','Rob store','Mug someone','Homicide','Kidnap and ransom','Assassinate','Heist'];
 /** @param {NS} ns **/
 export async function main(ns) {
     ns.disableLog('sleep');
+    ns.disableLog('run');
     ns.print("===================== Beginning CrimeItUp =====================");
     var remainder = 90;
     var runByMoney = false;
@@ -36,7 +38,6 @@ export async function main(ns) {
 
     }
     var crime = "Shoplift";
-    var longCrime = "";
     if(ns.args[0] !== undefined) {
     switch(ns.args[0]) {
         case "2":
@@ -58,7 +59,6 @@ export async function main(ns) {
         case "4A":
         crime = "Homicide";
         crimeWin = 15000;
-        longCrime = "Assassinate";
         break;
         case "auto":
         autoCrime = true;
@@ -75,38 +75,17 @@ export async function main(ns) {
             crime = await chooseBestCrime(ns);
         }
 		if(!ns.isBusy()) {
-            drawDoing(ns,`Commiting ${crime}`);
-			ns.commitCrime(crime);
-            --remainder;
+            drawDoing(ns,`Commiting ${crime}`);            
             ns.tail(); // Force a tail window open when auto-criming, or else it's very difficult to stop if it was accidentally closed.
+            ns.toast(`Commiting ${crime}`,'info',1000);
+            ns.run('/_scriptRamHelpers/_commitCrime.js',1,crime);
+            let wait = getItem(ns,`commitCrime_${crime}_wait`);
+            await ns.sleep(250);
+            --remainder;
             
-            let wait = ns.commitCrime(crime) + 10;
-            ns.print(`Karma: ${ns.heart.break()}`); 
-            await ns.sleep(wait);
-            if(runByMoney) {
-                ns.toast("$"+Math.round(growthTarget-ns.getServerMoneyAvailable('home'))+" to go");
-            } else {
-                ns.toast("Remaining: "+remainder);
-            }
+            await ns.sleep(wait+500);
         }
-        if(remainder <= 0 && longCrime != "") {
-            let tries = 5;
-            while(tries > 0) {
-                await ns.sleep(100);
-		        if(!ns.isBusy()) {
-                    ns.tail(); // Force a tail window open when auto-criming, or else it's very difficult to stop if it was accidentally closed.
-                    //drawDoing(ns,`Commiting ${crime}`);
-                    let wait = ns.commitCrime(crime) + 10;
-                    await ns.sleep(wait);
-			        ns.commitCrime(longCrime);
-                    ns.print(`Karma: ${ns.heart.break()}`); 
-                    tries = 0;
-                } else {
-                    tries--;
-                }
-            }
-        }
-        await ns.sleep(10);
+        await ns.sleep(100);
         if(infinite) {
             if(remainder == 0) {
                 ns.toast("Resuming in  5");
@@ -124,28 +103,12 @@ async function chooseBestCrime(ns) {
     let threshold = .75;
     let crimeChoice = "Shoplift";
     for(let a = 0;a < crimes.length; a++) {
-        if(ns.getCrimeChance(crimes[a]) >= threshold) {
+        ns.run('_scriptRamHelpers/_getCrimeChance.js',1,crimes[a]);
+        let crimeChance = getItem(ns,`crime_${crimes[a]}_chance`);
+        await ns.sleep(250);
+        if(crimeChance >= threshold) {
             crimeChoice = crimes[a];
         }
     }
     return crimeChoice;    
-}
-
-function getCrimePays(crime) {
-    let crimeWin = 0;
-    switch(crime) {
-        case "Shoplift":
-        crimeWin = 5000;
-        break;
-        case  "Rob store":
-        crimeWin = 141000;
-        break;
-        case "Mug someone":
-        crimeWin = 12000;
-        break;
-        case "Homicide":
-        crimeWin = 15000;
-        break;        
-    }
-    return crimeWin;
 }
