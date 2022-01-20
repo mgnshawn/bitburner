@@ -79,10 +79,9 @@ export async function main(ns) {
             ns.tail(); // Force a tail window open when auto-criming, or else it's very difficult to stop if it was accidentally closed.
             ns.run('/_scriptRamHelpers/_commitCrime.js',1,crime);
             let wait = getItem(ns,`commitCrime_${crime}_wait`);
-            await ns.sleep(250);
             --remainder;
             
-            await ns.sleep(wait+500);
+            await ns.sleep(wait+250);
         }
         await ns.sleep(100);
         if(infinite) {
@@ -103,8 +102,8 @@ async function chooseBestCrime(ns) {
     let crimeChoice = "Shoplift";
     for(let a = 0;a < crimes.length; a++) {
         ns.run('_scriptRamHelpers/_getCrimeChance.js',1,crimes[a]);
+        await ns.sleep(100);
         let crimeChance = getItem(ns,`crime_${crimes[a]}_chance`);
-        await ns.sleep(250);
         if(crimeChance >= threshold) {
             crimeChoice = crimes[a];
         }
