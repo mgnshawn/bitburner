@@ -1,18 +1,18 @@
 import { getItem, setItem, getLockAndUpdate } from '/_helpers/ioHelpers.js';
-var currentServer = "";
 export async function main(ns) {
+    var currentServer = "";
     if (ns.args[0] == undefined) {
         ns.print(`No target.. Exit()`);
         ns.exit()
     }
-    if(ns.args[1] == undefined && ns.getCurrentServer() != 'home') {
-        ns.print('Current server not defined');
-        ns.exit
-    } else if (ns.args[1] == undefined && ns.getCurrentServer == 'home') {
-        currentServer = 'home';
-    } else {
-        currentServer = ns.args[1];
+    if (ns.args[1] == undefined) {
+        ns.print(`No hostname server.. Exit()`);
+        ns.exit()
     }
+    ns.print(ns.args);
+
+    currentServer = ns.args[1];
+    var thisServer = currentServer;
     var target = ns.args[0];
     ns.print(`target: ${target}`);
     let ptol = getItem(ns, 'portsToOpenList');
@@ -23,11 +23,12 @@ export async function main(ns) {
     await getLockAndUpdate(ns, 'portsToOpenList', ptol);
     ns.print(`pushing ${target} to PortsToOpenList`);
     await ns.sleep(3000);
-    ns.print(`${ns.getServerMaxRam(target)} - ${ns.getServerUsedRam(target)} - ${ns.getScriptRam('/_helpers/hackitManager.js')}) / ${ns.getScriptRam('/_helpers/hackit_weaken.js')}`);
-    ns.print(`${Math.floor((ns.getServerMaxRam(target) - ns.getServerUsedRam(target) - ns.getScriptRam('/_helpers/hackitManager.js')) / ns.getScriptRam('/_helpers/hackit_weaken.js'))}`);
+    ns.print(`${ns.getServerMaxRam(currentServer)} - ${ns.getScriptRam('/_helpers/hackitManager.js')}) / ${ns.getScriptRam('/_helpers/hackit_weaken.js')}`);
+    ns.print(`${Math.floor((ns.getServerMaxRam(currentServer) - ns.getScriptRam('/_helpers/hackitManager.js')) / ns.getScriptRam('/_helpers/hackit_weaken.js'))}`);
     var threadCount = Math.floor((ns.getServerMaxRam(currentServer) - ns.getScriptRam('/_helpers/hackitManager.js')) / ns.getScriptRam('/_helpers/hackit_weaken.js'));
-    if(currentServer == 'home') {
-        threadCount -= 15;
+    ns.print(`CurrentServer ${currentServer} MaxRam ${ns.getServerMaxRam(currentServer)} UsedRam ${ns.getServerUsedRam(currentServer)}`);
+    if (currentServer == 'home') {
+        threadCount -= 30;
     }
     if (threadCount <= 0) {
         ns.print('Not enough free ram');
@@ -36,7 +37,6 @@ export async function main(ns) {
     ns.print(`ThreadCount :${threadCount}`);
     var serverInfo = { 'hack': { 'threshold': 0 }, 'grow': { 'threshold': .75 }, 'weaken': { 'threshold': 4 }, 'threadCount': 0 };
     var actionTime = 1234;
-    var thisServer = ns.getCurrentServer();
     serverInfo.threadCount = threadCount;
     var action = getItem(ns, `hackit_${thisServer}_action`);
     action = 'manage';

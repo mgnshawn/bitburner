@@ -55,6 +55,7 @@ export async function main(ns) {
     clearLCol(ns);
     drawLCol(ns, "======================== Beginning Go Hack ========================");
     ns.print(drawLCol(ns, `Largest Server Allowed ${money(ns.getPurchasedServerMaxRam())} gb`));
+    ns.print(drawLCol(ns, `Maximum Servers Allowed ${ns.getPurchasedServerLimit()}`));
     for (let z = 0; z < ns.args.length; z++) {
         if (ns.args[z] !== undefined) {
             if (ns.args[z] == "-h" || ns.args[z] == "-?" || ns.args[z] == "?" || ns.args[z] == "h") {
@@ -68,6 +69,10 @@ export async function main(ns) {
             }
             if (ns.args[z] == 'forceupdate') {
                 forceUpdate = true;
+            }
+            if (ns.args[z] == 'nopurchase') {
+                purchaseServers = false;
+                ram == 0;
             }
             if (ns.args[z] !== undefined && ns.args[0] == "fullauto") {
                 autoTarget = true;
@@ -99,10 +104,23 @@ export async function main(ns) {
         }
     }
     ns.tail();
+    ns.print("Resetting serversOnTarget .forceUpdated status");
     serversOnTarget = getItem(ns, 'serversOnTarget');
     if (serversOnTarget == undefined) {
         await getLockAndUpdate(ns, 'serversOnTarget', {});
     }
+    for (let serv of Object.keys(serversOnTarget)) {
+        ns.print(`serv ${serv}`);
+        let serverDetails = { target: 'NotYetSet', forceUpdated: false };
+        if (serversOnTarget[serv] !== undefined) {
+            serverDetails = serversOnTarget[serv];
+        } else {
+            serversOnTarget[serv] = serverDetails;
+        }
+        serversOnTarget[serv].forceUpdated = false;
+    }
+    await getLockAndUpdate(ns, 'serversOnTarget', serversOnTarget);
+
 
     if (ns.fileExists("BruteSSH.exe"))
         crackers++;
@@ -117,9 +135,10 @@ export async function main(ns) {
     scriptRam = ns.getScriptRam('/_helpers/hackit.js');
 
 
-
-    if (!quiet) await ns.print(`Cost to purchase these servers with ${money(ram)}gb: $${Math.round(ns.getPurchasedServerCost(ram)).toLocaleString('en-US')}`);
-    drawLCol(`Cost to purchase these servers with ${money(ram)}gb: $${Math.round(ns.getPurchasedServerCost(ram)).toLocaleString('en-US')}`);
+    if (purchaseServers) {
+        if (!quiet) await ns.print(`Cost to purchase these servers with ${money(ram)}gb: $${Math.round(ns.getPurchasedServerCost(ram)).toLocaleString('en-US')}`);
+        drawLCol(ns,`Cost to purchase these servers with ${money(ram)}gb: $${Math.round(ns.getPurchasedServerCost(ram)).toLocaleString('en-US')}`);
+    }
 
 
     var serv = 'home';
@@ -132,15 +151,33 @@ export async function main(ns) {
     if (!ns.scriptRunning('/_helpers/hackitManager.js', 'home')) {
         await startHacking(ns, 'home', target);
     }
-    
+
     // Make sure our servers are running optimal threads
     if (!quiet) await ns.print("Optimizing our purchased servers...");
-    drawLCol(ns, "Optimizing our purchased servers...");        
-        for (var a = 0; a < attackServers.length; a++) {
-            var hostname = attackServers[a];
-            await startHacking(ns, hostname, target);
+    drawLCol(ns, "Optimizing our purchased servers...");
+    for (var a = 0; a < attackServers.length; a++) {
+        var hostname = attackServers[a];
+        ns.print(`Initial attackServer starthacking ${hostname} ${target}`);
+        await startHacking(ns, hostname, target);
+    }
+    if (purchaseServers == false) {
+        ns.print("Spider and Hack Only!");
+        if (autoTarget) {
+            target = chooseTarget(ns, ns.getPlayer()["hacking"], ram)["target"];
+            await ns.sleep(100);
+            if (lastTarget != target) {
+                await ns.print(await drawLCol(ns, `AutoTarget:: RAM ${money(ram)}gb TARGET ${target}`));
+                lastTarget = target;
+            }
         }
+        if (!quiet) ns.print("Spidering...");
+        drawLCol(ns, "scanning for servers now in attack level...");
+        await scanServer(ns, { 'home': 'home' }, target, 0);
+        await ns.sleep(5000);
+        ns.print("Done");
+        ns.exit();
 
+    }
     var i = 0;
 
     // Continuously try to purchase servers until we've reached the maximum
@@ -179,11 +216,18 @@ export async function main(ns) {
         // Check if we have enough money to purchase a server
         if (ns.getServerMoneyAvailable("home") > ns.getPurchasedServerCost(ram)) {
             var hostname = `attack-${target}-${ram}gb-${i}`;
-            ns.run('/_scriptRamHelpers/_purchaseServer.js', 1, hostname, ram);
-            await ns.sleep(1000);
+            let hash = Math.random();
+            ns.run('/_scriptRamHelpers/_purchaseServer.js', 1, hostname, ram, hash);
+            await ns.sleep(5000);
+            let newServerName = getItem(ns,`server_purchase_name_${hash}`);
+            if(newServerName !== undefined) {
+                hostname = newServerName;
+                localStorage.removeItem(`server_purchase_name_${hash}`);
+            }
             checkForApps(ns);
             ns.print(`Purchased [${hostname}] for $${money(ns.getPurchasedServerCost(ram))} w/${money(ram)}gb`);
             drawLCol(ns, `Purchased [${hostname}] for $${money(ns.getPurchasedServerCost(ram))} w/${money(ram)}gb`);
+            await ns.sleep(4000);
             if (ns.serverExists(hostname)) {
                 await startHacking(ns, hostname, target);
             }
@@ -251,14 +295,20 @@ export async function main(ns) {
                                 if (!quiet) await ns.print("  Problem Deleting " + servers[a]);
                             }
                             var hostname = `attack-${target}-${ram}gb-${i}`;
-                            ns.run('/scriptRamHelpers/_purchaseServer.js', 1, hostname, ram);
-                            await ns.sleep(1000);
+                            let hash = Math.random();
+                            ns.run('/_scriptRamHelpers/_purchaseServer.js', 1, hostname, ram, hash);
+                            await ns.sleep(5000);
+                            let newServerName = getItem(ns,`server_purchase_name_${hash}`);
+                            if(newServerName !== undefined) {
+                                hostname = newServerName;
+                                localStorage.removeItem(`server_purchase_name_${hash}`);
+                            }
                             if (ns.serverExists(hostname)) {
                                 checkForApps(ns);
                                 if (!quiet) await ns.print(" Purchased " + hostname);
                                 ns.print(`Recycled [${servers[a]}] into [${hostname}] for $${money(ns.getPurchasedServerCost(ram))} w/${money(ram)}gb`);
                                 drawLCol(ns, `Recycled [${servers[a]}] into [${hostname}] for $${money(ns.getPurchasedServerCost(ram))} w/${money(ram)}gb`);
-
+                                await ns.sleep(5000);
                                 await startHacking(ns, hostname, target);
                                 ns.print("Next server cost $" + ns.getPurchasedServerCost(ram).toLocaleString('en-US'));
                                 drawLCol(ns, "Next server cost $" + ns.getPurchasedServerCost(ram).toLocaleString('en-US'));
@@ -277,6 +327,8 @@ export async function main(ns) {
                         upgrade = false;
                     }
                 }
+
+            }
                 if (upgrade == true) {
                     checkForApps(ns);
                     ram = chooseTarget(ns, ns.getPlayer()["hacking"], 8)["ram"];
@@ -287,9 +339,7 @@ export async function main(ns) {
                     drawLCol(ns, "    New server cost: " + money(ns.getPurchasedServerCost(ram)));
                     upgrade = false;
                 }
-                upgrade = true;
                 await ns.sleep(timeBetweenUpgradeLoops);
-            }
         }
     }
 
@@ -424,8 +474,8 @@ async function evalAndNuke(ns, server, origin, target) {
             }*/ //--WORK IN PROGRESS
 
         } else if (crackers < ns.getServerNumPortsRequired(attackThis) && attackThis !== 'darkweb') {
-            ns.print(`need ${ns.getServerNumPortsRequired(attackThis) - crackers} more crackers to nuke ${attackThis}`);
-            drawLCol(ns, `need ${ns.getServerNumPortsRequired(attackThis) - crackers} more crackers to nuke ${attackThis}`);
+            if(!quiet) ns.print(`need ${ns.getServerNumPortsRequired(attackThis) - crackers} more crackers to nuke ${attackThis}`);
+            if(!quiet) drawLCol(ns, `need ${ns.getServerNumPortsRequired(attackThis) - crackers} more crackers to nuke ${attackThis}`);
         }
     }
     return returnResult;
@@ -452,6 +502,7 @@ async function startHacking(ns, serv, thisTarget) {
             await ns.sleep(1000);
             await ns.scp("/_helpers/hackitManager.js", serv);
             await ns.scp(["/_helpers/hackit_hack.js", "/_helpers/hackit_grow.js", "/_helpers/hackit_weaken.js", "/_helpers/ioHelpers.js"], serv);
+            ns.print(`Killed scripts and scp'd new copies`);
             serverDetails.forceUpdated = true;
         }
     }
@@ -485,11 +536,12 @@ async function startHacking(ns, serv, thisTarget) {
         if (serv == 'home') {
             await ns.run('/_helpers/hackitManager.js', 1, thisTarget, serv);
         } else {
+            ns.print(`--------exec ${thisTarget} ${serv}`);
             await ns.exec('/_helpers/hackitManager.js', serv, 1, thisTarget, serv);
             serverDetails.target = thisTarget;
+            ns.print(`Started /_helpers/hackitManager.js on [${serv}] attacking [${thisTarget}]`);
+            drawLCol(ns, `Started /_helpers/hackitManager.js on [${serv}] attacking [${thisTarget}]`);
         }
-        ns.print(`Started /_helpers/hackitManager.js on [${serv}] attacking [${thisTarget}]`);
-        drawLCol(ns, `Started /_helpers/hackitManager.js on [${serv}] attacking [${thisTarget}]`);
         serversOnTarget[serv] = serverDetails;
         await getLockAndUpdate(ns, 'serversOnTarget', serversOnTarget);
     }

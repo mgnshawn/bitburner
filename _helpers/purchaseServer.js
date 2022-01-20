@@ -123,35 +123,54 @@ export async function main(ns) {
     var servers = getItem(ns, 'purchasedServers');
 
     await ns.sleep(1000);
-    if (ns.getServerMoneyAvailable("home") > ns.getPurchasedServerCost(ram)) {
-        for (var a = 0; a < ns.getPurchasedServerLimit(); a++) {
-            if (ns.getServerMoneyAvailable("home") > ns.getPurchasedServerCost(ram)) {
-                if (servers[a] !== undefined && ns.serverExists(servers[a]))
-                    if (ns.getServerMaxRam(servers[a]) < ram) {
-                        if (!quiet) await ns.print("Upgrading " + servers[a] + " from " + ns.getServerMaxRam(servers[a]) + " to " + ram);
-                        var skillSuck = ns.scriptKill("/_helpers/hackitManager.js", servers[a]);
-                        var skillSuck = ns.scriptKill("/_helpers/hackit_hack.js", servers[a]);
-                        var skillSuck = ns.scriptKill("/_helpers/hackit_grow.js", servers[a]);
-                        var skillSuck = ns.scriptKill("/_helpers/hackit_weaken.js", servers[a]);
-                        var delSuc = ns.deleteServer(servers[a]);
-                        if (delSuc == true) {
-                            if (!quiet) await ns.print(" Deleted " + servers[a]);
-                        } else {
-                            if (!quiet) await ns.print("  Problem Deleting " + servers[a]);
-                        }
-                        var hostname = `attack-server-${ram}gb-`;
-                        ns.purchaseServer(hostname, ram);
-                        await ns.sleep(1000);
-                        if (ns.serverExists(hostname)) {
-                            checkForApps(ns);
-                            if (!quiet) await ns.print(" Purchased " + hostname);
-                            ns.print(`Recycled [${servers[a]}] into [${hostname}] for $${money(ns.getPurchasedServerCost(ram))} w/${money(ram)}gb`);
-                            drawLCol(ns, `Recycled [${servers[a]}] into [${hostname}] for $${money(ns.getPurchasedServerCost(ram))} w/${money(ram)}gb`);
 
-                            await startHacking(ns, hostname, target);
+    if (ns.getServerMoneyAvailable("home") > ns.getPurchasedServerCost(ram)) {
+        if (servers.length == ns.getPurchasedServerLimit) {
+            for (var a = 0; a < ns.getPurchasedServerLimit(); a++) {
+                if (ns.getServerMoneyAvailable("home") > ns.getPurchasedServerCost(ram)) {
+                    if (servers[a] !== undefined && ns.serverExists(servers[a]))
+                        if (ns.getServerMaxRam(servers[a]) < ram) {
+                            if (!quiet) await ns.print("Upgrading " + servers[a] + " from " + ns.getServerMaxRam(servers[a]) + " to " + ram);
+                            var skillSuck = ns.scriptKill("/_helpers/hackitManager.js", servers[a]);
+                            var skillSuck = ns.scriptKill("/_helpers/hackit_hack.js", servers[a]);
+                            var skillSuck = ns.scriptKill("/_helpers/hackit_grow.js", servers[a]);
+                            var skillSuck = ns.scriptKill("/_helpers/hackit_weaken.js", servers[a]);
+                            var delSuc = ns.deleteServer(servers[a]);
+                            if (delSuc == true) {
+                                if (!quiet) await ns.print(" Deleted " + servers[a]);
+                            } else {
+                                if (!quiet) await ns.print("  Problem Deleting " + servers[a]);
+                            }
+                            var hostname = `attack-server-${ram}gb-`;
+                            ns.purchaseServer(hostname, ram);
+                            await ns.sleep(1000);
+                            if (ns.serverExists(hostname)) {
+                                checkForApps(ns);
+                                if (!quiet) await ns.print(" Purchased " + hostname);
+                                ns.print(`Recycled [${servers[a]}] into [${hostname}] for $${money(ns.getPurchasedServerCost(ram))} w/${money(ram)}gb`);
+                                drawLCol(ns, `Recycled [${servers[a]}] into [${hostname}] for $${money(ns.getPurchasedServerCost(ram))} w/${money(ram)}gb`);
+
+                                await startHacking(ns, hostname, target);
+                                await ns.sleep(3000);
+                                break;
+                            }
                         }
-                    }
+                }
             }
+        } else {
+            var hostname = `attack-server-${ram}gb-`;
+            ns.purchaseServer(hostname, ram);
+            await ns.sleep(1000);
+            if (ns.serverExists(hostname)) {
+                checkForApps(ns);
+                if (!quiet) await ns.print(" Purchased " + hostname);
+                ns.print(`Purchased [${hostname}] for $${money(ns.getPurchasedServerCost(ram))} w/${money(ram)}gb`);
+                drawLCol(ns, `Purchased [${hostname}] for $${money(ns.getPurchasedServerCost(ram))} w/${money(ram)}gb`);
+
+                await startHacking(ns, hostname, target);
+                await ns.sleep(3000);
+            }
+
         }
     } else {
         ns.tprint(`Not enough money, need $${money(ns.getPurchasedServerCost(ram))}`);
