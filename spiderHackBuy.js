@@ -1,4 +1,4 @@
-import { drawList1, drawStatus1, drawLCol, clearLCol } from '/terminal.js';
+import { drawList1, drawStatus1, drawLCol, clearLCol } from '/_helpers/terminal.js';
 import { scan, findServerPath, money, chooseTarget, travelToServer, travelBackHome } from '/_helpers/helpers.js';
 import { getItem, setItem, getLockAndUpdate } from '/_helpers/ioHelpers.js';
 
@@ -331,7 +331,7 @@ export async function main(ns) {
             }
                 if (upgrade == true) {
                     checkForApps(ns);
-                    ram = chooseTarget(ns, ns.getPlayer()["hacking"], 8)["ram"];
+                    ram = chooseTarget(ns, ns.getPlayer()["hacking"], ram)["ram"];
                     await ns.sleep(50000);
                     await ns.print("-- Setting Upgrade Server Ram to " + money(ram));
                     await ns.print("    New server cost: " + money(ns.getPurchasedServerCost(ram)));

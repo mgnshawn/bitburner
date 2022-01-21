@@ -294,10 +294,12 @@ export function clearList1(ns) {
 /** @param {NS} ns **/
 export async function main(ns) {
 		primeExistingBufferLists(ns);
-	if(ns.args[0] != undefined && ns.args[0] == "clear") {
+	for(let arg in ns.args) {
+		if(ns.args[arg] == "clear") {
 		clearLCol(ns);
 		clearStatusList(ns);
 		clearList1(ns);
+		}
 	}
 	clearDoingLine(ns);
 	ns.disableLog('sleep');

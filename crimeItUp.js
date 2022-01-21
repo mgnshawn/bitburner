@@ -1,4 +1,4 @@
-import {drawDoing, clearDoingLine} from '/terminal.js';
+import {drawDoing, clearDoingLine} from '/_helpers/terminal.js';
 import {getItem}from '/_helpers/ioHelpers.js';
 var infinite=false;
 var crimes=['Shoplift','Rob store','Mug someone','Homicide','Kidnap and ransom','Assassinate','Heist'];

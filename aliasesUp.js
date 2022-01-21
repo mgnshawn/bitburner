@@ -1,5 +1,12 @@
 export async function main(ns) {
-    const aliases = ['betterscan="run /_helpers/betterScan.js"','scantargets="run /_helpers/scanTargets.js"','gt="run /_helpers/goto.js "','goto="run /_helpers/goto.js "','purchaseserver="run /_helpers/purchaseServer.js "','singledownload="run /_helpers/singleDownload "'];
+    const aliases = [
+        'betterscan="run /_helpers/betterScan.js"',
+        'scantargets="run /_helpers/scanTargets.js"',
+        'gt="run /_helpers/goto.js "',
+        'goto="run /_helpers/goto.js "',
+        'purchaseserver="run /_helpers/purchaseServer.js "',
+        'singledownload="run /_helpers/singleDownload "',
+        'terminal="run /_helpers/terminal.js"'];
     aliases.forEach(allyText => {
 // Acquire a reference to the terminal text field
 const terminalInput = document.getElementById("terminal-input");

@@ -1,16 +1,27 @@
-import {drawLCol, drawStatus1, drawList1, drawDoing,primeExistingBufferLists, clearLCol, clearStatusList, clearList1, clearDoingLine } from '/terminal.js';
+import { drawLCol, drawStatus1, drawList1, drawDoing, primeExistingBufferLists, clearLCol, clearStatusList, clearList1, clearDoingLine } from '/terminal.js';
+import { getItem, setItem, resetLocks } from '/_helpers/ioHelpers.js';
 const baseUrl = 'https://raw.githubusercontent.com/mgnshawn/bitburner/master/';
-const initialCombatStatsToGym = {'strength':10,'dexterity':10,'agility':10};
-var doDownload = true;
 export async function main(ns) {
-		primeExistingBufferLists(ns);
-		clearLCol(ns);
-		clearStatusList(ns);
-		clearList1(ns);
-	clearDoingLine(ns);
-  if(ns.args[0] !== undefined && ns.args[0] == 'nodownload') {
-    doDownload= false;
+var doDownload = false;
+const initialCombatStatsToGym = { 'strength': 10, 'dexterity': 10, 'agility': 10 };
+  primeExistingBufferLists(ns);
+  clearLCol(ns);
+  clearStatusList(ns);
+  clearList1(ns);
+  clearDoingLine(ns);
+  for(let arg in ns.args) {
+    if( ns.args[arg] == "download") {
+      doDownload = true;
+    }
+    if( ns.args[arg] == "reset") {
+      localStorage.clear();
+    }
+    if (ns.args[arg] == "fullstart") {
+      fullStart(ns,doDownload,initialCombatStatsToGym);
+    }
   }
+}
+async function fullStart(ns,doDownload,initialCombatStatsToGym) {
   ns.disableLog('sleep');
   ns.tail();
   let hostname = ns.getHostname();
@@ -18,24 +29,24 @@ export async function main(ns) {
   if (hostname !== 'home') {
     throw new Exception('Run the script from home');
   }
-  if(doDownload) {
-   await ns.run('download.js');
-   ns.sleep(10000);
+  if (doDownload) {
+    await ns.run('/_helpers/download.js');
+    ns.sleep(10000);
   }
   /*if(ns.getPlayer()["hacking_mult"] < switchToCrimeAt) {
     await ns.run('factionUp.js');
   } else {
     await ns.run('crimeItUp.js',1,"auto",'-l');
   }*/
-  ns.run('terminal.js');
+  ns.run('/_helpers/terminal.js');
   await ns.sleep(1000);
-  await ns.run('factionUpAugs.js',1,'autowork');
-  if(ns.heart.break() < -40000) {
+  await ns.run('factionUpAugs.js', 1, 'autowork');
+  if (ns.heart.break() < -40000) {
     await ns.run('manageGang.js');
     await ns.sleep(1000);
   }
   await ns.sleep(1000);
-  await ns.run('spiderHackBuy.js', 1, "ram", 8, "slice", 16,"target", "auto");
+  await ns.run('spiderHackBuy.js', 1, "ram", 8, "slice", 16, "target", "auto");
   await ns.sleep(1000);
   do {
     await ns.sleep(30000);
@@ -43,24 +54,24 @@ export async function main(ns) {
   } while (ns.getPurchasedServers().length <= 1)
 
   drawStatus1(ns, "Exercising up combat stats to 10");
-  for(let x = 0; x < Object.keys(initialCombatStatsToGym).length; x++) {
+  for (let x = 0; x < Object.keys(initialCombatStatsToGym).length; x++) {
     let stat = Object.keys(initialCombatStatsToGym)[x];
-    
+
     let statTarget = initialCombatStatsToGym[stat];
-	  let workingOut = false;
-    
-	  do {
-		  if(!workingOut) {
+    let workingOut = false;
+
+    do {
+      if (!workingOut) {
         ns.print(drawLCol(`Training up ${stat} from ${ns.getPlayer()[stat]} to ${statTarget}`));
-		    let tried = ns.gymWorkout('powerhouse gym', stat);
-		    if(tried)
-		      workingOut = true;
-		  }
-			await ns.sleep(1000);
-	  } while(ns.getPlayer()[stat] <= statTarget);
-	  ns.stopAction();
+        let tried = ns.gymWorkout('powerhouse gym', stat);
+        if (tried)
+          workingOut = true;
+      }
+      await ns.sleep(1000);
+    } while (ns.getPlayer()[stat] <= statTarget);
+    ns.stopAction();
   }
-  await ns.run('crimeItUp.js',1,'auto','l');
+  await ns.run('crimeItUp.js', 1, 'auto', 'l');
   /*drawStatus1(ns, "Beginning crimeItUp for cash until 10 servers owned");
   do {
     await ns.sleep(60000);

@@ -1,4 +1,4 @@
-import {drawList1, drawStatus1, drawLCol, drawDoing, clearDoingLine, clearList1} from '/terminal.js';
+import {drawList1, drawStatus1, drawLCol, drawDoing, clearDoingLine, clearList1} from '/_helpers/terminal.js';
 import {money,travelToServer,travelBackHome} from '/_helpers/helpers.js';
 var AugsInOrder = [];
 	
