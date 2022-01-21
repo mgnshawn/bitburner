@@ -6,7 +6,9 @@ export async function main(ns) {
         'goto="run /_helpers/goto.js "',
         'purchaseserver="run /_helpers/purchaseServer.js "',
         'singledownload="run /_helpers/singleDownload "',
-        'terminal="run /_helpers/terminal.js"'];
+        'terminal="run /_helpers/terminal.js"',
+        'reporefresh="run /_helpers/repoRefresh.js"'
+        ];
     aliases.forEach(allyText => {
 // Acquire a reference to the terminal text field
 const terminalInput = document.getElementById("terminal-input");
