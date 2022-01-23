@@ -4,7 +4,7 @@ export async function main(ns) {
 }
 
 export function getItem(ns,key) {
-  let item = localStorage.getItem(key)
+  let item = sessionStorage.getItem(key)
   let result = undefined;
   try {
     result = item ? JSON.parse(item) : undefined
@@ -15,7 +15,7 @@ export function getItem(ns,key) {
 }
 
 export function setItem(ns,key, value) {
-  localStorage.setItem(key, JSON.stringify(value))
+	sessionStorage.setItem(key, JSON.stringify(value))
 }
 export async function getLockAndUpdate(ns,itemName,itemValue) {
 	var locked = null;

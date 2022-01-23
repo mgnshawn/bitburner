@@ -14,7 +14,7 @@ const initialCombatStatsToGym = { 'strength': 10, 'dexterity': 10, 'agility': 10
       doDownload = true;
     }
     if( ns.args[arg] == "reset") {
-      localStorage.clear();
+      sessionStorage.clear();
     }
     if (ns.args[arg] == "fullstart") {
       fullStart(ns,doDownload,initialCombatStatsToGym);

@@ -109,6 +109,7 @@ export async function main(ns) {
     if (serversOnTarget == undefined) {
         await getLockAndUpdate(ns, 'serversOnTarget', {});
     }
+	if(serversOnTarget !== undefined)
     for (let serv of Object.keys(serversOnTarget)) {
         ns.print(`serv ${serv}`);
         let serverDetails = { target: 'NotYetSet', forceUpdated: false };
@@ -222,7 +223,7 @@ export async function main(ns) {
             let newServerName = getItem(ns,`server_purchase_name_${hash}`);
             if(newServerName !== undefined) {
                 hostname = newServerName;
-                localStorage.removeItem(`server_purchase_name_${hash}`);
+                sessionStorage.removeItem(`server_purchase_name_${hash}`);
             }
             checkForApps(ns);
             ns.print(`Purchased [${hostname}] for $${money(ns.getPurchasedServerCost(ram))} w/${money(ram)}gb`);
@@ -301,7 +302,7 @@ export async function main(ns) {
                             let newServerName = getItem(ns,`server_purchase_name_${hash}`);
                             if(newServerName !== undefined) {
                                 hostname = newServerName;
-                                localStorage.removeItem(`server_purchase_name_${hash}`);
+                                sessionStorage.removeItem(`server_purchase_name_${hash}`);
                             }
                             if (ns.serverExists(hostname)) {
                                 checkForApps(ns);

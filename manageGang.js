@@ -1,4 +1,4 @@
-/** @param {NS} ns **/
+/** @type import(".").NS */
 var repThreshold = 15; // When to switch to improving wanted level
 var timeCycle = 1 * 60;
 var maximumMembersAtWarfareBeforeWar = 3;
@@ -18,10 +18,13 @@ var maxTimeBetweenAscention = 15 * 60 * 1000;
 var ascentionStatReqs = {'strength':1.5,'dexterity':1.7,'agility':1.7};
 // If a gang member's string is under the number it selects the highest option
 //var jumpLevels = {"Mug People":50,"Train Combat":100,"Strongarm Civilians":325,"Human Trafficking":500,"Terrorism":1500};
-var jumpLevels = [["Train Combat", 90], ["Mug People", 130], ["Strongarm Civilians", 300], ["Human Trafficking", 400], ["Terrorism", 100000000]];
+var jumpLevels = [["Train Combat", 90], ["Mug People", 130], ["Strongarm Civilians", 300], ["Human Trafficking", 500], ["Terrorism", 100000000]];
 var names = ['shawn', 'joe', 'mike', 'heather', 'irene', 'anna', 'tony', 'bobby', 'billy', 'lance', 'sarah', 'misty'];
 var myGang = {};
-export async function main(ns) {
+
+/** @param {import(".").NS } ns */
+export async function main(_ns) {
+	ns = _ns;
 	ns.disableLog("sleep");
 	ns.disableLog("getServerMoneyAvailable");
 	ns.disableLog("gang.setMemberTask");

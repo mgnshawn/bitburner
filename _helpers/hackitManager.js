@@ -1,5 +1,8 @@
 import { getItem, setItem, getLockAndUpdate } from '/_helpers/ioHelpers.js';
-export async function main(ns) {
+/** @type import(".").NS */
+let ns = null;
+export async function main(_ns) {
+    ns=_ns;
     var currentServer = "";
     if (ns.args[0] == undefined) {
         ns.print(`No target.. Exit()`);
