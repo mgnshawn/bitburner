@@ -109,7 +109,7 @@ export async function main(ns) {
     if (serversOnTarget == undefined) {
         await getLockAndUpdate(ns, 'serversOnTarget', {});
     }
-	if(serversOnTarget !== undefined)
+    if(serversOnTarget !== undefined) {
     for (let serv of Object.keys(serversOnTarget)) {
         ns.print(`serv ${serv}`);
         let serverDetails = { target: 'NotYetSet', forceUpdated: false };
@@ -120,7 +120,11 @@ export async function main(ns) {
         }
         serversOnTarget[serv].forceUpdated = false;
     }
-    await getLockAndUpdate(ns, 'serversOnTarget', serversOnTarget);
+     await getLockAndUpdate(ns, 'serversOnTarget', serversOnTarget);
+    } else {
+        setItem(ns, 'serversOnTarget', {});
+    }
+   
 
 
     if (ns.fileExists("BruteSSH.exe"))
@@ -223,7 +227,7 @@ export async function main(ns) {
             let newServerName = getItem(ns,`server_purchase_name_${hash}`);
             if(newServerName !== undefined) {
                 hostname = newServerName;
-                sessionStorage.removeItem(`server_purchase_name_${hash}`);
+                localStorage.removeItem(`server_purchase_name_${hash}`);
             }
             checkForApps(ns);
             ns.print(`Purchased [${hostname}] for $${money(ns.getPurchasedServerCost(ram))} w/${money(ram)}gb`);
@@ -302,7 +306,7 @@ export async function main(ns) {
                             let newServerName = getItem(ns,`server_purchase_name_${hash}`);
                             if(newServerName !== undefined) {
                                 hostname = newServerName;
-                                sessionStorage.removeItem(`server_purchase_name_${hash}`);
+                                localStorage.removeItem(`server_purchase_name_${hash}`);
                             }
                             if (ns.serverExists(hostname)) {
                                 checkForApps(ns);
@@ -484,8 +488,7 @@ async function evalAndNuke(ns, server, origin, target) {
 
 async function startHacking(ns, serv, thisTarget) {
     let serverDetails = { target: 'NotYetSet', forceUpdated: false };
-
-    if (serversOnTarget[serv] !== undefined) {
+    if (serversOnTarget !== undefined && serversOnTarget !== null && serversOnTarget[serv] !== undefined) {
         serverDetails = serversOnTarget[serv];
     } else {
         serversOnTarget[serv] = serverDetails;
@@ -563,11 +566,11 @@ async function checkForApps(ns) {
         ns.run('_scriptRamHelpers/_purchaseProgram.js', 1, "FTPCrack.exe");
         ns.toast("Bought FTPCrack");
     }
-    if (ns.getPlayer().hacking >= 300 && !ns.fileExists("relaySMTP.exe", 'home') && ns.getServerMoneyAvailable("home") >= 5000000) {
+    if (ns.getPlayer().hacking >= 100 && !ns.fileExists("relaySMTP.exe", 'home') && ns.getServerMoneyAvailable("home") >= 5000000) {
         ns.run('_scriptRamHelpers/_purchaseProgram.js', 1, "relaySMTP.exe");
         ns.toast("Bought relaySMTP");
     }
-    if (ns.getPlayer().hacking >= 400 & !ns.fileExists("AutoLink.exe", 'home') && ns.getServerMoneyAvailable("home") >= 1500000) {
+    if (ns.getPlayer().hacking >= 150 & !ns.fileExists("AutoLink.exe", 'home') && ns.getServerMoneyAvailable("home") >= 1500000) {
         ns.run('_scriptRamHelpers/_purchaseProgram.js', 1, "AutoLink.exe");
         ns.toast("Bought AutoLink");
     }

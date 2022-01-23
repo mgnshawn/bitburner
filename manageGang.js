@@ -1,28 +1,37 @@
-/** @type import(".").NS */
+/** @param {NS} ns **/
+var ns;
+var gangSettings = { 'maxMembersAtWarfareBeforeWar': 2, 'moneyInBankToAscend': 100000000 };
 var repThreshold = 15; // When to switch to improving wanted level
-var timeCycle = 1 * 60;
-var maximumMembersAtWarfareBeforeWar = 3;
-var goToWarWhenChancesOver = 70
-var maximumFullGangAtWar = 8; // Most members that can being doing Territory Warface
-var minimumFullGangTerror = 1; // Minimum number of members doing Terrorism
-var purchaseHackingAugs = false;
-var verbose = false;
+
+
+const goToWarWhenChancesOver = 70
+const maximumFullGangAtWar = 8; // Most members that can being doing Territory Warface
+const minimumFullGangTerror = 3; // Minimum number of members doing Terrorism
+const maxMembersToAscendDuringWar = 2;
+
 var previousTerritoryHeld = 0;
-var maxMembersToAscendDuringWar = 2;
-var endGameFocus = "Reputation"; //options Reputation, Money
+
+var endGameFocus = "Reputation"; //options Reputation, Money\
+var endGameFocusOptions = ['Reputation', 'Money'];
 
 var timeToHoldOffOnAscentionAfterEquipping = 5 * 60 * 1000;
 var costOfEquipmentToPauseAscention = 50000000;
 var maxTimeBetweenAscention = 15 * 60 * 1000;
+var timeCycle = 1 * 60;
 
-var ascentionStatReqs = {'strength':1.5,'dexterity':1.7,'agility':1.7};
+
+var ascentionStatReqs = { 'strength': 1.15, 'dexterity': 1.3, 'agility': 1.3 };
+var verbose;
+var ascentionEnabled;
+var debugOnly;
+var equipOnly;
+var fullTeam;
+var purchaseHackingAugs;
 // If a gang member's string is under the number it selects the highest option
 //var jumpLevels = {"Mug People":50,"Train Combat":100,"Strongarm Civilians":325,"Human Trafficking":500,"Terrorism":1500};
-var jumpLevels = [["Train Combat", 90], ["Mug People", 130], ["Strongarm Civilians", 300], ["Human Trafficking", 500], ["Terrorism", 100000000]];
+var jumpLevels = [["Train Combat", 90], ["Mug People", 130], ["Strongarm Civilians", 400], ["Terrorism", 550], ["Human Trafficking", 950], ["Terrorism", 100000000]];
 var names = ['shawn', 'joe', 'mike', 'heather', 'irene', 'anna', 'tony', 'bobby', 'billy', 'lance', 'sarah', 'misty'];
 var myGang = {};
-
-/** @param {import(".").NS } ns */
 export async function main(_ns) {
 	ns = _ns;
 	ns.disableLog("sleep");
@@ -36,6 +45,12 @@ export async function main(_ns) {
 	ns.disableLog("gang.ascendMember");
 	ns.disableLog("gang.setTerritoryWarfare");
 	ns.tail();
+	var verbose = false;
+	ascentionEnabled = true;
+	debugOnly = false;
+	equipOnly = false;
+	fullTeam = false;
+	purchaseHackingAugs = false;
 
 	for (let z = 0; z < ns.args.length; z++) {
 		if (ns.args[z] !== undefined) {
@@ -45,18 +60,33 @@ export async function main(_ns) {
 			if (ns.args[z] == 'endgame' && ns.args[z + 1] !== undefined) {
 				endGameFocus = ns.args[z + 1];
 			}
+			if (ns.args[z] == 'debugonly') {
+				debugOnly = true;
+			}
+			if (ns.args[z] == 'equiponly') {
+				equipOnly = true;
+				debugOnly = true;
+			}
+			if (ns.args[z] == 'endgamefocus' && ns.args[z + 1] != undefined && endGameFocusOptions.includes(ns.args[z + 1].toLowerCase()[0].toUpperCase() + ns.args[z + 1].toLowerCase().slice(1))) {
+				endGameFocus = ns.args[z + 1].toLowerCase()[0].toUpperCase + ns.args[z + 1].toLowerCase().slice(1);
+				ns.print(`Setting EndGame Focus To: ${endGameFocus}`);
+			}
+			if (ns.args[z] !== undefined && ['h', '-h', '?', '-?'].includes(ns.args[z])) {
+				ns.tprint(`arguments (v) (debugonly)  (equiponly)  (endgamefocus:[money,reputation]`);
+				ns.exit();
+			}
 		}
 	}
 	var letCreate = false;
 	while (!await ns.gang.inGang()) {
-		let facInvites = getItem(ns,'factionInvitations');
+		let facInvites = getItem(ns, 'factionInvitations');
 		if (facInvites !== null && facInvites.includes('The Syndicate')) {
-			ns.run('/_scriptRamHelpers/_joinFaction','The Syndicate');
+			ns.run('/_scriptRamHelpers/_joinFaction', 'The Syndicate');
 			await ns.sleep(1000);
 		}
 		await ns.sleep(1000);
 		if (facInvites !== null && facInvites.includes('Slum Snakes')) {
-			ns.run('/_scriptRamHelpers/_joinFaction','Slum Snakes');
+			ns.run('/_scriptRamHelpers/_joinFaction', 'Slum Snakes');
 			await ns.sleep(1000);
 		}
 		if (ns.getPlayer().factions.includes("The Syndicate")) {
@@ -90,24 +120,20 @@ export async function main(_ns) {
 
 
 	var members = ns.gang.getMemberNames();
-	var recruitedLastRound = false;
 	while (true) {
 		if (members.length >= 12) {
-			jumpLevels = [["Train Combat", 250], ["Terrorism", 350], ["Territory Warfare", 600], ["Human Trafficking", 5900000]];
-			if (ns.gang.getGangInformation().territory < 1 && await calculateWarChance(ns) < goToWarWhenChancesOver) {
-				jumpLevels = [["Train Combat", 250], ["Terrorism", 350], ["Territory Warfare", 3500], ["Human Trafficking", 5900000]];
-			}
-			if (ns.getServerMoneyAvailable("home") > 10000000000) {
+			var destinationTask = "Territory Warfare";
+			if (fullTeam == true) {
+				jumpLevels = [["Train Combat", 300], ["Terrorism", 500], ["Territory Warfare", 600], ["Human Trafficking", 5900000]];
+				if (ns.gang.getGangInformation().territory < 1 && await calculateWarChance(ns) < goToWarWhenChancesOver) {
+					jumpLevels = [["Train Combat", 300], ["Terrorism", 350], ["Territory Warfare", 3500], ["Human Trafficking", 5900000]];
+				}
+
 				if (endGameFocus == "Reputation") {
 					jumpLevels = [["Train Combat", 300], ["Vigilante Justice", 350], ["Terrorism", 99000000]];
 				}
 				if (endGameFocus == "Money") {
-					if (ns.gang.getGangInformation().territory < 1) {
-						jumpLevels = [["Train Combat", 300], ["Vigilante Justice", 350], ["Territory Warfare", 99000000]];
-					} else {
-						jumpLevels = [["Train Combat", 300], ["Vigilante Justice", 350], ["Human Trafficking", 99000000]];
-
-					}
+					jumpLevels = [["Train Combat", 300], ["Vigilante Justice", 350], ["Human Trafficking", 99000000]];
 				}
 			}
 		}
@@ -118,34 +144,31 @@ export async function main(_ns) {
 				if (!members.includes(names[a]) && newMember == "") {
 					await ns.gang.recruitMember(names[a]);
 					await ns.sleep(1000);
-					recruitedLastRound = true;
 					members = ns.gang.getMemberNames();
 					newMember = names[a];
 					ns.print("Added gang member " + newMember);
 					let newMemberObj = createMemberObject(ns, newMember);
 					myGang[newMember] = newMemberObj;
-					await ns.gang.setMemberTask(newMember, "Train Combat");
+					if (!debugOnly) {
+						await ns.gang.setMemberTask(newMember, "Train Combat");
+					} else {
+						ns.print(`___ Would be setting ${newMember} to 'Train Combat'`);
+					}
 					break;
 				}
 			}
-		} else {
-			if (recruitedLastRound == true) {
-				ns.print("Can't recruit just yet. Trying again in " + (timeCycle * 1000));
-
-			}
 		}
 		await ns.print(" ");
-		await ns.sleep(timeCycle * 1000);
+
+		fullTeam = members.length >= 12;
 		await evalMemberAscend(ns);
 		await evalMemberUpgrades(ns);
 		await evalCurrentRep(ns);
 		await evalMemberTasks(ns);
 		await evalGoToWar(ns);
-
-
+		await ns.sleep(timeCycle * 1000);
 	}
 }
-
 async function evalCurrentRep(ns) {
 	let members = ns.gang.getMemberNames();
 	var mygangInfo = ns.gang.getGangInformation();
@@ -166,19 +189,31 @@ async function evalCurrentRep(ns) {
 				thisMemberInfo = ns.gang.getMemberInformation(members[a]);
 				if ((mygangInfo.respect / mygangInfo.wantedLevel) <= 2) {
 					if (a == 0) { // First person needs to Mug for initial Rep offset
-						await ns.gang.setMemberTask(members[a], "Mug People");
-						ns.print(`    setting ${members[a]} to Mug People`);
+						if (!debugOnly) {
+							await ns.gang.setMemberTask(members[a], "Mug People");
+							ns.print(`    setting ${members[a]} to Mug People`);
+						} else {
+							ns.print(`___ Would be setting ${members[a]} to 'Mug People' in evalCurrentRep()`);
+						}
 						mygangInfo = ns.gang.getGangInformation();
 					}
 					if ((mygangInfo.wantedLevel - mygangInfo.respect) > 0 && a == 1) {
-						await ns.gang.setMemberTask(members[a], "Mug People");
-						ns.print(`    setting ${members[a]} to Mug People`);
+						if (!debugOnly) {
+							await ns.gang.setMemberTask(members[a], "Mug People");
+							ns.print(`    setting ${members[a]} to Mug People`);
+						} else {
+							ns.print(`___ Would be setting ${members[a]} to 'Mug People' in evalCurrentRep()`);
+						}
 						mygangInfo = ns.gang.getGangInformation();
 					}
 				}
 				if (thisMemberInfo.task != "Vigilante Justice" && a != 0 && (ns.gang.getMemberNames().length < 3 || a != 1)) {
-					await ns.gang.setMemberTask(members[a], "Vigilante Justice");
-					ns.print(`    setting ${members[a]} to Vigilante Justice`);
+					if (!debugOnly) {
+						await ns.gang.setMemberTask(members[a], "Vigilante Justice");
+						ns.print(`    setting ${members[a]} to Vigilante Justice`);
+					} else {
+						ns.print(`___ Would be setting ${members[a]} to 'Vigilante Justice' in evalCurrentRep()`);
+					}
 					mygangInfo = ns.gang.getGangInformation();
 				}
 			}
@@ -193,13 +228,16 @@ async function evalCurrentRep(ns) {
 				if (!members.includes(names[a]) && newMember == "") {
 					await ns.gang.recruitMember(names[a]);
 					await ns.sleep(1000);
-					recruitedLastRound = true;
 					members = ns.gang.getMemberNames();
 					newMember = names[a];
 					let newMemberObj = createMemberObject(ns, newMember);
 					myGang[newMember] = newMemberObj;
 					ns.print("Added gang member " + newMember);
-					await ns.gang.setMemberTask(newMember, "Train Combat");
+					if (!debugOnly) {
+						await ns.gang.setMemberTask(newMember, "Train Combat");
+					} else {
+						ns.print(`___ Would be setting ${newMember} to 'Train Combat' in evalCurrentRep() canRecruitMember()`);
+					}
 					break;
 				}
 			}
@@ -211,80 +249,149 @@ async function evalCurrentRep(ns) {
 	if (hadToReBalance == true) {
 		ns.print("_Re-assigning tasks");
 		for (var a = 0; a < members.length; a++) {
-			ns.print(`setting ${members[a]} back to ${prevTasks[members[a]]}`);
-			await ns.gang.setMemberTask(members[a], prevTasks[members[a]]);
+			if (!debugOnly) {
+				ns.print(`setting ${members[a]} back to ${prevTasks[members[a]]}`);
+				await ns.gang.setMemberTask(members[a], prevTasks[members[a]]);
+			} else {
+				ns.print(`___ Would be setting ${members[a]} to '${prevTasks[members[a]]}' in evalCurrentRep() -> after rebalancing`);
+
+			}
 		}
 	}
 }
 
+function selectAction(jumpLevels, gangInfo, memberInfo) {
+	let destinationTask = 'Train Combat';
+
+	for (let JL in jumpLevels) {
+		if (memberInfo.str > jumpLevels[JL][1]) {
+			if (verbose) ns.print(`evaluating ${memberInfo.name} str ${memberInfo.str} > ${jumpLevels[JL][1]} JL=${JL}`);
+			continue;
+		} else {
+			if (verbose) ns.print(`evaluating ${memberInfo.name} str ${memberInfo.str} <= ${jumpLevels[JL][1]} JL=${JL} so setting destinationTask= ${jumpLevels[JL][0]}`);
+			destinationTask = jumpLevels[JL][0];
+			break;
+		}
+	}
+	return destinationTask;
+}
+/**
+ * return GangMemberInfo
+ */
+function findStrongestMember(fullMemberInfos) {
+	var strongest = fullMemberInfos.reduce(function (prev, current) {
+		if (+current.str > +prev.str) {
+			return current;
+		} else {
+			return prev;
+		}
+	});
+	return strongest;
+}
+
 async function evalMemberTasks(ns) {
 	let members = ns.gang.getMemberNames();
+
 	var thisMemberInfo = null;
-	let proceedDescDeets = chooseOrder(ns);
-	let start = proceedDescDeets[0];
-	let end = proceedDescDeets[1];
-	let proceedDesc = proceedDescDeets[2];
-	var originalJumpLevels = [["Train Combat", 90], ["Mug People", 130], ["Strongarm Civilians", 300], ["Human Trafficking", 400], ["Terrorism", 1000000]];
+	var originalJumpLevels = [["Train Combat", 90], ["Mug People", 130], ["Strongarm Civilians", 400], ["Terrorism", 550], ["Human Trafficking", 950], ["Terrorism", 100000000]];
+	let tmpJumpLevels = originalJumpLevels;
 	ns.print("Re-evaluating member tasks for harder tasks");
 	let membersInWarfare = 0;
 	let membersAtTerror = 0;
-	for (var a = start; evalForOperation(proceedDesc, a, end); a = forOperation(proceedDesc, a)) {
-		thisMemberInfo = ns.gang.getMemberInformation(members[a]);
-		var destinationTask = "Territory Warfare";
-		if (members.length >= 12) {
-			jumpLevels = [["Train Combat", 250], ["Terrorism", 350], ["Territory Warfare", 600], ["Human Trafficking", 5900000]];
-			if (ns.gang.getGangInformation().territory < 1 && await calculateWarChance(ns) < goToWarWhenChancesOver) {
-				jumpLevels = [["Train Combat", 250], ["Terrorism", 350], ["Territory Warfare", 3500], ["Human Trafficking", 5900000]];
-			}
-			if (ns.getServerMoneyAvailable("home") > 10000000000) {
-				if (endGameFocus == "Reputation") {
-					jumpLevels = [["Train Combat", 300], ["Vigilante Justice", 350], ["Terrorism", 99000000]];
-				}
-				if (endGameFocus == "Money") {
-					if (ns.gang.getGangInformation().territory < 1) {
-						jumpLevels = [["Train Combat", 300], ["Vigilante Justice", 350], ["Territory Warfare", 99000000]];
-					} else {
-						jumpLevels = [["Train Combat", 300], ["Vigilante Justice", 350], ["Human Trafficking", 99000000]];
-					}
-				}
-			}
-		}
-		if (members.length == 12 && membersInWarfare >= maximumFullGangAtWar) {
-			jumpLevels = originalJumpLevels;
-		}
-		if (members.length == 12 && membersAtTerror < minimumFullGangTerror) {
-			ns.gang.setMemberTask(members[a], "Territory Warfare");
-			membersAtTerror++;
-			continue;
-		}
-		for (let JL in jumpLevels) {
-			if (thisMemberInfo.str > jumpLevels[JL][1]) {
-				if (verbose) ns.print(`evaluating ${members[a]} str ${thisMemberInfo.str} > ${jumpLevels[JL][1]} JL=${JL}`);
-				continue;
-			} else {
-				if (verbose) ns.print(`evaluating ${members[a]} str ${thisMemberInfo.str} <= ${jumpLevels[JL][1]} JL=${JL} so setting destinationTask= ${jumpLevels[JL][0]}`);
-				destinationTask = jumpLevels[JL][0];
-				break;
-			}
-		}
-		if (members.length >= 12) {
-			if ((members[a] == 'shawn') && thisMemberInfo.str > 1000) {
-				ns.print(` Forcing ${members[a]} to Territory Warfare`);
-				ns.gang.setMemberTask(members[a], "Territory Warfare");
-				membersInWarfare++;
-				break;
-			}
-		}
-		if (destinationTask == "Territory Warfare") {
+	let fullMemberInfos = [];
+	members.forEach(m => {
+		let tmpInfo = ns.gang.getMemberInformation(m);
+		fullMemberInfos.push(tmpInfo);
+	});
+
+	fullMemberInfos.sort(function (a, b) {
+		return a.str - b.str;
+
+	});
+
+	for (let a = 0; a < fullMemberInfos.length; a++) {
+		fullMemberInfos[a] = ns.gang.getMemberInformation(fullMemberInfos[a].name);
+		if (fullMemberInfos[a].task == 'Territory Warfare') {
 			membersInWarfare++;
 		}
-		if (destinationTask == "Terrorism") {
+		if (fullMemberInfos[a].task == 'Terrorism') {
 			membersAtTerror++;
 		}
-		if (thisMemberInfo.task != destinationTask) {
-			ns.print(` Upgrading ${members[a]} from ${thisMemberInfo.task} to ${destinationTask}`);
-			ns.gang.setMemberTask(members[a], destinationTask);
+
+
+		thisMemberInfo = fullMemberInfos[a];
+		var destinationTask = "Territory Warfare";
+		if (fullTeam == true) {
+			tmpJumpLevels = [["Train Combat", 300], ["Terrorism", 500], ["Territory Warfare", 600], ["Human Trafficking", 5900000]];
+			if (ns.gang.getGangInformation().territory < 1 && await calculateWarChance(ns) < goToWarWhenChancesOver) {
+				tmpJumpLevels = [["Train Combat", 300], ["Terrorism", 350], ["Territory Warfare", 3500], ["Human Trafficking", 5900000]];
+			}
+
+			if (endGameFocus == "Reputation") {
+				tmpJumpLevels = [["Train Combat", 300], ["Vigilante Justice", 350], ["Terrorism", 99000000]];
+			}
+			if (endGameFocus == "Money") {
+				tmpJumpLevels = [["Train Combat", 300], ["Vigilante Justice", 350], ["Human Trafficking", 99000000]];
+			}
+			if (members.length >= 12 && membersInWarfare >= maximumFullGangAtWar) {
+				tmpJumpLevels = originalJumpLevels;
+			}
 		}
+		let withoutWarfare = null;
+		if (membersInWarfare > gangSettings.maxMembersAtWarfareBeforeWar) {
+			if (debugOnly) {
+				ns.print("INSIDE TOO MANY AT Pre-War warfare");
+			}
+			withoutWarfare = tmpJumpLevels.filter(function (jl, index) {
+				return jl[0] != "Territory Warfare";
+			});
+			ns.print(withoutWarfare);
+		}
+
+		destinationTask = selectAction(withoutWarfare ?? tmpJumpLevels, ns.gang.getGangInformation(), ns.gang.getMemberInformation(members[a]));
+
+		if (thisMemberInfo.task != destinationTask) {
+			if (!debugOnly) {
+				ns.print(` Upgrading ${members[a]} from ${thisMemberInfo.task} to ${destinationTask}`);
+				if (thisMemberInfo.task == 'Territory Warfare') {
+					membersInWarfare--;
+				}
+				if (thisMemberInfo.task == 'Terrorism') {
+					membersAtTerror--;
+				}
+				if (destinationTask == 'Territory Warfare') {
+					membersInWarfare++;
+				}
+				if (destinationTask == 'Terrorism') {
+					membersAtTerror++;
+				}
+				ns.gang.setMemberTask(members[a], destinationTask);
+			} else {
+				ns.print(`___ Would be setting ${members[a]} to '${destinationTask}' in evalMemberTasks()`);
+				if (thisMemberInfo.task == 'Territory Warfare') {
+					membersInWarfare--;
+				}
+				if (thisMemberInfo.task == 'Terrorism') {
+					membersAtTerror--;
+				}
+				if (destinationTask == 'Territory Warfare') {
+					membersInWarfare++;
+				}
+				if (destinationTask == 'Terrorism') {
+					membersAtTerror++;
+				}
+			}
+		}
+	}
+	let sm = findStrongestMember(fullMemberInfos);
+	if (fullTeam == true && membersAtTerror < minimumFullGangTerror && sm.task != 'Terrorism') {
+		if (!debugOnly) {
+			ns.print(`Forcing ${sm.name} to 'Terrorism' to make minimum`);
+			ns.gang.setMemberTask(sm.name, "Terrorism");
+		} else {
+			ns.print(`___ Would be Forcing ` + sm.name + ` to 'Terrorism' in evalMemberTasks()-> membersAtTerror < minimum`);
+		}
+		membersAtTerror++;
 	}
 }
 
@@ -327,18 +434,29 @@ async function evalMemberUpgrades(ns) {
 			'Jack the Ripper']);
 	}
 	var thisMemberInfo = null;
-	let proceedDescDeets = chooseOrder(ns);
-	let start = proceedDescDeets[0];
-	let end = proceedDescDeets[1];
-	let proceedDesc = proceedDescDeets[2];
+	let fullMemberInfos = [];
+	members.forEach(m => {
+		let tmpInfo = ns.gang.getMemberInformation(m);
+		fullMemberInfos.push(tmpInfo);
+	});
+
+	fullMemberInfos.sort(function (a, b) {
+		return a.str_mult - b.str_mult;
+
+	});
+
 	for (const equip of equipmentList) {
-		for (var a = start; evalForOperation(proceedDesc, a, end); a = forOperation(proceedDesc, a)) {
-			thisMemberInfo = ns.gang.getMemberInformation(members[a]);
+		for (var a = 0; a < fullMemberInfos.length; a++) {
+			thisMemberInfo = fullMemberInfos[a];
 			if (!thisMemberInfo.upgrades.includes(equip)) {
 				if (ns.getServerMoneyAvailable("home") > ns.gang.getEquipmentCost(equip)) {
-					ns.print(` Buying ${equip} for ${members[a]}`);
-					ns.gang.purchaseEquipment(members[a], equip);
-					myGang[members[a]].equipemntCostSinceAscention += ns.gang.getEquipmentCost(equip);
+					if (!debugOnly || equipOnly) {
+						ns.print(` Buying ${equip} for ${thisMemberInfo.name}`);
+						ns.gang.purchaseEquipment(thisMemberInfo.name, equip);
+					} else {
+						ns.print(`___ Would be buying ${equip} for  ${thisMemberInfo.name} str_multi: ${thisMemberInfo.str_mult}`);
+					}
+					myGang[thisMemberInfo.name].equipemntCostSinceAscention += ns.gang.getEquipmentCost(equip);
 				}
 			}
 
@@ -350,81 +468,85 @@ async function evalMemberAscend(ns) {
 	var thisMemberInfo = null;
 	let members = ns.gang.getMemberNames();
 	ns.print("Evaluating members for ascention");
-	var allowedAscendCount = Math.floor(members.length / 2);
 	var ascendCounter = 0;
 	let gangInfo = ns.gang.getGangInformation();
 	let respectLeft = Math.floor(gangInfo.respect / 2);
-	let proceedDescDeets = chooseOrder(ns);
-	let start = proceedDescDeets[0];
-	let end = proceedDescDeets[1];
-	let proceedDesc = proceedDescDeets[2];
-	for (var a = start; evalForOperation(proceedDesc, a, end); a = forOperation(proceedDesc, a)) {
+
+	let fullMemberInfos = [];
+	members.forEach(m => {
+		let tmpInfo = ns.gang.getMemberInformation(m);
+		fullMemberInfos.push(tmpInfo);
+	});
+
+	fullMemberInfos.sort(function (a, b) {
+		return a.str_mult - b.str_mult;
+
+	});
+	for (var a = 0; a < fullMemberInfos.length; a++) {
 		//var ascend = false;
-		thisMemberInfo = ns.gang.getMemberInformation(members[a]);
+		thisMemberInfo = fullMemberInfos[a];
 		if (thisMemberInfo.earnedRespect == undefined) {
 			thisMemberInfo.earnedRespect = 0;
 		}
 		var ascendPotentional = ns.gang.getAscensionResult(members[a]);
 		if (ascendPotentional !== null && ascendPotentional !== undefined) {
 			if ((gangInfo.respect - thisMemberInfo.earnedRespect) > gangInfo.wantedLevel) {
-				if ((ascendPotentional.str > ascentionStatReqs.strength || ascendPotentional.dex > ascentionStatReqs.dexterity || ascendPotentional.agi > ascentionStatReqs.agility)) {
+				if (ascentionEnabled && ns.getServerMoneyAvailable('home') > gangSettings.moneyInBankToAscend && (ascendPotentional.str > ascentionStatReqs.strength || ascendPotentional.dex > ascentionStatReqs.dexterity || ascendPotentional.agi > ascentionStatReqs.agility)) {
 					if (!ns.gang.getGangInformation().territoryWarfareEngaged || ascendCounter <= maxMembersToAscendDuringWar) {
 						let timeSinceAscention = Date.now() - myGang[members[a]].lastAscended;
 						if ((timeSinceAscention >= timeToHoldOffOnAscentionAfterEquipping && myGang[members[a]].equipemntCostSinceAscention <= costOfEquipmentToPauseAscention)
 							|| timeSinceAscention >= maxTimeBetweenAscention) {
-							ns.print(` Ascending ${members[a]}`);
-							await ns.gang.ascendMember(members[a]);
-							await ns.sleep(150);
+							if (!debugOnly) {
+								ns.print(` Ascending ${thisMemberInfo.name}`);
+								await ns.gang.ascendMember(thisMemberInfo.name);
+								await ns.sleep(150);
+								ns.gang.setMemberTask(thisMemberInfo.name, "Train Combat");
+							} else {
+								ns.print(`___ Would be Ascending ${thisMemberInfo.name} setting to 'Train Combat' in evalMemberAscend() str_mult: ${thisMemberInfo.str_mult}`);
+							}
 							gangInfo = ns.gang.getGangInformation();
 							respectLeft = respectLeft - ascendPotentional.respect;
 							ascendCounter++;
-							myGang[members[a]].lastAscended = Date.now();
-							myGang[members[a]].equipemntCostSinceAscention = 0;
+							myGang[thisMemberInfo.name].lastAscended = Date.now();
+							myGang[thisMemberInfo.name].equipemntCostSinceAscention = 0;
 						} else {
-							if (verbose) ns.print(` Did NOT ascend ${members[a]} because of Equipment Purchase Timing`);
+							if (verbose) ns.print(` Did NOT ascend ${thisMemberInfo.name} because of Equipment Purchase Timing`);
 						}
 					} else {
-						if (verbose) ns.print(` ascending ${members[a]} would incur too much loss on Gang rep during war`);
+						if (verbose) ns.print(` ascending ${thisMemberInfo.name} would incur too much loss on Gang rep during war`);
 					}
 				} else {
+					if (verbose) {
+						if (!ascentionEnabled) {
+							ns.print("Ascention is not enabled");
+						} else
+							if (ns.getServerMoneyAvailable('home') <= gangSettings.moneyInBankToAscend) {
+								ns.print(`Minimum waiting money not met to Ascend ${ns.getServerMoneyAvailable('home')}  !> ${gangSettings.moneyInBankToAscend}`);
+							}
+							else {
+								let reason = `Stat threshold for ${thisMemberInfo.name} not met:`;
+								if (ascendPotentional.str <= ascentionStatReqs.strength) {
+									reason += ` Strength ${ascendPotentional.str} !> ${ascentionStatReqs.strength}`;
+								}
+								if (ascendPotentional.dex <= ascentionStatReqs.dexterity) {
+									reason += ` Dexterity ${ascendPotentional.dex} !> ${ascentionStatReqs.dexterity}`;
+								}
+								if (ascendPotentional.agi <= ascentionStatReqs.agility) {
+									reason += ` Agility ${ascendPotentional.agi} !> ${ascentionStatReqs.agility}`;
+								}
+								ns.print(reason);
+							}
 
-					if (verbose) ns.print(` ${members[a]} not ready for Ascention`);
+						ns.print(` ${thisMemberInfo.name} not ready for Ascention`);
+					}
 				}
 			} else {
-				if (verbose) ns.print(` ascending ${members[a]} would drop gang rep below wanted level.\n\t${gangInfo.respect} - ${thisMemberInfo.earnedRespect} > ${gangInfo.wantedLevel}`);
+				if (verbose) ns.print(` ascending ${thisMemberInfo.name} would drop gang rep below wanted level.\n\t${gangInfo.respect} - ${thisMemberInfo.earnedRespect} > ${gangInfo.wantedLevel}`);
 			}
-		} else if (verbose) ns.print(` no ascention potential for ${members[a]}`);
+		} else if (verbose) ns.print(` no ascention potential for ${thisMemberInfo.name}`);
 	}
-}
-function chooseOrder(ns) {
-	let members = ns.gang.getMemberNames();
-	let proceedDesc = Math.random() < 0.5;
-	let start = 0;
-	let end = members.length;
-	if (proceedDesc) {
-		if (verbose) ns.print("  by descending order");
-		start = members.length - 1;
-		end = 0;
-	} else {
-		if (verbose) ns.print("  by ascending order");
-	}
-	return [start, end, proceedDesc];
 }
 
-function forOperation(desc, value) {
-	if (desc) {
-		return --value;
-	} else {
-		return ++value;
-	}
-}
-function evalForOperation(desc, value, value2) {
-	if (desc) {
-		return value > value2;
-	} else {
-		return value < value2;
-	}
-}
 
 async function calculateWarChance(ns) {
 	let otherGangs = ns.gang.getOtherGangInformation();
@@ -457,12 +579,20 @@ async function evalGoToWar(ns) {
 	}
 	if (goToWar) {
 		if (!atWar) {
-			ns.print(` Enabling Territory Warfare: Our worstcase chance ${lowestChance.toLocaleString('en-US')} Threshold: ${threshold}`);
-			ns.gang.setTerritoryWarfare(true);
+			if (!debugOnly) {
+				ns.print(` Enabling Territory Warfare: Our worstcase chance ${lowestChance.toLocaleString('en-US')} Threshold: ${threshold}`);
+				ns.gang.setTerritoryWarfare(true);
+			} else {
+				ns.print(`___ Would be Enabling Territory Warfare`);
+			}
 		}
 	} else {
-		ns.print(` Disabling Territory Warfare: Our worstcase chance ${lowestChance.toLocaleString('en-US')} Threshold: ${threshold}`);
-		ns.gang.setTerritoryWarfare(false);
+		if (!debugOnly) {
+			ns.print(` Disabling Territory Warfare: Our worstcase chance ${lowestChance.toLocaleString('en-US')} Threshold: ${threshold}`);
+			ns.gang.setTerritoryWarfare(false);
+		} else {
+			ns.print(`___ Would be Disabling Territory Warfare`);
+		}
 	}
 }
 function createMemberObject(ns, memberName) {
