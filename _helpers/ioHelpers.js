@@ -24,16 +24,16 @@ export async function getLockAndUpdate(ns,itemName,itemValue) {
 	if(locked == undefined || locked == null || locked === undefined) {
 		setItem(ns,locking,false);
 		locked = false;
-		await ns.sleep(500);
+		await ns.sleep(50);
 	}
 	while(locked == undefined || locked == null || locked === true) {
-		await ns.sleep(100);
+		await ns.sleep(50);
 		ns.print(`awaiting ${locking} to unlock`);
 		locked = getItem(ns,locking);
 	}
 	setItem(ns,locking,true);
 	setItem(ns,itemName,itemValue);
-	await ns.sleep(100);
+	await ns.sleep(50);
 	setItem(ns,locking,false);
-	await ns.sleep(100);
+	await ns.sleep(50);
 }
