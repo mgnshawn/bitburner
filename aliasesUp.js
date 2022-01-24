@@ -5,9 +5,10 @@ export async function main(ns) {
         'gt="run /_helpers/goto.js "',
         'goto="run /_helpers/goto.js "',
         'purchaseserver="run /_helpers/purchaseServer.js "',
-        'singledownload="run /_helpers/singleDownload "',
+        'singledownload="run /_helpers/singleDownload.js "',
         'terminal="run /_helpers/terminal.js"',
-        'reporefresh="run /_helpers/repoRefresh.js"'
+        'reporefresh="run /_helpers/repoRefresh.js"',
+        'tradestocks="run /_helpers/stockTrader.js"'
         ];
     aliases.forEach(allyText => {
 // Acquire a reference to the terminal text field

@@ -7,7 +7,7 @@ var repThreshold = 15; // When to switch to improving wanted level
 
 const goToWarWhenChancesOver = 70
 const maximumFullGangAtWar = 8; // Most members that can being doing Territory Warface
-const minimumFullGangTerror = 3; // Minimum number of members doing Terrorism
+const minimumFullGangTerror = 0; // Minimum number of members doing Terrorism
 const maxMembersToAscendDuringWar = 2;
 
 var previousTerritoryHeld = 0;
@@ -21,7 +21,7 @@ var maxTimeBetweenAscention = 15 * 60 * 1000;
 var timeCycle = 1 * 60;
 
 
-var ascentionStatReqs = { 'strength': 1.15, 'dexterity': 1.3, 'agility': 1.3 };
+var ascentionStatReqs = { 'strength': 1.13, 'dexterity': 1.3, 'agility': 1.3 };
 var fullGangMembersInfo;
 var verbose;
 var ascentionEnabled;
@@ -33,7 +33,6 @@ var purchaseHackingAugs;
 //var jumpLevels = {"Mug People":50,"Train Combat":100,"Strongarm Civilians":325,"Human Trafficking":500,"Terrorism":1500};
 var jumpLevels = [["Train Combat", 90], ["Mug People", 130], ["Strongarm Civilians", 400], ["Terrorism", 550], ["Human Trafficking", 950], ["Terrorism", 100000000]];
 var names = ['shawn', 'joe', 'mike', 'heather', 'irene', 'anna', 'tony', 'bobby', 'billy', 'lance', 'sarah', 'misty'];
-var myGang = {};
 
 /** @param {NS} ns **/
 export async function main(_ns) {
@@ -49,7 +48,7 @@ export async function main(_ns) {
 	ns.disableLog("gang.ascendMember");
 	ns.disableLog("gang.setTerritoryWarfare");
 	
-	var verbose = false;
+	verbose = false;
 	ascentionEnabled = true;
 	debugOnly = false;
 	equipOnly = false;
@@ -62,7 +61,7 @@ export async function main(_ns) {
 	for (let z = 0; z < ns.args.length; z++) {
 		if (ns.args[z] !== undefined) {
 			if (ns.args[z] !== undefined && ['h', '-h', '?', '-?'].includes(ns.args[z])) {
-				ns.tprint(`arguments (v) (debugonly)  (equiponly)  (endgamefocus:[money,reputation]`);
+				ns.tprint(`arguments (v) (debugonly)  (equiponly)  (endgamefocus:[money,reputation] (freshstart)`);
 				ns.exit();
 			}
 			ns.tail();
@@ -84,7 +83,7 @@ export async function main(_ns) {
 				ns.print(`Setting EndGame Focus To: ${endGameFocus}`);
 			}
 			
-			
+			if(verbose) ns.print("VERBOSE");
 			if (ns.args[z] == 'freshstart' || tmpFullGangMembersInfo == undefined) {
 				fullGangMembersInfo = [];
 				sessionStorage.removeItem('fullGangMembersInfo_Locked');
@@ -149,8 +148,6 @@ export async function main(_ns) {
 		}
 		await ns.sleep(60000);
 	}
-
-	if (verbose) ns.print(fullGangMembersInfo);
 
 	previousTerritoryHeld = ns.gang.getGangInformation().territory.toLocaleString('en-US');
 	ns.print(`Territory Held: ${100 * previousTerritoryHeld}`);
@@ -516,6 +513,7 @@ async function evalMemberUpgrades(ns) {
 }
 
 async function evalMemberAscend(ns) {
+	if(verbose)ns.print("STILL VERBOSE");
 	var thisMemberInfo = null;
 	let members = ns.gang.getMemberNames();
 	ns.print("Evaluating members for ascention");
@@ -528,12 +526,14 @@ async function evalMemberAscend(ns) {
 	});
 	
 	for (var a = 0; a < fullGangMembersInfo.length; a++) {
-		//var ascend = false;
+		//var ascend = false; 
 		thisMemberInfo = fullGangMembersInfo[a];
+		
 		if (thisMemberInfo.earnedRespect == undefined) {
 			thisMemberInfo.earnedRespect = 0;
 		}
-		if(verbose) ns.print(`Evaluating ${thisMemberInfo.name}`);
+
+		ns.print(`Evaluating ${thisMemberInfo.name}`);
 		var ascendPotentional = ns.gang.getAscensionResult(members[a]);
 		if (ascendPotentional !== null && ascendPotentional !== undefined) {
 			if ((gangInfo.respect - thisMemberInfo.earnedRespect) > gangInfo.wantedLevel) {
