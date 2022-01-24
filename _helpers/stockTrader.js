@@ -1,4 +1,6 @@
 // Credit Goes to PriNT2357
+import { money } from '/_helpers/helpers.js';
+var profitOverTime;
 /** @param {NS} ns **/
 export async function main(ns) {
 	const purchaseForecase = 0.6; // Purchase if the forecast is over this value
@@ -9,6 +11,9 @@ export async function main(ns) {
 	ns.clearLog();
 	var symbols = ns.stock.getSymbols();
 	var netProfit = 0;
+
+	let startingProfit = localStorage.getItem('stockProfitOverTime');
+	profitOverTime = { 'time': Date.now() / 1000, 'profit': +startingProfit ?? 0 };
 	while (true) {
 		var positions = [];
 		var printProfit = false;
@@ -34,15 +39,23 @@ export async function main(ns) {
 			positions.push(data);
 		}
 
+		if (((Date.now() / 1000) - profitOverTime.time) >= 60) {
+			profitOverTime.time = Date.now() / 1000;
+			let now = new Date();
+			let time = now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+			ns.print(`${time} Profit over time: ${money(profitOverTime.profit)}`);
+		}
 		//ns.print(positions);
 		// Check if any sales need to be made
 		for (var i = 0; i < positions.length; i++) {
+
 			var p = positions[i];
 			if (p.owned) {
 				if (p.forecast < sellForecase) {
 					// ns.print(ns.sprintf("Selling %s shares of %s due to poor forecast (%0.2f) ($%5s)", (p.sharesLong), p.symbol, p.forecast, formatNumber(p.profit)));
 					ns.stock.sell(p.symbol, p.sharesLong);
 					netProfit += p.profit;
+					updateProfit(p.profit);
 					printProfit = true;
 				}
 			}
@@ -53,6 +66,7 @@ export async function main(ns) {
 					if (cost < ns.getPlayer().money - 100000 - moneyBuffer) {
 						ns.stock.buy(p.symbol, p.maxShares);
 						netProfit -= cost;
+						updateProfit(cost * -1);
 						printProfit = true;
 					}
 				}
@@ -64,7 +78,10 @@ export async function main(ns) {
 		await ns.sleep(5000);
 	}
 }
-
+function updateProfit(money) {
+	profitOverTime.profit += money;
+	localStorage.setItem('stockProfitOverTime', profitOverTime.profit);
+}
 
 function formatNumber(n) {
 	const div = 1000;
@@ -78,4 +95,3 @@ function formatNumber(n) {
 
 	return m + label;
 }
-
