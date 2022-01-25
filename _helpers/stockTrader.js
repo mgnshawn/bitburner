@@ -5,9 +5,9 @@ var profitOverTime;
 /** @param {NS} ns **/
 export async function main(ns) {
 	const purchaseForecase = 0.55; // Purchase if the forecast is over this value
-	const sellForecase = 0.52; // Sell if forecase is below this value
+	const sellForecase = 0.4; // Sell if forecase is below this value
 	const moneyBuffer = 1000000; // Do not buy if money would go below this value
-	const sellForProfitOf = 1.0115; //Percent profit desired
+	const sellForProfitOf = 1.10; //Percent profit desired
 	const minutesBetweenStatusUpdates = 1;
 	const secondsBetweenMarketChecks = 1;
 
@@ -61,9 +61,9 @@ export async function main(ns) {
 						//						if(verbose)ns.print(`preSale: ${((ns.stock.getPrice(p.symbol) - p.avgPriceLong) * shares)}  > ${((p.avgPriceLong * sellForProfitOf)*shares*sellForProfitOf)}`);
 						//ns.print(`..:: PreSale Profit Percent  ${Math.round(((ns.stock.getPrice(p.symbol) / p.avgPriceLong))*100)/100}%`);
 						let soldAt = ns.stock.sell(p.symbol, p.sharesLong);
-						ns.print(`\t\t..:: Sold ${p.symbol} @ ${money(Math.round(soldAt * 100) / 100)}\tBought@ ${money(Math.round(p.avgPriceLong * 100) / 100)} = ` + money(((soldAt - p.avgPriceLong) * shares) * .99) + `  Profit => ${Math.round(((preSalePrice / p.avgPriceLong)) * 100) / 100}%`);
-						netProfit += p.profit;
-						updateProfit(p.profit);
+						ns.print(`\t\t..::$$$$ Sold ${p.symbol} @ ${money(Math.round(soldAt * 100) / 100)}\tBought@ ${money(Math.round(p.avgPriceLong * 100) / 100)} = ` + money(((soldAt - p.avgPriceLong) * shares) * .99) + `  Profit => ${Math.round(((preSalePrice / p.avgPriceLong)) * 100) / 100}%`);
+						netProfit += ((soldAt - p.avgPriceLong) * shares);
+						updateProfit(((soldAt - p.avgPriceLong) * shares));
 						printProfit = true;
 						let tmpPositions = updatePositions(ns, symbols);
 						let totalPositions = 0;
@@ -74,7 +74,24 @@ export async function main(ns) {
 						});
 						ns.print(`\t\tTotal Invested:: $${money(totalPositions)}`);
 					} else {
-						if (verbose) ns.print(`Didnt Sell: ${p.symbol} of ${shares} current ${money(Math.round(ns.stock.getPrice(p.symbol) * 100) / 100)} bought@ ${money(Math.round(p.avgPriceLong * 100) / 100)}:: ${(ns.stock.getPrice(p.symbol))} ?<>? ${((p.avgPriceLong * sellForProfitOf))} => ${money(ns.stock.getPrice(p.symbol) - (p.avgPriceLong * sellForProfitOf))} would yield ${Math.round(((ns.stock.getPrice(p.symbol) / p.avgPriceLong)) * 100) / 100}%`);
+						if (p.forecast < sellForecase && ns.stock.getPrice(p.symbol) > p.avgPriceLong) {
+							// ns.print(ns.sprintf("Selling %s shares of %s due to poor forecast (%0.2f) ($%5s)", (p.sharesLong), p.symbol, p.forecast, formatNumber(p.profit)));
+							let soldAt = ns.stock.sell(p.symbol, p.sharesLong);
+							ns.print(`\t\t..::<<>> Sold ${p.symbol} @ ${money(Math.round(soldAt * 100) / 100)}\tBought@ ${money(Math.round(p.avgPriceLong * 100) / 100)} = ` + money(((soldAt - p.avgPriceLong) * shares) * .99) + `  Profit => ${Math.round(((preSalePrice / p.avgPriceLong)) * 100) / 100}%`);
+							netProfit += ((soldAt - p.avgPriceLong) * shares);
+							updateProfit(((soldAt - p.avgPriceLong) * shares));
+							printProfit = true;
+							let tmpPositions = updatePositions(ns, symbols);
+							let totalPositions = 0;
+							tmpPositions.forEach(p => {
+								if (p.owned > 0) {
+									totalPositions += (p.avgPriceLong * p.maxShares);
+								}
+							});
+							ns.print(`\t\tTotal Invested:: $${money(totalPositions)}`);
+						} else {
+							if (verbose) ns.print(`Didnt Sell: ${p.symbol} of ${shares} current ${money(Math.round(ns.stock.getPrice(p.symbol) * 100) / 100)} bought@ ${money(Math.round(p.avgPriceLong * 100) / 100)}:: ${(ns.stock.getPrice(p.symbol))} ?<>? ${((p.avgPriceLong * sellForProfitOf))} => ${money(ns.stock.getPrice(p.symbol) - (p.avgPriceLong * sellForProfitOf))} would yield ${Math.round(((ns.stock.getPrice(p.symbol) / p.avgPriceLong)) * 100) / 100}%`);
+						}
 					}
 				}
 				else {
@@ -84,9 +101,9 @@ export async function main(ns) {
 						var cost = ns.stock.getPurchaseCost(p.symbol, p.maxShares, "Long");
 						if (cost < ns.getPlayer().money - 100000 - moneyBuffer) {
 							ns.stock.buy(p.symbol, p.maxShares);
-							ns.print(`\t\t..:: Bought ${p.symbol} @ ${money(Math.round(preBuyPrice * 100) / 100)} x ${p.maxShares} for ${money(cost + 100000)}`);
-							netProfit -= cost;
-							updateProfit(cost * -1);
+							ns.print(`\t\t..::     Bought ${p.symbol} @ ${money(Math.round(preBuyPrice * 100) / 100)} x ${p.maxShares} for ${money(cost + 100000)}`);
+							//netProfit -= cost;
+							//updateProfit(cost * -1);
 							printProfit = true;
 							let tmpPositions = updatePositions(ns, symbols);
 							let totalPositions = 0;
