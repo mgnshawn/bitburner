@@ -1,9 +1,7 @@
 import { getItem, setItem, getLockAndUpdate } from '/_helpers/ioHelpers.js';
-/** @type import(".").NS */
-let ns = null;
-export async function main(_ns) {
-    ns=_ns;
+export async function main(ns) {
     var currentServer = "";
+    var forceAction;
     if (ns.args[0] == undefined) {
         ns.print(`No target.. Exit()`);
         ns.exit()
@@ -11,6 +9,9 @@ export async function main(_ns) {
     if (ns.args[1] == undefined) {
         ns.print(`No hostname server.. Exit()`);
         ns.exit()
+    }
+    if (ns.args[2] !== undefined) {
+        forceAction = ns.args[2]; // option: hack,grow,weaken,growweaken
     }
     ns.print(ns.args);
 
@@ -39,6 +40,7 @@ export async function main(_ns) {
     }
     ns.print(`ThreadCount :${threadCount}`);
     var serverInfo = { 'hack': { 'threshold': 0 }, 'grow': { 'threshold': .75 }, 'weaken': { 'threshold': 4 }, 'threadCount': 0 };
+    serverInfo = { 'hack': { 'threshold': 0 }, 'grow': { 'threshold': .99 }, 'weaken': { 'threshold': 4 }, 'threadCount': 0 };
     var actionTime = 1234;
     serverInfo.threadCount = threadCount;
     var action = getItem(ns, `hackit_${thisServer}_action`);
@@ -52,19 +54,18 @@ export async function main(_ns) {
         if (action == 'manage') {
             let securityLevel = ns.getServerSecurityLevel(target);
             let moneyAvailable = ns.getServerMoneyAvailable(target);
-
-            if (securityLevel > securityThreshold) {
+            if ((forceAction == null || !['grow','hack'].includes(forceAction)) && securityLevel > securityThreshold) {
                 action = 'weaken';
                 setItem(ns, `hackit_${thisServer}_action`, action);
                 ns.run('/_helpers/hackit_weaken.js', threadCount, target, thisServer)
                 actionTime = ns.getWeakenTime(target) + 100;
-            } else if (moneyAvailable < growThreshold) {
+            } else if ((forceAction == null || !['weaken','hack'].includes(forceAction)) &&moneyAvailable < growThreshold) {
                 action = 'grow';
                 setItem(ns, `hackit_${thisServer}_action`, action);
                 ns.run('/_helpers/hackit_grow.js', threadCount, target, thisServer)
                 actionTime = ns.getGrowTime(target) + 100;
             }
-            else {
+            else if((forceAction == null || !['grow', 'weaken','weakengrow'].includes(forceAction))){
                 action = 'hack';
                 setItem(ns, `hackit_${thisServer}_action`, action);
                 ns.run('/_helpers/hackit_hack.js', threadCount, target, thisServer)
