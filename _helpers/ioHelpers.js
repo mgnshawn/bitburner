@@ -17,6 +17,11 @@ export function getItem(ns,key) {
 export function setItem(ns,key, value) {
 	sessionStorage.setItem(key, JSON.stringify(value))
 }
+
+export function clearItem(ns,key) {
+	sessionStorage.removeItem(key);
+}
+
 export async function getLockAndUpdate(ns,itemName,itemValue) {
 	var locked = null;
 	let locking = `${itemName}_Locked`;
