@@ -47,6 +47,7 @@ export async function main(ns) {
     ns.disableLog('httpworm');
     ns.disableLog('sqlinject');
     ns.disableLog('nuke');
+    var target = 'n00dles';
     if (!ns.scriptRunning('/_schedules/schedule_openPorts.js', 'home')) {
         await ns.run('/_schedules/schedule_openPorts.js');
         await ns.sleep(5000);
@@ -94,7 +95,7 @@ export async function main(ns) {
             if (ns.args[z] == 'target' && ns.args[z + 1] != undefined) {
                 if (ns.args[z + 1] == "auto") {
                     autoTarget = true;
-                    var target = chooseTarget(ns, ns.getPlayer()["hacking"], 8)["target"];
+                    target = chooseTarget(ns, ns.getPlayer()["hacking"], 8)["target"];
                     ram = chooseTarget(ns, ns.getPlayer()["hacking"], 8)["ram"];
                     ns.print(`Target Chosen: ${target} purchase level set ${ram}gb`);
                 } else {
@@ -193,6 +194,7 @@ export async function main(ns) {
         drawLCol(ns, "Beginning NEW server purchase loop");
     }
     var lastTarget = "";
+    let scanEvery5loops = 0;
     while (purchaseServers == true && attackServers.length < ns.getPurchasedServerLimit()) {
         await checkForApps(ns);
         crackers = 0;
@@ -207,7 +209,12 @@ export async function main(ns) {
         if (ns.fileExists("SQLInject.exe"))
             crackers++;
         if (!quiet) ns.print("Spidering...");
-        await scanServer(ns, { 'home': 'home' }, target, 0);
+        if(scanEvery5loops >=5 ) {
+            scanEvery5loops = 0;
+        }
+        if(scanEvery5loops == 0) {
+            await scanServer(ns, { 'home': 'home' }, target, 0);
+        }
 
         if (autoTarget) {
             target = chooseTarget(ns, ns.getPlayer()["hacking"], ram)["target"];
@@ -244,6 +251,7 @@ export async function main(ns) {
         await ns.sleep(100);
         attackServers = getItem(ns, 'purchasedServers');
         await ns.sleep(250);
+        scanEvery5loops++;
     }
 
     if (!quiet) ns.print("Spidering...");
