@@ -6,17 +6,16 @@ import { getItem, setItem, getLockAndUpdate } from '/_helpers/ioHelpers.js';
 var ownedServers = { 'home': 'home' };
 var autoJoinServerFactions = true;
 var highestLevelSeen = 1;
-var scriptRam = 0;
 var purchaseServers = false;
 var ram = 0;
 var forceUpdate = false;
 var crackers = 0;
-var networkMap = { 'home': {} };
 var contractsFound = [];
 var quiet = true;
 var autoTarget = false;
 var memmoryLevels = [8, 32, 256, 1024, 2048, 4096, 32768, (128 * 1024), (512 * 1024), (1024 * 1024)];
 var serversOnTarget = {};
+var includeHome;
 const timeBetweenUpgradeLoops = .1 * 60 * 1000;
 const timeBetweenNewPurchaseAndUpgradeLoop = .05 * 60 * 1000;
 
@@ -75,6 +74,9 @@ export async function main(ns) {
                 purchaseServers = false;
                 ram == 0;
             }
+            if (ns.args[z] == 'includehome') {
+                includeHome = true;
+            }
             if (ns.args[z] !== undefined && ns.args[0] == "fullauto") {
                 autoTarget = true;
                 var target = chooseTarget(ns, ns.getPlayer()["hacking"], 8)["target"];
@@ -110,22 +112,22 @@ export async function main(ns) {
     if (serversOnTarget == undefined) {
         await getLockAndUpdate(ns, 'serversOnTarget', {});
     }
-    if(serversOnTarget !== undefined) {
-    for (let serv of Object.keys(serversOnTarget)) {
-        ns.print(`serv ${serv}`);
-        let serverDetails = { target: 'NotYetSet', forceUpdated: false };
-        if (serversOnTarget[serv] !== undefined) {
-            serverDetails = serversOnTarget[serv];
-        } else {
-            serversOnTarget[serv] = serverDetails;
+    if (serversOnTarget !== undefined) {
+        for (let serv of Object.keys(serversOnTarget)) {
+            ns.print(`serv ${serv}`);
+            let serverDetails = { target: 'NotYetSet', forceUpdated: false };
+            if (serversOnTarget[serv] !== undefined) {
+                serverDetails = serversOnTarget[serv];
+            } else {
+                serversOnTarget[serv] = serverDetails;
+            }
+            serversOnTarget[serv].forceUpdated = false;
         }
-        serversOnTarget[serv].forceUpdated = false;
-    }
-     await getLockAndUpdate(ns, 'serversOnTarget', serversOnTarget);
+        await getLockAndUpdate(ns, 'serversOnTarget', serversOnTarget);
     } else {
         setItem(ns, 'serversOnTarget', {});
     }
-   
+
 
 
     if (ns.fileExists("BruteSSH.exe"))
@@ -138,26 +140,27 @@ export async function main(ns) {
         crackers++;
     if (ns.fileExists("SQLInject.exe"))
         crackers++;
-    scriptRam = ns.getScriptRam('/_helpers/hackit.js');
 
 
     if (purchaseServers) {
         if (!quiet) await ns.print(`Cost to purchase these servers with ${money(ram)}gb: $${Math.round(ns.getPurchasedServerCost(ram)).toLocaleString('en-US')}`);
-        drawLCol(ns,`Cost to purchase these servers with ${money(ram)}gb: $${Math.round(ns.getPurchasedServerCost(ram)).toLocaleString('en-US')}`);
+        drawLCol(ns, `Cost to purchase these servers with ${money(ram)}gb: $${Math.round(ns.getPurchasedServerCost(ram)).toLocaleString('en-US')}`);
     }
 
 
     var serv = 'home';
     var rand = Math.random();
+
     ns.run('/_scriptRamHelpers/_getPurchasedServers.js');
     await ns.sleep(3000);
     var attackServers = getItem(ns, 'purchasedServers');
     await ns.sleep(1000);
+    if (includeHome) {
 
-    if (!ns.scriptRunning('/_helpers/hackitManager.js', 'home')) {
-        await startHacking(ns, 'home', target);
+        if (!ns.scriptRunning('/_helpers/hackitManager.js', 'home')) {
+            await startHacking(ns, 'home', target);
+        }
     }
-
     // Make sure our servers are running optimal threads
     if (!quiet) await ns.print("Optimizing our purchased servers...");
     drawLCol(ns, "Optimizing our purchased servers...");
@@ -209,10 +212,10 @@ export async function main(ns) {
         if (ns.fileExists("SQLInject.exe"))
             crackers++;
         if (!quiet) ns.print("Spidering...");
-        if(scanEvery5loops >=5 ) {
+        if (scanEvery5loops >= 5) {
             scanEvery5loops = 0;
         }
-        if(scanEvery5loops == 0) {
+        if (scanEvery5loops == 0) {
             await scanServer(ns, { 'home': 'home' }, target, 0);
         }
 
@@ -231,8 +234,8 @@ export async function main(ns) {
             let hash = Math.random();
             ns.run('/_scriptRamHelpers/_purchaseServer.js', 1, hostname, ram, hash);
             await ns.sleep(5000);
-            let newServerName = getItem(ns,`server_purchase_name_${hash}`);
-            if(newServerName !== undefined) {
+            let newServerName = getItem(ns, `server_purchase_name_${hash}`);
+            if (newServerName !== undefined) {
                 hostname = newServerName;
                 localStorage.removeItem(`server_purchase_name_${hash}`);
             }
@@ -311,8 +314,8 @@ export async function main(ns) {
                             let hash = Math.random();
                             ns.run('/_scriptRamHelpers/_purchaseServer.js', 1, hostname, ram, hash);
                             await ns.sleep(5000);
-                            let newServerName = getItem(ns,`server_purchase_name_${hash}`);
-                            if(newServerName !== undefined) {
+                            let newServerName = getItem(ns, `server_purchase_name_${hash}`);
+                            if (newServerName !== undefined) {
                                 hostname = newServerName;
                                 localStorage.removeItem(`server_purchase_name_${hash}`);
                             }
@@ -342,17 +345,17 @@ export async function main(ns) {
                 }
 
             }
-                if (upgrade == true) {
-                    checkForApps(ns);
-                    ram = chooseTarget(ns, ns.getPlayer()["hacking"], ram)["ram"];
-                    await ns.sleep(50000);
-                    await ns.print("-- Setting Upgrade Server Ram to " + money(ram));
-                    await ns.print("    New server cost: " + money(ns.getPurchasedServerCost(ram)));
-                    drawLCol(ns, "-- Setting Upgrade Server Ram to " + money(ram));
-                    drawLCol(ns, "    New server cost: " + money(ns.getPurchasedServerCost(ram)));
-                    upgrade = false;
-                }
-                await ns.sleep(timeBetweenUpgradeLoops);
+            if (upgrade == true) {
+                checkForApps(ns);
+                ram = chooseTarget(ns, ns.getPlayer()["hacking"], ram)["ram"];
+                await ns.sleep(50000);
+                await ns.print("-- Setting Upgrade Server Ram to " + money(ram));
+                await ns.print("    New server cost: " + money(ns.getPurchasedServerCost(ram)));
+                drawLCol(ns, "-- Setting Upgrade Server Ram to " + money(ram));
+                drawLCol(ns, "    New server cost: " + money(ns.getPurchasedServerCost(ram)));
+                upgrade = false;
+            }
+            await ns.sleep(timeBetweenUpgradeLoops);
         }
     }
 
@@ -487,8 +490,8 @@ async function evalAndNuke(ns, server, origin, target) {
             }*/ //--WORK IN PROGRESS
 
         } else if (crackers < ns.getServerNumPortsRequired(attackThis) && attackThis !== 'darkweb') {
-            if(!quiet) ns.print(`need ${ns.getServerNumPortsRequired(attackThis) - crackers} more crackers to nuke ${attackThis}`);
-            if(!quiet) drawLCol(ns, `need ${ns.getServerNumPortsRequired(attackThis) - crackers} more crackers to nuke ${attackThis}`);
+            if (!quiet) ns.print(`need ${ns.getServerNumPortsRequired(attackThis) - crackers} more crackers to nuke ${attackThis}`);
+            if (!quiet) drawLCol(ns, `need ${ns.getServerNumPortsRequired(attackThis) - crackers} more crackers to nuke ${attackThis}`);
         }
     }
     return returnResult;

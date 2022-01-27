@@ -62,14 +62,17 @@ export async function main(_ns) {
 	await ns.sleep(300);
 	let membersRepairedorPrepped = false;
 	for (let z = 0; z < ns.args.length; z++) {
-		if (ns.args[z] !== undefined) {
-			if (ns.args[z] !== undefined && ['h', '-h', '?', '-?'].includes(ns.args[z])) {
-				ns.tprint(`arguments (v) (debugonly)  (equiponly)  (endgamefocus:[money,reputation] (freshstart)`);
-				ns.exit();
-			}
-			ns.tail();
-			if (ns.args[z] == 'v')
-				verbose = true;
+		if (ns.args[z] !== undefined && ['h', '-h', '?', '-?'].includes(ns.args[z])) {
+			ns.tprint(`arguments (v) (debugonly)  (equiponly)  (endgamefocus:[money,reputation] (freshstart)`);
+			ns.exit();
+		}
+		ns.tail();
+		if (ns.args[z] == 'v') {
+			verbose = true;
+		}
+
+		if (ns.args[z] == "unlock") {
+			sessionStorage.removeItem('fullGangMembersInfo_Locked');
 		}
 		if (ns.args[z] == 'endgame' && ns.args[z + 1] !== undefined) {
 			endGameFocus = ns.args[z + 1];
@@ -136,25 +139,30 @@ export async function main(_ns) {
 		}
 	}
 	fullGangMembersInfo = getItem(ns, 'fullGangMembersInfo');
+	if (fullGangMembersInfo == undefined) {
+		fullGangMembersInfo = [];
+	}
 	await ns.sleep(300);
 
 	var letCreate = false;
 	while (!await ns.gang.inGang()) {
 		let facInvites = getItem(ns, 'factionInvitations');
-		if (facInvites !== null && facInvites.includes('The Syndicate')) {
-			ns.run('/_scriptRamHelpers/_joinFaction', 'The Syndicate');
+		if (facInvites !== null) {
+			if (facInvites !== null && facInvites.includes('The Syndicate')) {
+				ns.run('/_scriptRamHelpers/_joinFaction', 'The Syndicate');
+				await ns.sleep(1000);
+			}
 			await ns.sleep(1000);
-		}
-		await ns.sleep(1000);
-		if (facInvites !== null && facInvites.includes('Slum Snakes')) {
-			ns.run('/_scriptRamHelpers/_joinFaction', 'Slum Snakes');
-			await ns.sleep(1000);
-		}
-		if (ns.getPlayer().factions.includes("The Syndicate")) {
-			ns.print("Joining The Syndicate");
-			letCreate = await ns.gang.createGang("The Syndicate");
-		} else if (ns.getPlayer().factions.includes("Slum Snakes")) {
-			letCreate = await ns.gang.createGang("Slum Snakes");
+			if (facInvites !== null && facInvites.includes('Slum Snakes')) {
+				ns.run('/_scriptRamHelpers/_joinFaction', 'Slum Snakes');
+				await ns.sleep(1000);
+			}
+			if (ns.getPlayer().factions.includes("The Syndicate")) {
+				ns.print("Joining The Syndicate");
+				letCreate = await ns.gang.createGang("The Syndicate");
+			} else if (ns.getPlayer().factions.includes("Slum Snakes")) {
+				letCreate = await ns.gang.createGang("Slum Snakes");
+			}
 		}
 		if (letCreate) {
 			ns.alert("Created your gang!");
@@ -424,7 +432,10 @@ async function evalMemberTasks(ns) {
 			if (thisMemberInfo.str_asc_mult > gangSettings.reearnRepAfterAsc[er][0]) {
 				continue;
 			} else {
-				reearnRespectTo = gangSettings.reearnRepAfterAsc[er - 1][1];
+				if (er > 0)
+					reearnRespectTo = gangSettings.reearnRepAfterAsc[er - 1][1];
+				else
+					reearnRespectTo = 200;
 				break;
 			}
 
@@ -436,7 +447,24 @@ async function evalMemberTasks(ns) {
 			}
 
 			tmpJumpLevels[0][1] = thisMemberInfo.str_asc_mult * gangSettings.trainCombatStrAscMult_multiplier;
-			if (withoutWarfare) withoutWarfare[0][1] = thisMemberInfo.str_asc_mult * gangSettings.trainCombatStrAscMult_multiplier;
+			if (thisMemberInfo.str_asc_mult < 2) {
+				tmpJumpLevels[0][1] = 600;
+			} else if (thisMemberInfo.str_asc_mult < 6) {
+				tmpJumpLevels[0][1] = 1100; ``
+			} else if (thisMemberInfo.str_asc_mult < 12) {
+				tmpJumpLevels[0][1] = 1900; ``
+			}
+			if (withoutWarfare) {
+				withoutWarfare[0][1] = thisMemberInfo.str_asc_mult * gangSettings.trainCombatStrAscMult_multiplier;
+				if (thisMemberInfo.str_asc_mult < 2) {
+					withoutWarfare[0][1] = 600;
+				} else if (thisMemberInfo.str_asc_mult < 6) {
+					withoutWarfare[0][1] = 1100; ``
+				} else if (thisMemberInfo.str_asc_mult < 12) {
+					withoutWarfare[0][1] = 1900; ``
+				}
+			}
+
 			if (thisMemberInfo.str > 350) {
 				if (tmpJumpLevels.length > 1) {
 					tmpJumpLevels[1] = ["Terrorism", reearnRespectTo, "earnedRespect"];
@@ -456,9 +484,12 @@ async function evalMemberTasks(ns) {
 		if (debugOnly || verbose) {
 			if (withoutWarfare != null) {
 				ns.print(`Set JumpLevel Training to ${withoutWarfare[0][1]} for ${thisMemberInfo.name} via withoutWarfare`);
+				ns.print(withoutWarfare);
 			} else {
 				ns.print(`Set JumpLevel Training to ${tmpJumpLevels[0][1]} for ${thisMemberInfo.name} via jumpLevels`);
+				ns.print(tmpJumpLevels);
 			}
+			
 		}
 
 		await ns.sleep(300);
@@ -598,7 +629,7 @@ async function evalMemberAscend(ns) {
 	ns.print("Evaluating members for ascention");
 	var ascendCounter = 0;
 	let gangInfo = ns.gang.getGangInformation();
-	let respectLeft = Math.floor(gangInfo.respect / 2);
+	let respectLeft = Math.floor((gangInfo.respect - gangInfo.wantedLevel) / 5);
 	fullGangMembersInfo = getItem(ns, 'fullGangMembersInfo');
 	await ns.sleep(500);
 	fullGangMembersInfo.sort(function (a, b) {
@@ -615,7 +646,7 @@ async function evalMemberAscend(ns) {
 
 		var ascendPotentional = ns.gang.getAscensionResult(thisMemberInfo.name);
 		if (ascendPotentional !== null && ascendPotentional !== undefined) {
-			if ((gangInfo.respect - thisMemberInfo.earnedRespect) > gangInfo.wantedLevel) {
+			if ((respectLeft - ascendPotentional.respect) > 0) {
 				if (ascentionEnabled && ns.getServerMoneyAvailable('home') > gangSettings.moneyInBankToAscend && (ascendPotentional.str > gangSettings.ascentionStatReqs.strength || ascendPotentional.dex > gangSettings.ascentionStatReqs.dexterity || ascendPotentional.agi > gangSettings.ascentionStatReqs.agility)) {
 					if (!ns.gang.getGangInformation().territoryWarfareEngaged || ascendCounter <= maxMembersToAscendDuringWar) {
 						let timeSinceAscention = Date.now() - fullGangMembersInfo.find(({ name }) => name == thisMemberInfo.name).lastAscended;
