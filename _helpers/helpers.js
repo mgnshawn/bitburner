@@ -33,17 +33,19 @@ function localScan(ns, targets, parent) {
 
 export async function travelToServer(ns, server) {
 	let serverPath = findServerPath(ns, server);
-	for (let server of serverPath) {
-		ns.run('/_scriptRamHelpers.js',1,server);
+	for (let server in serverPath) {
+		ns.run('/_scriptRamHelpers/_connect.js',1,serverPath[server]);
 		await ns.sleep(100);
 	}
 }
 export async function travelBackHome(ns, server) {
 	let serverPath = findServerPath(ns, server);
 	for (let a = serverPath.length - 1; a >= 0; a--) {
-		ns.run('/_scriptRamHelpers.js',1,a);
+		ns.run('/_scriptRamHelpers/_connect.js',1,serverPath[a]);
+		await ns.sleep(500);
 		await ns.sleep(100);
 	}
+	ns.run('/_scriptRamHelpers/_connect.js',1,'home');
 
 }
 
@@ -53,7 +55,7 @@ export async function travelBackHome(ns, server) {
  * @returns {Array}
  */
 export function findServerPath(ns, target) {
-	let servers = getServers(ns, true);
+	let servers = getServers(ns, false);
 	const server = servers.find(({ name }) => name === target)
 	return server.path;
 }
@@ -82,7 +84,7 @@ export function chooseTarget(ns, hackingLevel, currentMemmoryLevel) {
 		}
 
 		if (ns.getPurchasedServerCost(memmoryLevels[m]) !== undefined && !isNaN(ns.getPurchasedServerCost(memmoryLevels[m]))) {
-			if (ns.getPurchasedServerCost(memmoryLevels[m]) < (ns.getServerMoneyAvailable('home') / 3)) {
+			if (ns.getPurchasedServerCost(memmoryLevels[m]) < (ns.getServerMoneyAvailable('home') / 3) && (m != memmoryLevels.length-1)) {
 				continue;
 			} else {
 				if (memmoryLevels[m + 1] == undefined || isNaN(ns.getPurchasedServerCost(memmoryLevels[m + 1]))) {

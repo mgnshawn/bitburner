@@ -1,5 +1,5 @@
 import { drawLCol, drawStatus1, drawList1, drawDoing, primeExistingBufferLists, clearLCol, clearStatusList, clearList1, clearDoingLine } from '/terminal.js';
-import { getItem, setItem, resetLocks } from '/_helpers/ioHelpers.js';
+import { getItem, setItem  } from '/_helpers/ioHelpers.js';
 const baseUrl = 'https://raw.githubusercontent.com/mgnshawn/bitburner/master/';
 export async function main(ns) {
 var doDownload = false;
@@ -14,7 +14,8 @@ const initialCombatStatsToGym = { 'strength': 10, 'dexterity': 10, 'agility': 10
       doDownload = true;
     }
     if( ns.args[arg] == "reset") {
-      sessionStorage.clear();
+      localStorage.clear();
+      ns.exit();
     }
     if (ns.args[arg] == "fullstart") {
       fullStart(ns,doDownload,initialCombatStatsToGym);

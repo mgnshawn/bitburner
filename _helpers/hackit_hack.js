@@ -8,5 +8,5 @@ export async function main(ns) {
     var thisServer = ns.args[1];
             await ns.hack(target);
             setItem(ns, `hackit_${thisServer}_action`, "manage");
-            await ns.sleep(200);
+            await ns.sleep(100);
 }

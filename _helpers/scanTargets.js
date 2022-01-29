@@ -14,6 +14,8 @@ for(let l=0;l < _allServers.length; l++) {
 
 targets.sort((a, b) => a.maxMoney - b.maxMoney);
 drawList(ns);
+targets=[];
+_allServers=[];
 }
 
 function drawList(ns) {

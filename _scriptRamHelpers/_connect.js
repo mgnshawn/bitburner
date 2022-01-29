@@ -6,9 +6,9 @@ export async function main(ns) {
         ns.connect(ns.args[0]);
         await ns.sleep(500);
         if(ns.getCurrentServer() == ns.args[0]) {
-            ns.setItem(ns,'connectResult',true);
+            setItem(ns,'connectResult',true);
         } else {
-            ns.setItem(ns,'connectResult', false);
+            setItem(ns,'connectResult', false);
         }
     }
 }

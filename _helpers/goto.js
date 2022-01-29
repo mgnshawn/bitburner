@@ -17,7 +17,7 @@ export async function main(ns) {
 	if (onlyShow) {
 		ns.tprint(server.path);
 	} else {
-		ns.tprint(pathing = await travelToServer(ns, destination));
+		(pathing = await travelToServer(ns, destination));
 		for (let serv of server.path) {
 			ns.connect(serv);
 		}

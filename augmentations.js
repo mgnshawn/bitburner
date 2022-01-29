@@ -1,104 +1,15 @@
 import { money } from '/_helpers/helpers.js';
-/** @type import(".").NS */
-let ns = null;
-const argSchema = [
-	['faction',''],
-	['sort', ['exp','cost','name','faction']],
-	];
-	var augArgs = {'onlyFaction':null,'sortBy':null,'find':null};
-
 /** @param {NS} ns **/
-export async function main(_ns) {
-	ns=_ns;
+export async function main(ns) {
 	const factions = ['CyberSec', 'The Black Hand', 'Slum Snakes', 'The Syndicate', 'Tian Di Hui', 'BitRunners', 'New Tokyo', 'Sector-12', 'Tetrads', 'Tian Di Hui'];
 	var augs = [];
 	var sortBy = "";
-
 	for(let n in ns.args) {
-		let argParts = ns.args[n].split("=");
-		if(argParts.length == 2) {
-		augArgs[argParts[0]] = argParts[1];
+		if(ns.args[n] == sortby && ns.args[n+1] !== undefined) {
+			sortBy = ns.args[n+1];
 		}
 	}
 
-
-	let _augs = [];
-
-	factions.forEach(fac => {
-		ns.getAugmentationsFromFaction(fac).forEach(aug => {
-			let price = ns.getAugmentationPrice(aug);
-			let repReq = ns.getAugmentationRepReq(aug);
-			let augStats = ns.getAugmentationStats(aug);
-			let augFaction = fac;
-			_augs.push({'augmentation':aug,'faction':augFaction,'price':price,'requiredRep':repReq,'stats':augStats});
-			
-		});
-	});
-	//ns.tprint(JSON.stringify(_augs,null,3));
-if(augArgs.sortBy !== null && augArgs.sortBy == "augmentation") {
-	_augs.sort(function(a, b) {
-		var nameA = a.augmentation.toUpperCase(); // ignore upper and lowercase
-		var nameB = b.augmentation.toUpperCase(); // ignore upper and lowercase
-		if (nameA < nameB) {
-		  return -1;
-		}
-		if (nameA > nameB) {
-		  return 1;
-		}
-
-		return 0;
-	  });
-	}
-	if(augArgs.sortBy !== null && augArgs.sortBy == "faction") {
-		_augs.sort(function(a, b) {
-			var nameA = a.faction.toUpperCase(); // ignore upper and lowercase
-			var nameB = b.faction.toUpperCase(); // ignore upper and lowercase
-			if (nameA < nameB) {
-			  return -1;
-			}
-			if (nameA > nameB) {
-			  return 1;
-			}
-		  
-			// names must be equal
-			return 0;
-		  });
-		}
-	
-	
-	  if(augArgs.sortBy !== null && augArgs.sortBy == "price") {
-	  _augs.sort(function(a, b) {
-		  return a.price - b.price;
-		
-	  });
-	  _augs.map(obj => {
-		  obj.price = money(obj.price);
-		return obj;
-	  });	  
-	}
-	
-
-	if(augArgs.onlyFaction !== null) {
-
-
-		var byFac =_augs.filter(function(au) {
-			return au.faction.toLowerCase().indexOf(augArgs.onlyFaction.toLowerCase()) !== -1});
-			ns.tprint(JSON.stringify(byFac,null,3));
-			ns.exit();
-
-	}
-	ns.tprint(JSON.stringify(_augs,null,3));
-	  ns.exit();
-
-_augs.sort
-	for(let aug in augs) {
-		let faction = Object.keys(augs[aug])[0];
-		let augsInFaction = augs[aug][faction];
-		let liner = "=";
-		ns.tprintf(`\n\n%-50s ::::::........\n`,faction);
-		ns.tprintf(`%-90s\n`,liner.padEnd(200,'='));
-		drawAugs(ns, augsInFaction);
-	}
 
 	factions.forEach(fac => {
 		let augsInFac = [];

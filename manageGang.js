@@ -178,16 +178,16 @@ export async function main(_ns) {
 		if (members.length >= 12) {
 			var destinationTask = "Territory Warfare";
 			if (fullTeam == true) {
-				jumpLevels = [["Train Combat", 300], ["Terrorism", 500], ["Territory Warfare", 600], ["Human Trafficking", 5900000]];
+				originalJumpLevels = [["Train Combat", 300], ["Terrorism", 500], ["Territory Warfare", 600], ["Human Trafficking", 5900000]];
 				if (ns.gang.getGangInformation().territory < 1 && await calculateWarChance(ns) < gangSettings.goToWarWhenChancesOver) {
-					jumpLevels = [["Train Combat", 300], ["Terrorism", 350], ["Territory Warfare", 3500], ["Human Trafficking", 5900000]];
+					originalJumpLevels = [["Train Combat", 300], ["Terrorism", 350], ["Territory Warfare", 3500], ["Human Trafficking", 5900000]];
 				}
 
 				if (endGameFocus == "Reputation") {
-					jumpLevels = [["Train Combat", 300], ["Vigilante Justice", 350], ["Terrorism", 99000000]];
+					originalJumpLevels = [["Train Combat", 300], ["Vigilante Justice", 350], ["Terrorism", 99000000]];
 				}
 				if (endGameFocus == "Money") {
-					jumpLevels = [["Train Combat", 300], ["Vigilante Justice", 350], ["Human Trafficking", 99000000]];
+					originalJumpLevels = [["Train Combat", 300], ["Vigilante Justice", 350], ["Human Trafficking", 99000000]];
 				}
 			}
 		}
@@ -537,7 +537,7 @@ async function evalMemberTasks(ns) {
 	if (ns.gang.getGangInformation().territory < 1 && await calculateWarChance(ns) > gangSettings.goToWarWhenChancesOver && membersInWarfare < gangSettings.minimumMembersAtWarDuringWarfare) {
 		if (!debugOnly) {
 			ns.print(`Forcing ${sm.name} to 'Territory Warfare' to make minimum`);
-			ns.gang.setMemberTask(sm.name, "Terrorism");
+			ns.gang.setMemberTask(sm.name, "Territory Warfare");
 		} else {
 			ns.print(`___ Would be Forcing ` + sm.name + ` to 'Territory Warfare' in evalMemberTasks()-> membersInWarfare(during Warefare) < minimum`);
 		}

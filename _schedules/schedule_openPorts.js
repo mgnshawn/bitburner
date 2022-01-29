@@ -15,6 +15,7 @@ export async function main(ns) {
             target = portsToOpenList.shift();
         }
         if (target !== null && target !== undefined) {
+            let opened = 0;
             ns.print(`New target ${target}`);
             var serverInfoList = getItem(ns, 'serverInfoList');            
             if(serverInfoList == null || serverInfoList[target] == undefined || serverInfoList[target] == null) {
@@ -26,24 +27,31 @@ export async function main(ns) {
 	        
             if (ns.fileExists("BruteSSH.exe", "home")) {
                 ns.brutessh(target);
+                opened++;
             }
 
             if (ns.fileExists("FTPCrack.exe", "home")) {
                 ns.ftpcrack(target);
+                opened++;
             }
 
             if (ns.fileExists("HTTPWorm.exe", "home")) {
                 ns.httpworm(target);
+                opened++;
             }
 
             if (ns.fileExists("relaySMTP.exe", "home")) {
                 ns.relaysmtp(target);
+                opened++;
             }
 
             if (ns.fileExists("SQLInject.exe", "home")) {
                 ns.sqlinject(target);
+                opened++;
             }
-            ns.nuke(target);
+            if(opened >= ns.getServerNumPortsRequired(target)) {
+                ns.nuke(target);
+            }
             await getLockAndUpdate(ns,'portsToOpen',portsToOpenList);
             await ns.sleep(500);
             await getLockAndUpdate(ns,'portsToOpenList', portsToOpenList);
