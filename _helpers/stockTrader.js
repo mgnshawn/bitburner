@@ -9,10 +9,10 @@ var currentlyRunning;
 /** @param {NS} ns **/
 export async function main(ns) {
 	const purchaseForecase = 0.575; // Purchase if the forecast is over this value
-	const purchasePercentUnderAverage = .4; // Purchase is the price is x percent of stock historic average
+	const purchasePercentUnderAverage = .75; // Purchase is the price is x percent of stock historic average
 	const sellForecase = 0.5; // Sell if forecase is below this value
 	const moneyBuffer = 1000000; // Do not buy if money would go below this value
-	const sellForProfitOf = 1.04; //Percent profit desired
+	const sellForProfitOf = 1.015; //Percent profit desired
 	const minutesBetweenStatusUpdates = 1;
 	const secondsBetweenMarketChecks = 1;
 	const maximumPortfolioInvestment = 100000000000;
@@ -22,7 +22,7 @@ export async function main(ns) {
 	ns.disableLog("stock.sell");
 	ns.disableLog("stock.buy");
 	ns.clearLog();
-
+	let roundsOfObservation = 0;
 	var symbols = ns.stock.getSymbols();
 	var netProfit = 0;
 	var verbose = false;
@@ -91,6 +91,7 @@ export async function main(ns) {
 	await drawPositions(ns, positions);
 	let marketCheckedAt = Date.now() / 1000;
 	while (true) {
+		roundsOfObservation++;
 		positions = await updatePositions(ns, ns.stock.getSymbols());
 		if (((Date.now() / 1000) - profitOverTime.time) >= (minutesBetweenStatusUpdates * 60)) {
 			profitOverTime.time = Date.now() / 1000;
@@ -101,7 +102,6 @@ export async function main(ns) {
 		}
 
 		if ((Date.now() / 1000) - marketCheckedAt >= secondsBetweenMarketChecks) {
-
 
 			// Check if any sales need to be made
 			for (var i = 0; i < positions.length; i++) {
@@ -125,8 +125,8 @@ export async function main(ns) {
 						});
 						//ns.print(`..::$$$$ Sold ${p.symbol} x ${shares} @ ${money(Math.round(soldAt * 100) / 100)}\tBought@ ${money(Math.round(preSalePurchasedPrice * 100) / 100)} = ` + money(((soldAt - preSalePurchasedPrice) * shares) - stockCommish) + `  Profit => ${Math.round(((soldAt / preSalePurchasedPrice)) * 100) / 100}%\t\tTotal Invested:: $${money(totalPositions)}`);
 						ns.print(ns.sprintf('..::$$$$   %8s %6s x %12s @ %8s perShare Bought@ %12s = %14s Profit => %8s %5s  %s',
-							'Sold',p.symbol, money(shares), `$${money(Math.round(soldAt * 100) / 100)}`, `$${money(Math.round(preSalePurchasedPrice * 100) / 100)}`, `$${money(((soldAt - preSalePurchasedPrice) * shares) - stockCommish)}`, `$${(Math.round(((soldAt / preSalePurchasedPrice)) * 100) / 100)}`, " ", `Total Invested:: $${money(totalPositions)}`));
-					
+							'Sold', p.symbol, money(shares), `$${money(Math.round(soldAt * 100) / 100)}`, `$${money(Math.round(preSalePurchasedPrice * 100) / 100)}`, `$${money(((soldAt - preSalePurchasedPrice) * shares) - stockCommish)}`, `$${(Math.round(((soldAt / preSalePurchasedPrice)) * 100) / 100)}`, " ", `Total Invested:: $${money(totalPositions)}`));
+
 						if (verbose && !verboseType == 'buy') ns.print(`soldAt ${soldAt} preSalePurchase ${preSalePurchasedPrice} shares ${shares}   total sale = ${money((soldAt * shares) - stockCommish)}`);
 						netProfit += Math.round((soldAt - preSalePurchasedPrice) * shares);
 						updateProfit(Math.round((soldAt - preSalePurchasedPrice) * shares));
@@ -144,8 +144,8 @@ export async function main(ns) {
 							});
 							//ns.print(`..::<<>> Sold ${p.symbol} x ${shares} @ ${money(Math.round(soldAt * 100) / 100)}\tBought@ ${money(Math.round(preSalePurchasedPrice * 100) / 100)} = ` + money(((soldAt - preSalePurchasedPrice) * shares) - stockCommish) + `  Profit => ${Math.round(((soldAt / preSalePurchasedPrice)) * 100) / 100}%`);
 							ns.print(ns.sprintf('..::<<>>   %8s %6s x %12s @ %8s perShare Bought@ %12s = %14s Profit => %8s %5s  %s',
-								'Sold',p.symbol, money(shares), `$${money(Math.round(soldAt * 100) / 100)}`, `$${money(Math.round(preSalePurchasedPrice * 100) / 100)}`, `$${money(((soldAt - preSalePurchasedPrice) * shares) - stockCommish)}`, `$${(Math.round(((soldAt / preSalePurchasedPrice)) * 100) / 100)}`, " ", `Total Invested:: $${money(totalPositions)}`));
-					
+								'Sold', p.symbol, money(shares), `$${money(Math.round(soldAt * 100) / 100)}`, `$${money(Math.round(preSalePurchasedPrice * 100) / 100)}`, `$${money(((soldAt - preSalePurchasedPrice) * shares) - stockCommish)}`, `$${(Math.round(((soldAt / preSalePurchasedPrice)) * 100) / 100)}`, " ", `Total Invested:: $${money(totalPositions)}`));
+
 							if (verbose && !verboseType == 'buy') ns.print(`soldAt ${soldAt} preSalePurchase ${preSalePurchasedPrice} shares ${shares}   total sale = ${money((soldAt * shares) - stockCommish)}\t\tTotal Invested:: $${money(totalPositions)}`);
 							netProfit += Math.round((soldAt - preSalePurchasedPrice) * shares);
 							updateProfit(Math.round((soldAt - preSalePurchasedPrice) * shares));
@@ -157,8 +157,9 @@ export async function main(ns) {
 					}
 				}
 				else {
-					if (!sellOnly && ns.getPlayer().money > (stockCommish + moneyBuffer + 200000) && runningPortfolioInvestment < maximumPortfolioInvestment) {
-						if ((ns.stock.getPrice(p.symbol) < (p.average * purchasePercentUnderAverage))/* || (p.forecast > purchaseForecase)*/) {
+					if (!sellOnly && ns.getPlayer().money > (stockCommish + moneyBuffer + 200000) && runningPortfolioInvestment < maximumPortfolioInvestment && roundsOfObservation > 10) {
+						if (((p.average * purchasePercentUnderAverage <= p.floor && ns.stock.getPrice(p.symbol) <= p.floor)) || (ns.stock.getPrice(p.symbol) < (p.average * purchasePercentUnderAverage))) {
+
 							let preBuyPrice = ns.stock.getPrice(p.symbol);
 							// ns.print(ns.sprintf("Purchasing %5s at %5s/share", p.symbol, formatNumber(p.ask)));
 							var cost = ns.stock.getPurchaseCost(p.symbol, ns.stock.getMaxShares(p.symbol), "Long");
@@ -185,8 +186,8 @@ export async function main(ns) {
 								});
 								//ns.print(`..::     Bought ${p.symbol} x ${buyShares} @ ${money(Math.round(boughtAt * 100) / 100)} for ${money((boughtAt*buyShares) + stockCommish)}\t\tTotal Invested:: $${money(totalPositions)}`);
 								ns.print(ns.sprintf('..::     %12s %6s x %10s @ %8s perShare     %20s %5s %s',
-									'Bought',p.symbol, money(buyShares), `$${money(Math.round(boughtAt * 100) / 100)}`, ` totaling $${money((boughtAt * buyShares) + stockCommish)}`, " ", `Total Invested:: $${money(totalPositions)}`));
-							
+									'Bought', p.symbol, money(buyShares), `$${money(Math.round(boughtAt * 100) / 100)}`, ` totaling $${money((boughtAt * buyShares) + stockCommish)}`, " ", `Total Invested:: $${money(totalPositions)}`));
+
 								//netProfit -= cost;
 								//updateProfit(cost * -1);
 								printProfit = true;
@@ -197,9 +198,13 @@ export async function main(ns) {
 								if (verbose && !verboseType == 'sell') ns.print(`didn't buy ${p.symbol} don't have $$ ${ns.getPlayer().money} < ${ns.stock.getPrice(p.symbol)} x ${afford} total: ${afford * ns.stock.getPrice(p.symbol)} `);
 							}
 						} else {
-							if (verbose && !verboseType == 'sell') ns.print(`didn't buy ${p.symbol} @ (forecast ${p.forecast} !> ${purchaseForecase}) (bid ${ns.stock.getPrice(p.symbol)}) !< ${(p.average * purchasePercentUnderAverage)} L.${p.floor} H.${p.ceiling}`)
-							//ns.print(`\t\t ${p.symbol} forecast ${p.forecast} !> ${purchaseForecase}`);
+							if (verbose && verboseType != 'sell')
+								ns.print(ns.sprintf(`__|| %12s floor: %7s last: %7s ceiling: %7s avg: %7s  target: %7s`, p.symbol, betterNum(p.floor), betterNum(p.lastSceneAt), betterNum(p.ceiling), betterNum(p.average), betterNum((p.average * purchasePercentUnderAverage))));
+							// ns.print(`didn't buy ${p.symbol} @ (forecast ${p.forecast} !> ${purchaseForecase}) (bid ${ns.stock.getPrice(p.symbol)}) !< ${(p.average * purchasePercentUnderAverage)} L.${p.floor} H.${p.ceiling}`)
+
 						}
+					} else {
+						if (verbose && verboseType != 'sell') ns.print(ns.sprintf(`__|| %12s floor: %7s last: %7s ceiling: %7s avg: %7s  target: %7s`, p.symbol, betterNum(p.floor), betterNum(p.lastSceneAt), betterNum(p.ceiling), betterNum(p.average), betterNum((p.average * purchasePercentUnderAverage))));
 					}
 				}
 			}
@@ -264,6 +269,10 @@ function updateProfit(money) {
 	localStorage.setItem('stockProfitOverTime', profitOverTime.profit);
 }
 
+function betterNum(num) {
+	return money(Math.round(num * 1000) / 1000);
+}
+
 function formatNumber(n) {
 	const div = 1000;
 	var m = n * div; // account for first run of do{}
@@ -293,7 +302,7 @@ async function updatePositions(ns, symbols, updateTrending = false) {
 			"avgPriceLong": ns.stock.getPosition(s)[1],
 			"sharesShort": ns.stock.getPosition(s)[3],
 			"avgPriceShort": ns.stock.getPosition(s)[4],
-			"forecast": ns.stock.getForecast(s),
+			"forecast": 0,
 			"shares": 0,
 			"floor": 100000000,
 			"ceiling": 0,
@@ -323,25 +332,26 @@ async function updatePositions(ns, symbols, updateTrending = false) {
 		}
 		data.lastSceneAt = ns.stock.getPrice(data.symbol);
 		let ratio = data.ratio = ((usingPrice / data.avgPriceLong) - 1);
-		if (data.owned && stockRangeHistory[data.symbol] !== undefined && stockRangeHistory[data.symbol] != null) {
-
-			if (stockRangeHistory[data.symbol].previousRatio !== null && stockRangeHistory[data.symbol].previousRatio !== undefined) {
-				stockRangeHistory[data.symbol].changeInRatio = data.changeInRatio = (ratio - stockRangeHistory[data.symbol].previousRatio);
-			}
-			if (data.previousRatio !== ratio && updateTrending) {
-				stockRangeHistory[data.symbol].previousRatio = data.previousRatio = ratio;
-			}
-		} else if (stockRangeHistory[data.symbol] !== undefined && stockRangeHistory[data.symbol] != null) {
+		if (stockRangeHistory[data.symbol] !== undefined && stockRangeHistory[data.symbol] != null) {
 
 			data.average = ((data.ceiling + data.floor) / 2);
 
 			stockRangeHistory[data.symbol].floor = data.floor = (stockRangeHistory[data.symbol].floor < data.floor) ? stockRangeHistory[data.symbol].floor : data.floor;
 			stockRangeHistory[data.symbol].ceiling = data.ceiling = (stockRangeHistory[data.symbol].ceiling > data.ceiling) ? stockRangeHistory[data.symbol].ceiling : data.ceiling;
 			stockRangeHistory[data.symbol].average = data.average = ((data.ceiling + data.floor) / 2);
+			stockRangeHistory[data.symbol].avgPriceLong = data.avgPriceLong;
 			stockRangeHistory[data.symbol].forecast = data.forecast;
 			stockRangeHistory[data.symbol].ratio = ratio;
 			stockRangeHistory[data.symbol].shares = data.shares;
 			stockRangeHistory[data.symbol].lastSceneAt = data.lastSceneAt;
+			if (data.owned) {
+				if (stockRangeHistory[data.symbol].previousRatio !== null && stockRangeHistory[data.symbol].previousRatio !== undefined) {
+					stockRangeHistory[data.symbol].changeInRatio = data.changeInRatio = (ratio - stockRangeHistory[data.symbol].previousRatio);
+				}
+				if (data.previousRatio !== ratio && updateTrending) {
+					stockRangeHistory[data.symbol].previousRatio = data.previousRatio = ratio;
+				}
+			}
 		} else {
 			stockRangeHistory[data.symbol] = data;
 		}

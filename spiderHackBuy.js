@@ -577,7 +577,7 @@ async function checkForApps(ns) {
         ns.run('_scriptRamHelpers/_purchaseProgram.js', 1, "FTPCrack.exe");
         ns.toast("Bought FTPCrack");
     }
-    if (ns.getPlayer().hacking >= 100 && !ns.fileExists("relaySMTP.exe", 'home') && ns.getServerMoneyAvailable("home") >= 5000000) {
+    if (!ns.fileExists("relaySMTP.exe", 'home') && ns.getServerMoneyAvailable("home") >= 5000000) {
         ns.run('_scriptRamHelpers/_purchaseProgram.js', 1, "relaySMTP.exe");
         ns.toast("Bought relaySMTP");
     }

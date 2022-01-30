@@ -3,18 +3,26 @@ import { getItem, setItem, getLockAndUpdate } from '/_helpers/ioHelpers.js';
 var ns;
 var gangSettings = {
 	'maxMembersAtWarfareBeforeWar': 2, 'moneyInBankToAscend': 100000000, 'trainCombatStrAscMult_multiplier': 1100,
-	'reearnRepAfterAsc': [[1,150],[10, 1000], [20, 10000], [30, 100000], [40, 1000000], [50, 100000000], [1000, 100000000]],
+	'reearnRepAfterAsc': [[1, 150], [10, 1000], [20, 10000], [30, 100000], [40, 1000000], [50, 10000000], [1000, 100000000]],
 	'ascentionStatReqs': { 'strength': 1.10, 'dexterity': 1.3, 'agility': 1.3 },
-	'minimumMembersAtWarDuringWarfare': 2,timeToHoldOffOnAscentionAfterEquipping:(5 *60*1000),
-	'costOfEquipmentToPauseAscention':50000000, 'maxTimeBetweenAscention':(15 *60*1000),
-	'goToWarWhenChancesOver': 70, 'maximumFullGangAtWar': 8, 'minimumFullGangTerror': 1, 'maxMembersToAscendDuringWar': 2
-
+	'minimumMembersAtWarDuringWarfare': 2, 'minimumMembersAtWarDuringPeace': 1
 };
 var repThreshold = 15; // When to switch to improving wanted level
+
+
+const goToWarWhenChancesOver = 70
+const maximumFullGangAtWar = 8; // Most members that can being doing Territory Warface
+const minimumFullGangTerror = 1; // Minimum number of members doing Terrorism
+const maxMembersToAscendDuringWar = 2;
+
 var previousTerritoryHeld = 0;
+
 var endGameFocus = "Reputation"; //options Reputation, Money\
 var endGameFocusOptions = ['Reputation', 'Money'];
 
+var timeToHoldOffOnAscentionAfterEquipping = 5 * 60 * 1000;
+var costOfEquipmentToPauseAscention = 50000000;
+var maxTimeBetweenAscention = 15 * 60 * 1000;
 var timeCycle = 1 * 60;
 
 
@@ -179,7 +187,7 @@ export async function main(_ns) {
 			var destinationTask = "Territory Warfare";
 			if (fullTeam == true) {
 				originalJumpLevels = [["Train Combat", 300], ["Terrorism", 500], ["Territory Warfare", 600], ["Human Trafficking", 5900000]];
-				if (ns.gang.getGangInformation().territory < 1 && await calculateWarChance(ns) < gangSettings.goToWarWhenChancesOver) {
+				if (ns.gang.getGangInformation().territory < 1 && await calculateWarChance(ns) < goToWarWhenChancesOver) {
 					originalJumpLevels = [["Train Combat", 300], ["Terrorism", 350], ["Territory Warfare", 3500], ["Human Trafficking", 5900000]];
 				}
 
@@ -395,7 +403,7 @@ async function evalMemberTasks(ns) {
 		var destinationTask = "Territory Warfare";
 		if (fullTeam == true) {
 			tmpJumpLevels = [["Train Combat", 300], ["Terrorism", 500], ["Territory Warfare", 600], ["Human Trafficking", 5900000]];
-			if (ns.gang.getGangInformation().territory < 1 && await calculateWarChance(ns) < gangSettings.goToWarWhenChancesOver) {
+			if (ns.gang.getGangInformation().territory < 1 && await calculateWarChance(ns) < goToWarWhenChancesOver) {
 				tmpJumpLevels = [["Train Combat", 300], ["Terrorism", 350], ["Territory Warfare", 3500], ["Human Trafficking", 5900000]];
 			}
 
@@ -405,7 +413,7 @@ async function evalMemberTasks(ns) {
 			if (endGameFocus == "Money") {
 				tmpJumpLevels = [["Train Combat", 300], ["Vigilante Justice", 350], ["Human Trafficking", 99000000]];
 			}
-			if (members.length >= 12 && membersInWarfare >= gangSettings.maximumFullGangAtWar) {
+			if (members.length >= 12 && membersInWarfare >= maximumFullGangAtWar) {
 				tmpJumpLevels = originalJumpLevels;
 			}
 		}
@@ -442,7 +450,7 @@ async function evalMemberTasks(ns) {
 
 			tmpJumpLevels[0][1] = thisMemberInfo.str_asc_mult * gangSettings.trainCombatStrAscMult_multiplier;
 			if (thisMemberInfo.str_asc_mult == 1) {
-				tmpJumpLevels[0][1] = 150;
+				tmpJumpLevels[0][1] = 90;
 			} else if (thisMemberInfo.str_asc_mult < 2) {
 				tmpJumpLevels[0][1] = 500;
 			} else if (thisMemberInfo.str_asc_mult < 3.25) {
@@ -523,8 +531,9 @@ async function evalMemberTasks(ns) {
 			}
 		}
 	}
+
 	let sm = findStrongestMember(fullGangMembersInfo);
-	if (fullTeam == true && membersAtTerror < gangSettings.minimumFullGangTerror && sm.task != 'Terrorism') {
+	if (fullTeam == true && membersAtTerror < minimumFullGangTerror && sm.task != 'Terrorism') {
 		if (!debugOnly) {
 			ns.print(`Forcing ${sm.name} to 'Terrorism' to make minimum`);
 			ns.gang.setMemberTask(sm.name, "Terrorism");
@@ -534,7 +543,7 @@ async function evalMemberTasks(ns) {
 		membersAtTerror++;
 	}
 	sm = findStrongestMember(fullGangMembersInfo, 1);
-	if (ns.gang.getGangInformation().territory < 1 && await calculateWarChance(ns) > gangSettings.goToWarWhenChancesOver && membersInWarfare < gangSettings.minimumMembersAtWarDuringWarfare) {
+	if (ns.gang.getGangInformation().territory < 1 && await calculateWarChance(ns) > goToWarWhenChancesOver && membersInWarfare < gangSettings.minimumMembersAtWarDuringWarfare) {
 		if (!debugOnly) {
 			ns.print(`Forcing ${sm.name} to 'Territory Warfare' to make minimum`);
 			ns.gang.setMemberTask(sm.name, "Territory Warfare");
@@ -542,7 +551,16 @@ async function evalMemberTasks(ns) {
 			ns.print(`___ Would be Forcing ` + sm.name + ` to 'Territory Warfare' in evalMemberTasks()-> membersInWarfare(during Warefare) < minimum`);
 		}
 		membersInWarfare++;
-	}
+	} else
+		if (ns.gang.getGangInformation().territory < 1 && await calculateWarChance(ns) < goToWarWhenChancesOver && membersInWarfare < gangSettings.minimumMembersAtWarDuringPeace) {
+			if (!debugOnly) {
+				ns.print(`Forcing ${sm.name} to 'Territory Warfare' to make minimum`);
+				ns.gang.setMemberTask(sm.name, "Territory Warfare");
+			} else {
+				ns.print(`___ Would be Forcing ` + sm.name + ` to 'Territory Warfare' in evalMemberTasks()-> membersInWarfare(during Peace) < minimum`);
+			}
+			membersInWarfare++;
+		}
 	await getLockAndUpdate(ns, 'fullGangMembersInfo', fullGangMembersInfo);
 	await ns.sleep(300);
 }
@@ -653,10 +671,10 @@ async function evalMemberAscend(ns) {
 		if (ascendPotentional !== null && ascendPotentional !== undefined) {
 			if ((respectLeft - ascendPotentional.respect) > 0) {
 				if (ascentionEnabled && ns.getServerMoneyAvailable('home') > gangSettings.moneyInBankToAscend && (ascendPotentional.str > gangSettings.ascentionStatReqs.strength || ascendPotentional.dex > gangSettings.ascentionStatReqs.dexterity || ascendPotentional.agi > gangSettings.ascentionStatReqs.agility)) {
-					if (!ns.gang.getGangInformation().territoryWarfareEngaged || ascendCounter <= gangSettings.maxMembersToAscendDuringWar) {
+					if (!ns.gang.getGangInformation().territoryWarfareEngaged || ascendCounter <= maxMembersToAscendDuringWar) {
 						let timeSinceAscention = Date.now() - fullGangMembersInfo.find(({ name }) => name == thisMemberInfo.name).lastAscended;
-						if ((timeSinceAscention >= gangSettings.timeToHoldOffOnAscentionAfterEquipping && fullGangMembersInfo.find(({ name }) => name == thisMemberInfo.name).equipemntCostSinceAscention <= gangSettings.costOfEquipmentToPauseAscention)
-							|| timeSinceAscention >= gangSettings.maxTimeBetweenAscention) {
+						if ((timeSinceAscention >= timeToHoldOffOnAscentionAfterEquipping && fullGangMembersInfo.find(({ name }) => name == thisMemberInfo.name).equipemntCostSinceAscention <= costOfEquipmentToPauseAscention)
+							|| timeSinceAscention >= maxTimeBetweenAscention) {
 							if (!debugOnly) {
 								ns.print(` Ascending ${thisMemberInfo.name}`);
 								await ns.gang.ascendMember(thisMemberInfo.name);
@@ -736,7 +754,7 @@ async function evalGoToWar(ns) {
 	let lowestChance = await calculateWarChance(ns);
 	let goToWar = false;
 	let atWar = ns.gang.getGangInformation().territoryWarfareEngaged;
-	let threshold = gangSettings.goToWarWhenChancesOver;
+	let threshold = goToWarWhenChancesOver;
 	if (atWar) {
 		threshold -= 5; // If we're at war, allow us to continue with a margin of 5% under
 	}

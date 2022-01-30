@@ -1,8 +1,8 @@
 import { getItem, setItem, getLockAndUpdate } from '/_helpers/ioHelpers.js';
 /** @param {NS} ns **/
 export async function main(ns) {
-    ns.tail();
     ns.disableLog('sleep');
+    localStorage.removeItem('portsToOpenList_Locked');
     while (true) {
         await ns.sleep(1000);
         let portsToOpenList = getItem(ns, 'portsToOpenList');
