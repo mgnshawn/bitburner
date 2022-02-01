@@ -163,7 +163,13 @@ export async function main(_ns) {
 			} else if (ns.getPlayer().factions.includes("Slum Snakes")) {
 				letCreate = await ns.gang.createGang("Slum Snakes");
 			}
-		}
+		} else
+			if (ns.getPlayer().factions.includes('Slum Snakes')) {
+				letCreate = await ns.gang.createGang('Slum Snakes');
+			} else
+				if (ns.getPlayer().factions.includes('The Syndicate')) {
+					letCreate = await ns.gang.createGang('The Syndicate');
+				}
 		if (letCreate) {
 			ns.alert("Created your gang!");
 			ns.print("CREATED GANG !!!!!");
@@ -258,7 +264,7 @@ async function evalCurrentRep(ns) {
 			if (mygangInfo.wantedLevelGainRate >= 0 || mygangInfo.wantedLevelGainRate == undefined) {
 				thisMemberInfo = ns.gang.getMemberInformation(members[a]);
 				if ((mygangInfo.respect / mygangInfo.wantedLevel) <= 2) {
-					if (a == 0) { // First person needs to Mug for initial Rep offset
+					/*if (a == 0) { // First person needs to Mug for initial Rep offset
 						if (!debugOnly) {
 							await ns.gang.setMemberTask(members[a], "Mug People");
 							ns.print(`    setting ${members[a]} to Mug People`);
@@ -266,8 +272,8 @@ async function evalCurrentRep(ns) {
 							ns.print(`___ Would be setting ${members[a]} to 'Mug People' in evalCurrentRep()`);
 						}
 						mygangInfo = ns.gang.getGangInformation();
-					}
-					if ((mygangInfo.wantedLevel - mygangInfo.respect) > 0 && a == 1) {
+					}*/
+					if ((mygangInfo.wantedLevel - mygangInfo.respect) > 0 && a == 1 && ns.gang.getMemberNames().length > 2) {
 						if (!debugOnly) {
 							await ns.gang.setMemberTask(members[a], "Mug People");
 							ns.print(`    setting ${members[a]} to Mug People`);
@@ -404,7 +410,7 @@ async function evalMemberTasks(ns) {
 		if (fullTeam == true) {
 			tmpJumpLevels = [["Train Combat", 300], ["Terrorism", 500], ["Territory Warfare", 600], ["Human Trafficking", 5900000]];
 			if (ns.gang.getGangInformation().territory < 1 && await calculateWarChance(ns) < goToWarWhenChancesOver) {
-				tmpJumpLevels = [["Train Combat", 300], ["Terrorism", 350], ["Territory Warfare", 3500], ["Human Trafficking", 5900000]];
+				tmpJumpLevels = [["Train Combat", 300], ["Terrorism", 350], ["Human Trafficking", 1000], ["Territory Warfare", 1500], ["Human Trafficking", 5900000]];
 			}
 
 			if (endGameFocus == "Reputation") {

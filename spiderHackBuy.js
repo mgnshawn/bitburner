@@ -193,6 +193,10 @@ export async function main(ns) {
     ns.run('/_scriptRamHelpers/_getPurchasedServers.js');
     await ns.sleep(250);
     var attackServers = getItem(ns, 'purchasedServers');
+    if (attackServers == undefined) {
+        ns.run('/_scriptRamHelpers/_getPurchasedServers.js');
+        await ns.sleep(250);
+    }
     if (purchaseServers == true && attackServers.length < ns.getPurchasedServerLimit()) {
         drawLCol(ns, "Beginning NEW server purchase loop");
     }
@@ -502,6 +506,7 @@ async function startHacking(ns, serv, thisTarget) {
     if (serversOnTarget !== undefined && serversOnTarget !== null && serversOnTarget[serv] !== undefined) {
         serverDetails = serversOnTarget[serv];
     } else {
+        serversOnTarget = {};
         serversOnTarget[serv] = serverDetails;
     }
     if (serv != 'home') {

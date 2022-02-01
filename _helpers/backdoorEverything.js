@@ -6,16 +6,15 @@ export async function main(ns) {
 	for (let serv in servers) {
 		if (ns.getServer(servers[serv][0]).hasAdminRights) {
 			if (!ns.getServer(servers[serv][0]).backdoorInstalled) {
-				if (!ns.getPurchasedServers().includes(servers[serv][0]) && ns.getServerMinSecurityLevel(servers[serv][0]) <= ns.getPlayer().hacking) {
+				if (!ns.getPurchasedServers().includes(servers[serv][0]) && ns.getServerRequiredHackingLevel(servers[serv][0]) <= ns.getPlayer().hacking) {
 					await travelToServer(ns, servers[serv][0]);
-					await ns.sleep(1000);
-					await ns.sleep(100);
+					await ns.sleep(200);
 					await ns.installBackdoor();
 					ns.tprint(`\tBackdoored ${servers[serv][0]}`);
 					
 					await ns.sleep(100);
 					await travelBackHome(ns, servers[serv][0]);
-					await ns.sleep(1000);
+					await ns.sleep(200);
 				}
 			} else {
 				ns.tprint(`\t already backdoored on ${servers[serv][0]}`);

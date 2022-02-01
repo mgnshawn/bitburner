@@ -1,0 +1,12 @@
+module.exports.status = [
+ {
+  type: 'servers',
+  sizegb : 64,
+  names : ['attack-joesguns-64gb-0','attack-joesguns-64gb-0-1'],
+ },
+ {
+  type: 'gang',
+  members : 12,
+  avgStrength: 252394,
+ },
+]
